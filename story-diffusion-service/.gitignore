@@ -19,6 +19,10 @@ target/
 *.iml
 *.ipr
 
+# local overrides (không commit)
+application-local.yml
+.env
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

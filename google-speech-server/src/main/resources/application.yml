@@ -1,10 +1,11 @@
 # src/main/resources/application.yml
+# src/main/resources/application.yml
 server:
-  port: 8082
+  port: 8083
 
 spring:
   application:
-    name: story-diffusion-service   # tên service hiển thị trên Eureka
+    name: google-speech-service   # tên service hiển thị trên Eureka
 
   # Kết nối MongoDB Atlas
   data:
@@ -41,7 +42,8 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    appname: story-diffusion-service
+    appname: google-speech-service
     prefer-ip-address: true
     ip-address: 127.0.0.1
     instance-id: ${spring.application.name}:${server.port}
+

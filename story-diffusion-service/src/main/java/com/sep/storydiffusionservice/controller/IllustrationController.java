@@ -23,7 +23,7 @@ public class IllustrationController {
 
     @PostMapping
     @CacheEvict(value = "allIllustrations", allEntries = true)
-    public Illustration createUser(@RequestBody Illustration illustration) {
+    public Illustration createIllustration(@RequestBody Illustration illustration) {
         return illustrationRepository.save(illustration);
     }
 

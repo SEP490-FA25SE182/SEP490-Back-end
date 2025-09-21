@@ -1,4 +1,4 @@
-package com.sep.rookieservice.config;
+package com.sep.storydiffusionservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,11 +8,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 public class SecurityConfig {
-
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Cho phép H2 console & API không cần auth
+                // Cho phép API không cần auth
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 new AntPathRequestMatcher("/api/**")
@@ -34,3 +33,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

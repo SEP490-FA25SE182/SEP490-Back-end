@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.sep</groupId>
-    <artifactId>story-diffusion-service</artifactId>
+    <artifactId>google-speech-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>story-diffusion-service</name>
-    <description>story-diffusion-service</description>
+    <name>google-speech-server</name>
+    <description>google-speech-server</description>
     <url/>
     <licenses>
         <license/>

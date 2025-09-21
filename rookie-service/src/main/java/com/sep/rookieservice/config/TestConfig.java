@@ -12,13 +12,13 @@ public class TestConfig {
     CommandLineRunner testMongo(UserRepository repo) {
         return args -> {
             User user = new User();
-            user.setFullName("Alice");
+            user.setFullName("Hehe");
             user.setRole("User");
-            user.setEmail("alice@example.com");
+            user.setEmail("hehe@example.com");
 
             repo.save(user);
 
-            System.out.println("Inserted user: " + repo.findByEmail("alice@example.com"));
+            System.out.println("Inserted user: " + repo.findByEmail("hehe@example.com"));
         };
     }
 }
