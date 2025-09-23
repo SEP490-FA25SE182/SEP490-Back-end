@@ -1,0 +1,46 @@
+# src/main/resources/application.yml
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway   #  tên service hiển thị trên Eureka
+
+  cloud:
+    discovery:
+      enabled: true     # bật discovery client
+    service-registry:
+      auto-registration:
+        enabled: true   #  bật auto-register
+
+    gateway:
+      discovery:
+        locator:
+          enabled: true        # cho phép tự động định tuyến qua serviceId
+          lower-case-service-id: true
+      routes:
+        - id: rookie-service
+          uri: lb://rookie-service
+          predicates:
+            - Path=/api/rookie/users,/api/rookie/users/**
+
+        - id: story-diffusion-service
+          uri: lb://story-diffusion-service  # dùng serviceId thay vì localhost
+          predicates:
+            - Path=/api/rookie/illustrations,/api/rookie/illustrations/**
+
+        - id: google-speech-service
+          uri: lb://google-speech-service  # dùng serviceId thay vì localhost
+          predicates:
+            - Path=/api/rookie/audios,/api/rookie/audios/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}
