@@ -1,10 +1,8 @@
 package com.sep.rookieservice.controller;
 
 import com.sep.rookieservice.model.User;
-import com.sep.rookieservice.repository.UserRepository;
 import com.sep.rookieservice.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,17 +12,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final UserRepository userRepository;
 
     @GetMapping
     public List<User> getUsers() {
         return userService.getAllUsers();
     }
 
+    @GetMapping("{/id}")
+    public User getUser(@PathVariable String id) {return userService.findById(id).get();}
+
+    @GetMapping("{/email}")
+    public User getUserByEmail(@PathVariable String email) {return userService.findByEmail(email).get();}
+
     @PostMapping
-    @CacheEvict(value = "allUsers", allEntries = true)
     public User createUser(@RequestBody User user) {
-        return userRepository.save(user);
+        return userService.createUser(user);
     }
 
 }
