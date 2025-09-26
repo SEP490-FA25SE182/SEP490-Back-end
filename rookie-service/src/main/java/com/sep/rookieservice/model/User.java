@@ -1,62 +1,96 @@
 package com.sep.rookieservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sep.rookieservice.enums.IsActived;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Document(collection = "users")
+@Entity
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "email")
+})
 public class User implements Serializable {
     @Id
-    @Size(max = 50)
+    @Column(name = "user_id", length = 50)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String userId;
 
     @NotNull
     @Size(max = 50)
-    @Field("full_name")
+    @Column(name = "full_name", length = 50, nullable = false)
     private String fullName;
 
-    @Field("birth_date")
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Size(max = 10)
-    @Field("gender")
+    @Column(name = "gender", length = 10)
     private String gender;
 
-    @Indexed(unique = true)
     @Size(max = 254)
+    @Column(name = "email", length = 254, nullable = false, unique = true)
     private String email;
 
     @Size(max = 20)
-    @Field("phone_number")
+    @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
     @Size(max = 1000)
-    @Field("avatar_url")
+    @Column(name = "avatar_url", length = 1000)
     private String avatarUrl;
 
     @NotNull
-    @Size(max = 10)
-    @Field("role")
-    private String role;
+    @Column(name = "role_id", length = 50, insertable = false, updatable = false)
+    private String roleId;
 
     @NotNull
-    @Field("is_actived")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
+
+    //OneToMany
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<UserAddress> addresses;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Book> books;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Feedback> feedbacks;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<UserQuizResult> userQuizResults;
+
+    //ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", referencedColumnName = "role_id", insertable = false, updatable = false)
+    private Role role;
+
+    //OneToOne
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private Bookshelve bookshelve;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private Cart cart;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private Wallet wallet;
 }

@@ -1,0 +1,83 @@
+package com.sep.rookieservice.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sep.rookieservice.enums.BookEnum;
+import com.sep.rookieservice.enums.ChapterEnum;
+import com.sep.rookieservice.enums.IsActived;
+import com.sep.rookieservice.enums.PublicationEnum;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.UniqueElements;
+
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "chapters")
+public class Chapter implements Serializable {
+    @Id
+    @Column(name = "chapter_id", length = 50)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String chapterId;
+
+    @Column(name = "chapter_name", length = 50)
+    private String chapterName;
+
+    @UniqueElements
+    @Column(name = "chapter_number")
+    private int chapterNumber;
+
+    @Column(name = "decription", length = 250)
+    private String decription;
+
+    @Column(name = "review", length = 250)
+    private String review;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
+    private IsActived isActived = IsActived.ACTIVE;
+
+    @Column(name = "updated_at", updatable = false)
+    private Instant updatedAt = Instant.now();
+
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt = Instant.now();
+
+    @Column(name = "published_date", updatable = false)
+    private Instant publishedDate;
+
+    @Column(name = "progress_status")
+    private Byte progressStatus = ChapterEnum.IN_REVIEW.getStatus();
+
+    @Column(name = "publication_status")
+    private Byte publicationStatus = PublicationEnum.DRAFT.getStatus();
+
+    @NotNull
+    @Column(name = "book_id", length = 50, insertable = false, updatable = false)
+    private String bookId;
+
+    //ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", referencedColumnName = "book_id", insertable = false, updatable = false)
+    private Book book;
+
+    //OneToMany
+    @JsonIgnore
+    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Page> pages;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Quiz> quizzes;
+}
