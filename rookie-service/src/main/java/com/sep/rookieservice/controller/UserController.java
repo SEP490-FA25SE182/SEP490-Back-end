@@ -18,10 +18,10 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @GetMapping("{/id}")
+    @GetMapping("/{id}")
     public User getUser(@PathVariable String id) {return userService.findById(id).get();}
 
-    @GetMapping("{/email}")
+    @GetMapping("/{email}")
     public User getUserByEmail(@PathVariable String email) {return userService.findByEmail(email).get();}
 
     @PostMapping

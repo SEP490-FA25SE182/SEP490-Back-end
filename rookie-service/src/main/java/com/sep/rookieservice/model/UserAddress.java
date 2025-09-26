@@ -1,16 +1,11 @@
 package com.sep.rookieservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sep.rookieservice.enums.IsActived;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -19,26 +14,38 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Document(collection = "userAddresses")
+@Entity
+@Table(name = "user_addresses")
 public class UserAddress implements Serializable {
+
     @Id
-    @Size(max = 50)
-    private String userAddressId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_address_id")
+    private Long userAddressId;
 
     @NotNull
     @Size(max = 100)
-    @Field("address_infor ")
+    @Column(name = "address_infor", length = 100, nullable = false)
     private String addressInfor;
 
-    @CreatedDate
-    @Field("created_at")
-    private Instant createdAt;
+    @NotNull
+    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    private String userId;
 
-    @CreatedDate
-    @Field("updated_at")
-    private Instant updatedAt;
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt = Instant.now();
+
+    @Column(name = "updated_at")
+    private Instant updatedAt = Instant.now();
 
     @NotNull
-    @Field("is_actived")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
+
+    // ManytoOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    private User user;
 }
