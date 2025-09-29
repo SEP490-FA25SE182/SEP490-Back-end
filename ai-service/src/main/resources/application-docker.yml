@@ -1,0 +1,17 @@
+server:
+  port: ${AI_PORT:8082}
+
+spring:
+  application:
+    name: ai-service
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://discovery-server:8761/eureka}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
