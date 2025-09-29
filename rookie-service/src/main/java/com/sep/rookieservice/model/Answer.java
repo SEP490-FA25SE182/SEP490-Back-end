@@ -30,7 +30,7 @@ public class Answer implements Serializable {
     @Column(name = "is_correct")
     private Boolean isCorrect;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)

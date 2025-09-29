@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -26,6 +27,9 @@ public class Genre {
 
     @Column(name = "description", length = 250)
     private String description;
+
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt = Instant.now();
 
     @JsonIgnore
     @ManyToMany(mappedBy = "genres")

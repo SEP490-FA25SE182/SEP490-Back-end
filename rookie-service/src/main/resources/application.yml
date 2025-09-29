@@ -38,6 +38,18 @@ spring:
       auto-registration:
         enabled: true
 
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 eureka:
   client:
     service-url:
@@ -46,3 +58,9 @@ eureka:
     prefer-ip-address: true
     ip-address: 127.0.0.1
     instance-id: ${spring.application.name}:${server.port}
+
+app:
+  mail:
+    from: ${APP_MAIL_FROM:Your App <no-reply@yourapp.com>}
+  frontend:
+    reset-password-url: ${APP_FRONTEND_RESET_PASSWORD_URL:https://your-frontend/reset}

@@ -1,5 +1,6 @@
 package com.sep.rookieservice.controller;
 
+import com.sep.rookieservice.dto.UserDto;
 import com.sep.rookieservice.model.User;
 import com.sep.rookieservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,17 @@ public class UserController {
     public User getUserByEmail(@PathVariable String email) {return userService.findByEmail(email).get();}
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public List<User> createUsers(@RequestBody List<User> users) {
+        return userService.createUsers(users);
     }
 
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable String id, @RequestBody UserDto userDto) {
+        return userService.updateUser(id, userDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable String id) {
+        userService.deleteUser(id);
+    }
 }

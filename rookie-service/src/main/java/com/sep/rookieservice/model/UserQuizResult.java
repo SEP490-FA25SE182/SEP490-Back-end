@@ -31,7 +31,7 @@ public class UserQuizResult implements Serializable {
     @Column(name = "number")
     private int number;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)
