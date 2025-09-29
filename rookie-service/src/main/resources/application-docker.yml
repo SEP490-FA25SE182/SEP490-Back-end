@@ -1,0 +1,17 @@
+server:
+  port: ${ROOKIE_PORT:8081}
+
+spring:
+  application:
+    name: rookie-service
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://discovery-server:8761/eureka}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
