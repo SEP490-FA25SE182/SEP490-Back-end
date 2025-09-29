@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,6 +42,10 @@ public class User implements Serializable {
     @Column(name = "email", length = 254, nullable = false, unique = true)
     private String email;
 
+    @Size(min = 8, max = 100)
+    @Column(name = "password", nullable = false)
+    private String password;
+
     @Size(max = 20)
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
@@ -50,8 +55,14 @@ public class User implements Serializable {
     private String avatarUrl;
 
     @NotNull
-    @Column(name = "role_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "role_id", length = 50)
     private String roleId;
+
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt = Instant.now();
+
+    @Column(name = "updated_at")
+    private Instant updateAt = Instant.now();
 
     @NotNull
     @Enumerated(EnumType.STRING)

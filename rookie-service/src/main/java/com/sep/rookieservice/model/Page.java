@@ -32,7 +32,7 @@ public class Page implements Serializable {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)
