@@ -31,7 +31,7 @@ public class Feedback implements Serializable {
     @Column(name = "rating")
     private byte rating;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)

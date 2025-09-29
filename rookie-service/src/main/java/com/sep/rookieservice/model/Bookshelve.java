@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -28,6 +29,12 @@ public class Bookshelve implements Serializable {
 
     @Column(name = "decription", length = 250)
     private String decription;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt = Instant.now();
+
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt = Instant.now();
 
     @NotNull
     @Enumerated(EnumType.STRING)

@@ -31,7 +31,7 @@ public class Cart implements Serializable {
     @Column(name = "total_price")
     private double totalPrice;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)

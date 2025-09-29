@@ -47,13 +47,13 @@ public class Chapter implements Serializable {
     @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
-    @Column(name = "published_date", updatable = false)
+    @Column(name = "published_date")
     private Instant publishedDate;
 
     @Column(name = "progress_status")

@@ -31,7 +31,7 @@ public class Question implements Serializable {
     @Column(name = "content", length = 250)
     private String content;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)
