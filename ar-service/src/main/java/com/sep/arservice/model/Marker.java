@@ -34,6 +34,9 @@ public class Marker implements Serializable {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "updated_at")
+    private Instant updatedAt = Instant.now();
+
     //OneToMany
     @JsonIgnore
     @OneToMany(mappedBy = "marker", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

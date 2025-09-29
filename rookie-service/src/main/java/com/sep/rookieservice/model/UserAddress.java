@@ -21,7 +21,7 @@ public class UserAddress implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_address_id")
-    private Long userAddressId;
+    private String userAddressId;
 
     @NotNull
     @Size(max = 100)

@@ -44,6 +44,9 @@ public class Asset3D implements Serializable {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "updated_at")
+    private Instant updatedAt = Instant.now();
+
     @NotNull
     @Column(name = "marker_id", length = 50, insertable = false, updatable = false)
     private String markerId;

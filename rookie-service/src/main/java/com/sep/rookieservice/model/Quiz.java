@@ -32,7 +32,7 @@ public class Quiz implements Serializable {
     @Column(name = "title", length = 50)
     private String title;
 
-    @Column(name = "updated_at", updatable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
     @Column(name = "created_at", updatable = false)
