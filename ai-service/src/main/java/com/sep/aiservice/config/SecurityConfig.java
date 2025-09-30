@@ -11,22 +11,20 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Cho phép API không cần auth
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                new AntPathRequestMatcher("/actuator/**"),
                                 new AntPathRequestMatcher("/api/**")
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
-                // H2 console cần frame từ same-origin
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()))
-                // Tắt CSRF cho H2 console & API (POST/PUT...)
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
+                                new AntPathRequestMatcher("/actuator/**"),
                                 new AntPathRequestMatcher("/api/**")
                         )
                 )
-                // Không cần form login
                 .formLogin(f -> f.disable())
                 .httpBasic(b -> {});
         return http.build();
