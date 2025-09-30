@@ -1,4 +1,3 @@
-version: "3.9"
 
 name: sep490
 services:
@@ -20,6 +19,15 @@ services:
       retries: 30
     networks: [sep490-net]
 
+  # service Redis
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6380:6379"
+    networks: [ sep490-net ]
+
+  # rookie-service
   rookie-service:
     build:
       context: ./rookie-service
@@ -30,20 +38,27 @@ services:
       ROOKIE_PORT: ${ROOKIE_PORT:-8081}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
-      # Ví dụ secrets thêm vào .env của bạn:
-      # GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, ...
-    ports:
-      - "${ROOKIE_PORT:-8081}:8081"
+      # === DB cho container ===
+      DB_URL: jdbc:sqlserver://mssql:1433;databaseName=rookie_db;encrypt=true;trustServerCertificate=true
+      DB_USERNAME: sa
+      DB_PASSWORD: ${MSSQL_SA_PASSWORD}
+      DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+      # === Redis trong container ===
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       discovery-server:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL","curl -fsS http://localhost:8081/actuator/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 30
+        condition: service_started
+      mssql:
+        condition: service_started
+      redis:
+        condition: service_started
+    ports:
+      - "${ROOKIE_PORT:-8081}:8081"
     networks: [sep490-net]
 
+  # ai-service
   ai-service:
     build:
       context: ./ai-service
@@ -54,18 +69,26 @@ services:
       AI_PORT: ${AI_PORT:-8082}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
-    ports:
-      - "${AI_PORT:-8082}:8082"
+
+      DB_URL: jdbc:sqlserver://mssql:1433;databaseName=rookie_db;encrypt=true;trustServerCertificate=true
+      DB_USERNAME: sa
+      DB_PASSWORD: ${MSSQL_SA_PASSWORD}
+      DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       discovery-server:
+        condition: service_started
+      mssql:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL","curl -fsS http://localhost:8082/actuator/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 30
+      redis:
+        condition: service_started
+    ports:
+      - "${AI_PORT:-8082}:8082"
     networks: [sep490-net]
 
+  # ar-service
   ar-service:
     build:
       context: ./ar-service
@@ -76,16 +99,23 @@ services:
       AR_PORT: ${AR_PORT:-8083}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
-    ports:
-      - "${AR_PORT:-8083}:8083"
+
+      DB_URL: jdbc:sqlserver://mssql:1433;databaseName=rookie_db;encrypt=true;trustServerCertificate=true
+      DB_USERNAME: sa
+      DB_PASSWORD: ${MSSQL_SA_PASSWORD}
+      DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       discovery-server:
+        condition: service_started
+      mssql:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL","curl -fsS http://localhost:8083/actuator/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 30
+      redis:
+        condition: service_started
+    ports:
+      - "${AR_PORT:-8083}:8083"
     networks: [sep490-net]
 
   api-gateway:
@@ -102,18 +132,13 @@ services:
       - "${GATEWAY_PORT:-8080}:8080"
     depends_on:
       discovery-server:
-        condition: service_healthy
+        condition: service_started
       rookie-service:
-        condition: service_healthy
+        condition: service_started
       ai-service:
-        condition: service_healthy
+        condition: service_started
       ar-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL","curl -fsS http://localhost:8080/actuator/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 30
+        condition: service_started
     networks: [sep490-net]
 
   mssql:
@@ -121,7 +146,7 @@ services:
     container_name: mssql
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      SA_PASSWORD: ${MSSQL_SA_PASSWORD}
       MSSQL_PID: "Express"
     ports:
       - "1433:1433"
@@ -133,6 +158,22 @@ services:
       timeout: 3s
       retries: 30
     networks: [ sep490-net ]
+
+  mssql-bootstrap:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      mssql:
+        condition: service_healthy
+    entrypoint: [ "/bin/bash","-lc" ]
+    command:
+      - >
+        /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P "$${SA_PASSWORD}" -C
+        -Q "IF DB_ID('rookie_db') IS NULL CREATE DATABASE rookie_db;"
+    environment:
+      SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    networks: [ sep490-net ]
+    restart: "no"
+
 
 networks:
   sep490-net:
