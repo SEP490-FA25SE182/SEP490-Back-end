@@ -19,7 +19,7 @@ import java.time.Instant;
 public class UserAddress implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_address_id")
     private String userAddressId;
 
