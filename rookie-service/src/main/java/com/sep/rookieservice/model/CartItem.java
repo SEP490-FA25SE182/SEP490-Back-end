@@ -32,7 +32,6 @@ public class CartItem implements Serializable {
     @Column(name = "cart_id", length = 50, insertable = false, updatable = false)
     private String cartId;
 
-    @NotNull
     @Column(name = "book_id", length = 50, insertable = false, updatable = false)
     private String bookId;
 

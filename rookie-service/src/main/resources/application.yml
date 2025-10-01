@@ -60,6 +60,6 @@ eureka:
 
 app:
   mail:
-    from: ${APP_MAIL_FROM:Your App <no-reply@yourapp.com>}
+    from: ${APP_MAIL_FROM:Rookies <no-reply@rookies.com>}
   frontend:
     reset-password-url: ${APP_FRONTEND_RESET_PASSWORD_URL:https://your-frontend/reset}
