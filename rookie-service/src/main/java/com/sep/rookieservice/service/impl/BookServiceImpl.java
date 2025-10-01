@@ -11,6 +11,7 @@ import com.sep.rookieservice.service.BookService;
 import com.sep.rookieservice.specification.BookSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
