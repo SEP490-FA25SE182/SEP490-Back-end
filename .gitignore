@@ -1,3 +1,7 @@
 # local overrides (không commit)
 application-local.yml
 .env
+application.properties
+application.yml
+application-docker.yml
+firebase-service-account.json
