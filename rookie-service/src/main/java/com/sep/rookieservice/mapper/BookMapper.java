@@ -15,12 +15,10 @@ public class BookMapper {
         if (dto.getCoverUrl() != null) b.setCoverUrl(dto.getCoverUrl());
         if (dto.getDecription() != null) b.setDecription(dto.getDecription());
         if (dto.getAuthorId() != null) b.setAuthorId(dto.getAuthorId());
-        if (dto.getBookshelveId() != null) b.setBookshelveId(dto.getBookshelveId());
         if (dto.getProgressStatus() != null) b.setProgressStatus(dto.getProgressStatus());
         if (dto.getPublicationStatus() != null) b.setPublicationStatus(dto.getPublicationStatus());
         if (dto.getPublishedDate() != null) b.setPublishedDate(dto.getPublishedDate());
 
-        // updatedAt is set by service on update/save
         return b;
     }
 
@@ -31,7 +29,6 @@ public class BookMapper {
         dto.setCoverUrl(book.getCoverUrl());
         dto.setDecription(book.getDecription());
         dto.setAuthorId(book.getAuthorId());
-        dto.setBookshelveId(book.getBookshelveId());
         dto.setProgressStatus(book.getProgressStatus());
         dto.setPublicationStatus(book.getPublicationStatus());
         dto.setIsActived(book.getIsActived());

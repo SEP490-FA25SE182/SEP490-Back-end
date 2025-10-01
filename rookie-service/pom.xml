@@ -30,6 +30,8 @@
         <java.version>21</java.version>
         <spring-ai.version>1.0.2</spring-ai.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
     </properties>
     <dependencies>
         <!--Actuator-->
@@ -37,6 +39,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+
+        <!--dotenv-->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <!--swagger-->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
 
         <!--Mail-->
         <dependency>

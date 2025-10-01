@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/books")
+@RequestMapping("/api/rookie/users/books")
 public class BookController {
 
     private final BookService svc;

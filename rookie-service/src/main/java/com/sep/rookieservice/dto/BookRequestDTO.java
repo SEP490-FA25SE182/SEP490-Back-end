@@ -1,13 +1,17 @@
 package com.sep.rookieservice.dto;
 
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.time.Instant;
 
 @Data
-public class BookRequestDTO {
+public class BookRequestDTO implements Serializable {
+
     @Size(max = 50)
+    @NotNull
     private String bookName;
 
     @Size(max = 100)
@@ -19,10 +23,7 @@ public class BookRequestDTO {
     @Size(max = 50)
     private String authorId;
 
-    @Size(max = 50)
-    private String bookshelveId;
 
-    // Use Byte for enums stored as byte in entity (nullable)
     private Byte progressStatus;
     private Byte publicationStatus;
 
