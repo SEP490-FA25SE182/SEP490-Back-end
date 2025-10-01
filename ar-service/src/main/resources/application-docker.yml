@@ -1,0 +1,23 @@
+server:
+  port: ${AR_PORT:8083}
+
+spring:
+  application:
+    name: ar-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+redis:
+  host: ${REDIS_HOST:redis}
+  port: ${REDIS_PORT:6379}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://discovery-server:8761/eureka}
+  instance:
+    prefer-ip-address: true
