@@ -68,11 +68,6 @@ public class Book implements Serializable {
     @JoinColumn(name = "author_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User author;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bookshelve_id", referencedColumnName = "bookshelve_id", insertable = false, updatable = false)
-    private Bookshelve bookshelve;
-
     //OneToMany
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -90,6 +85,10 @@ public class Book implements Serializable {
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Chapter> chapters;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Wishlist> wishlists;
+
     // ManyToMany
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -97,5 +96,6 @@ public class Book implements Serializable {
             joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id", referencedColumnName = "genre_id")
     )
+
     private List<Genre> genres;
 }
