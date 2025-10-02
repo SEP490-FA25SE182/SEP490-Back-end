@@ -1,6 +1,6 @@
 package com.sep.rookieservice.repository;
 
-import com.sep.rookieservice.model.CartItem;
+import com.sep.rookieservice.entity.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItem, String> {
     List<CartItem> findByCartId(String cartId);
+    void deleteByCartId(String cartId);
 }
 
