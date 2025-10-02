@@ -1,6 +1,6 @@
 package com.sep.rookieservice.security;
 
-import com.sep.rookieservice.service.JwtBlacklistService;
+import com.sep.rookieservice.service.impl.JwtBlacklistServiceImpl;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,7 +17,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final JwtBlacklistService blacklistService;
+    private final JwtBlacklistServiceImpl blacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
