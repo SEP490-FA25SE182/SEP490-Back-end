@@ -5,7 +5,7 @@ import com.sep.rookieservice.dto.BookResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.exception.ResourceNotFoundException;
 import com.sep.rookieservice.mapper.BookMapper;
-import com.sep.rookieservice.model.Book;
+import com.sep.rookieservice.entity.Book;
 import com.sep.rookieservice.repository.BookRepository;
 import com.sep.rookieservice.service.BookService;
 import com.sep.rookieservice.specification.BookSpecification;

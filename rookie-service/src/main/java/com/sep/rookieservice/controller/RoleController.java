@@ -1,11 +1,14 @@
 package com.sep.rookieservice.controller;
 
-import com.sep.rookieservice.dto.RoleDto;
-import com.sep.rookieservice.model.Role;
-import com.sep.rookieservice.model.User;
+import com.sep.rookieservice.dto.RoleRequest;
+import com.sep.rookieservice.dto.RoleResponse;
+import com.sep.rookieservice.entity.Role;
 import com.sep.rookieservice.service.RoleService;
-import com.sep.rookieservice.service.UserService;
+import com.sep.rookieservice.service.impl.RoleServiceImpl;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,29 +16,39 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rookie/users/roles")
 @RequiredArgsConstructor
+@Validated
 public class RoleController {
+
     private final RoleService roleService;
 
     @GetMapping
-    public List<Role> getRoles() {
-        return roleService.getAllRoles();
+    public List<RoleResponse> getRoles() {
+        return roleService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Role getRole(@PathVariable String id) {return roleService.findById(id).get();}
+    public RoleResponse getRole(
+            @PathVariable
+            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$", message = "Invalid UUID format")
+            String id) {
+        return roleService.getById(id);
+    }
 
     @PostMapping
-    public List<Role> createRoles(@RequestBody List<Role> roles) {
-        return roleService.createRoles(roles);
+    public List<RoleResponse> createRoles(@RequestBody @Valid List<RoleRequest> requests) {
+        return roleService.create(requests);
     }
 
     @PutMapping("/{id}")
-    public Role updateRole(@PathVariable String id, @RequestBody RoleDto roleDto) {
-        return roleService.updateRole(id, roleDto);
+    public RoleResponse updateRole(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id,
+            @RequestBody @Valid RoleRequest request) {
+        return roleService.update(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteRole(@PathVariable String id) {
-        roleService.deleteRole(id);
+    public void deleteRole(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id) {
+        roleService.softDelete(id);
     }
 }
