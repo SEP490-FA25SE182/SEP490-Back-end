@@ -1,6 +1,6 @@
 package com.sep.rookieservice.repository;
 
-import com.sep.rookieservice.model.User;
+import com.sep.rookieservice.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

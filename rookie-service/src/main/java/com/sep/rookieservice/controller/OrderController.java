@@ -1,9 +1,14 @@
 package com.sep.rookieservice.controller;
 
-import com.sep.rookieservice.dto.OrderDto;
-import com.sep.rookieservice.model.Order;
+import com.sep.rookieservice.dto.OrderRequest;
+import com.sep.rookieservice.dto.OrderResponse;
+import com.sep.rookieservice.entity.Order;
 import com.sep.rookieservice.service.OrderService;
+import com.sep.rookieservice.service.impl.OrderServiceImpl;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,38 +16,57 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rookie/users/orders")
 @RequiredArgsConstructor
+@Validated
 public class OrderController {
+
     private final OrderService orderService;
 
     @GetMapping
-    public List<Order> getOrders() {
-        return orderService.getAllOrders();
+    public List<OrderResponse> getOrders() {
+        return orderService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Order getOrder(@PathVariable String id) {
-        return orderService.findById(id).get();
+    public OrderResponse getOrder(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$", message = "Invalid UUID format") String id) {
+        return orderService.getById(id);
+    }
+
+    @GetMapping("/cart/{cartId}")
+    public List<OrderResponse> getByCart(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId) {
+        return orderService.getByCartId(cartId);
+    }
+
+    @GetMapping("/wallet/{walletId}")
+    public List<OrderResponse> getByWallet(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId) {
+        return orderService.getByWalletId(walletId);
     }
 
     @PostMapping
-    public List<Order> createOrders(@RequestBody List<Order> orders) {
-        return orderService.createOrders(orders);
+    public List<OrderResponse> createOrders(@RequestBody @Valid List<OrderRequest> requests) {
+        return orderService.create(requests);
     }
 
     @PutMapping("/{id}")
-    public Order updateOrder(@PathVariable String id, @RequestBody OrderDto dto) {
-        return orderService.updateOrder(id, dto);
+    public OrderResponse updateOrder(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id,
+            @RequestBody @Valid OrderRequest request) {
+        return orderService.update(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteOrder(@PathVariable String id) {
-        orderService.deleteOrder(id);
+    public void deleteOrder(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id) {
+        orderService.delete(id);
     }
 
-    // Move cart to order
+    // Move Cart -> Order
     @PostMapping("/from-cart/{cartId}/wallet/{walletId}")
-    public Order moveCartToOrder(@PathVariable String cartId, @PathVariable String walletId) {
+    public OrderResponse moveCartToOrder(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId,
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId) {
         return orderService.moveCartToOrder(cartId, walletId);
     }
 }
-
