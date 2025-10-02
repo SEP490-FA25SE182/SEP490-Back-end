@@ -1,6 +1,6 @@
 package com.sep.rookieservice.specification;
 
-import com.sep.rookieservice.model.Book;
+import com.sep.rookieservice.entity.Book;
 import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;

@@ -2,7 +2,7 @@ package com.sep.rookieservice.mapper;
 
 import com.sep.rookieservice.dto.BookRequestDTO;
 import com.sep.rookieservice.dto.BookResponseDTO;
-import com.sep.rookieservice.model.Book;
+import com.sep.rookieservice.entity.Book;
 import org.springframework.stereotype.Component;
 
 @Component
