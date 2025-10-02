@@ -1,6 +1,6 @@
 package com.sep.rookieservice.repository;
 
-import com.sep.rookieservice.model.PasswordResetToken;
+import com.sep.rookieservice.entity.PasswordResetToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

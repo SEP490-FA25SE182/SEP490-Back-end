@@ -1,9 +1,14 @@
 package com.sep.rookieservice.controller;
 
-import com.sep.rookieservice.dto.UserAddressDto;
-import com.sep.rookieservice.model.UserAddress;
+import com.sep.rookieservice.dto.UserAddressRequest;
+import com.sep.rookieservice.dto.UserAddressResponse;
+import com.sep.rookieservice.entity.UserAddress;
 import com.sep.rookieservice.service.UserAddressService;
+import com.sep.rookieservice.service.impl.UserAddressServiceImpl;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,32 +16,50 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rookie/users/addresses")
 @RequiredArgsConstructor
+@Validated
 public class UserAddressController {
+
     private final UserAddressService userAddressService;
 
     @GetMapping
-    public List<UserAddress> getUserAddresses() {
-        return userAddressService.getAllUserAddresses();
+    public List<UserAddressResponse> getUserAddresses() {
+        return userAddressService.getAll();
     }
 
     @GetMapping("/{id}")
-    public UserAddress getUserAddress(@PathVariable String id) {
-        return userAddressService.findById(id).get();
+    public UserAddressResponse getUserAddress(
+            @PathVariable
+            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$", message = "Invalid UUID format")
+            String id) {
+        return userAddressService.getById(id);
     }
 
+    // Lấy theo userId
+    @GetMapping("/user/{userId}")
+    public List<UserAddressResponse> getByUser(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$", message = "Invalid UUID format")
+            String userId) {
+        return userAddressService.getByUserId(userId);
+    }
+
+    // CREATE (danh sách)
     @PostMapping
-    public List<UserAddress> createUserAddresses(@RequestBody List<UserAddress> addresses) {
-        return userAddressService.createUserAddresses(addresses);
+    public List<UserAddressResponse> createUserAddresses(@RequestBody @Valid List<UserAddressRequest> requests) {
+        return userAddressService.create(requests);
     }
 
+    // UPDATE
     @PutMapping("/{id}")
-    public UserAddress updateUserAddress(@PathVariable String id, @RequestBody UserAddressDto dto) {
-        return userAddressService.updateUserAddress(id, dto);
+    public UserAddressResponse updateUserAddress(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id,
+            @RequestBody @Valid UserAddressRequest request) {
+        return userAddressService.update(id, request);
     }
 
+    // SOFT DELETE
     @DeleteMapping("/{id}")
-    public void deleteUserAddress(@PathVariable String id) {
-        userAddressService.deleteUserAddress(id);
+    public void deleteUserAddress(
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id) {
+        userAddressService.softDelete(id);
     }
 }
-
