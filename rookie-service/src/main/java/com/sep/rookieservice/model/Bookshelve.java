@@ -50,7 +50,8 @@ public class Bookshelve implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true)
     private User user;
 
-    //OneToMany
-    @OneToMany(mappedBy = "bookshelve", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "wishlist",joinColumns = @JoinColumn(name = "bookshelve_id", referencedColumnName = "bookshelve_id"), inverseJoinColumns = @JoinColumn(name = "book_id", referencedColumnName = "book_id"))
     private List<Book> books;
+
 }
