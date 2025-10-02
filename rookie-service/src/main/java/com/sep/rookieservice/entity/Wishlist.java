@@ -1,4 +1,4 @@
-package com.sep.rookieservice.model;
+package com.sep.rookieservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
