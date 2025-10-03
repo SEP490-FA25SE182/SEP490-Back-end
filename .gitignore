@@ -1,11 +1,10 @@
 # local overrides (không commit)
 application-local.yml
 .env
-<<<<<<< HEAD
 application.properties
 application.yml
 application-docker.yml
 firebase-service-account.json
-=======
+
 /rookie-service/src/main/resources/firebase-service-account.json
->>>>>>> work/tuyen-wip
+
