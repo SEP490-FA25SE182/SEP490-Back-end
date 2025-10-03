@@ -10,6 +10,10 @@ import com.sep.rookieservice.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,6 +90,21 @@ public class WalletServiceImpl implements WalletService {
         wallet.setIsActived(IsActived.INACTIVE);
         wallet.setUpdatedAt(Instant.now());
         walletRepository.save(wallet);
+    }
+
+    @Override
+    public Page<WalletResponse> search(IsActived isActived, Pageable pageable) {
+        Wallet probe = new Wallet();
+        if (isActived != null) probe.setIsActived(isActived);
+
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnorePaths("walletId", "coin", "userId", "updatedAt", "createdAt", "user", "orders")
+                .withIgnoreNullValues();
+
+        Example<Wallet> example = Example.of(probe, matcher);
+
+        return walletRepository.findAll(example, pageable)
+                .map(mapper::toResponse);
     }
 }
 

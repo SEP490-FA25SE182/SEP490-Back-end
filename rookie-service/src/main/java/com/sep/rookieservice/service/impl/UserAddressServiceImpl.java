@@ -10,6 +10,10 @@ import com.sep.rookieservice.service.UserAddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,6 +86,22 @@ public class UserAddressServiceImpl implements UserAddressService {
         address.setIsActived(IsActived.INACTIVE);
         address.setUpdatedAt(Instant.now());
         userAddressRepository.save(address);
+    }
+
+    @Override
+    public Page<UserAddressResponse> search(IsActived isActived, Pageable pageable) {
+        UserAddress probe = new UserAddress();
+        if (isActived != null) probe.setIsActived(isActived);
+
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnorePaths("userAddressId", "addressInfor", "userId",
+                        "createdAt", "updatedAt", "user")
+                .withIgnoreNullValues();
+
+        Example<UserAddress> example = Example.of(probe, matcher);
+
+        return userAddressRepository.findAll(example, pageable)
+                .map(mapper::toResponse);
     }
 }
 

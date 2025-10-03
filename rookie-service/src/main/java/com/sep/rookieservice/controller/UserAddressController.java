@@ -3,11 +3,15 @@ package com.sep.rookieservice.controller;
 import com.sep.rookieservice.dto.UserAddressRequest;
 import com.sep.rookieservice.dto.UserAddressResponse;
 import com.sep.rookieservice.entity.UserAddress;
+import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.service.UserAddressService;
 import com.sep.rookieservice.service.impl.UserAddressServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,5 +65,14 @@ public class UserAddressController {
     public void deleteUserAddress(
             @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id) {
         userAddressService.softDelete(id);
+    }
+
+    // SEARCH
+    @GetMapping("/search")
+    public Page<UserAddressResponse> search(
+            @RequestParam(required = false) IsActived isActived,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return userAddressService.search(isActived, pageable);
     }
 }

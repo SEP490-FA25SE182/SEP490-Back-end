@@ -2,6 +2,9 @@ package com.sep.rookieservice.service;
 
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
+import com.sep.rookieservice.enums.OrderEnum;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -14,4 +17,5 @@ public interface OrderService {
     OrderResponse update(String id, OrderRequest request);
     void delete(String id);
     OrderResponse moveCartToOrder(String cartId, String walletId);
+    Page<OrderResponse> search(OrderEnum status, Pageable pageable);
 }

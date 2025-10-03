@@ -3,11 +3,15 @@ package com.sep.rookieservice.controller;
 import com.sep.rookieservice.dto.CartRequest;
 import com.sep.rookieservice.dto.CartResponse;
 import com.sep.rookieservice.entity.Cart;
+import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.service.CartService;
 import com.sep.rookieservice.service.impl.CartServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,5 +59,14 @@ public class CartController {
             @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String id) {
         cartService.softDelete(id);
     }
+
+    @GetMapping("/search")
+    public Page<CartResponse> search(
+            @RequestParam(required = false) IsActived isActived,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return cartService.search(isActived, pageable);
+    }
+
 }
 

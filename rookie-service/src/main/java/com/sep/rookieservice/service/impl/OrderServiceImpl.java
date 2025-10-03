@@ -16,6 +16,10 @@ import com.sep.rookieservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,5 +159,23 @@ public class OrderServiceImpl implements OrderService {
     private void validateStatus(Byte status) {
         // ném lỗi nếu status không hợp lệ
         OrderEnum.getByStatus(status);
+    }
+
+    @Override
+    public Page<OrderResponse> search(OrderEnum status, Pageable pageable) {
+        Order probe = new Order();
+        if (status != null) {
+            probe.setStatus(status.getStatus()); // convert enum -> byte
+        }
+
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnorePaths("orderId", "amount", "totalPrice", "updatedAt", "createdAt",
+                        "walletId", "cartId", "wallet", "cart", "orderDetails", "transaction")
+                .withIgnoreNullValues();
+
+        Example<Order> example = Example.of(probe, matcher);
+
+        return orderRepository.findAll(example, pageable)
+                .map(mapper::toResponse);
     }
 }
