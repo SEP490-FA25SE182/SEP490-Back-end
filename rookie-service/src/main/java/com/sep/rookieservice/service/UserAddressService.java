@@ -2,6 +2,9 @@ package com.sep.rookieservice.service;
 
 import com.sep.rookieservice.dto.UserAddressRequest;
 import com.sep.rookieservice.dto.UserAddressResponse;
+import com.sep.rookieservice.enums.IsActived;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -12,4 +15,5 @@ public interface UserAddressService {
     List<UserAddressResponse> create(List<UserAddressRequest> requests);
     UserAddressResponse update(String id, UserAddressRequest request);
     void softDelete(String id);
+    Page<UserAddressResponse> search(IsActived isActived, Pageable pageable);
 }

@@ -2,14 +2,20 @@ package com.sep.rookieservice.service.impl;
 
 import com.sep.rookieservice.dto.UserRequest;
 import com.sep.rookieservice.dto.UserResponse;
+import com.sep.rookieservice.entity.Role;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.entity.User;
 import com.sep.rookieservice.mapper.UserMapper;
 import com.sep.rookieservice.repository.UserRepository;
 import com.sep.rookieservice.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +28,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    @Qualifier("userMapper")
     private final UserMapper mapper;
 
     @Override
@@ -92,4 +99,44 @@ public class UserServiceImpl implements UserService {
         user.setUpdateAt(Instant.now());
         userRepository.save(user);
     }
+
+    @Override
+    public Page<UserResponse> search(String gender, String roleName, IsActived isActived, Pageable pageable) {
+        // Chuẩn hoá input: trim → null nếu rỗng
+        String g = normalize(gender);
+        String rn = normalize(roleName);
+
+        // ---- Probe ----
+        User probe = new User();
+        if (g != null) probe.setGender(g);
+        if (isActived != null) probe.setIsActived(isActived);
+        if (rn != null) {
+            Role r = new Role();
+            r.setRoleName(rn);
+            probe.setRole(r);
+        }
+
+        // ---- Matcher ----
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withMatcher("gender", m -> m.ignoreCase())
+                .withMatcher("role.roleName", m -> m.ignoreCase())
+                .withIgnorePaths(
+                        "userId","fullName","birthDate","email","password","phoneNumber","avatarUrl",
+                        "roleId","createdAt","updateAt","bookshelve","cart","wallet"
+                )
+                .withIgnoreNullValues();
+
+        Example<User> example = Example.of(probe, matcher);
+
+        // ---- Query ----
+        return userRepository.findAll(example, pageable)
+                .map(mapper::toResponse);
+    }
+
+    private String normalize(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
 }

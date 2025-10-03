@@ -3,11 +3,15 @@ package com.sep.rookieservice.controller;
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
 import com.sep.rookieservice.entity.Order;
+import com.sep.rookieservice.enums.OrderEnum;
 import com.sep.rookieservice.service.OrderService;
 import com.sep.rookieservice.service.impl.OrderServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,5 +72,14 @@ public class OrderController {
             @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId,
             @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId) {
         return orderService.moveCartToOrder(cartId, walletId);
+    }
+
+    // SEARCH
+    @GetMapping("/search")
+    public Page<OrderResponse> search(
+            @RequestParam(required = false) OrderEnum status,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return orderService.search(status, pageable);
     }
 }

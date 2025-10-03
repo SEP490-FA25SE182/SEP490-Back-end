@@ -10,6 +10,10 @@ import com.sep.rookieservice.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,5 +87,21 @@ public class CartServiceImpl implements CartService {
         cart.setIsActived(IsActived.INACTIVE);
         cart.setUpdatedAt(Instant.now());
         cartRepository.save(cart);
+    }
+
+    @Override
+    public Page<CartResponse> search(IsActived isActived, Pageable pageable) {
+        Cart probe = new Cart();
+        if (isActived != null) probe.setIsActived(isActived);
+
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnorePaths("cartId", "amount", "totalPrice", "updatedAt", "createdAt",
+                        "userId", "user", "cartItems", "orders")
+                .withIgnoreNullValues();
+
+        Example<Cart> example = Example.of(probe, matcher);
+
+        return cartRepository.findAll(example, pageable)
+                .map(mapper::toResponse);
     }
 }
