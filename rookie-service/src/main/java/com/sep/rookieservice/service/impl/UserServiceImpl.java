@@ -6,6 +6,7 @@ import com.sep.rookieservice.entity.Role;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.entity.User;
 import com.sep.rookieservice.mapper.UserMapper;
+import com.sep.rookieservice.repository.RoleRepository;
 import com.sep.rookieservice.repository.UserRepository;
 import com.sep.rookieservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     @Qualifier("userMapper")
     private final UserMapper mapper;
 
@@ -101,37 +103,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserResponse> search(String gender, String roleName, IsActived isActived, Pageable pageable) {
-        // Chuẩn hoá input: trim → null nếu rỗng
-        String g = normalize(gender);
-        String rn = normalize(roleName);
+    @Transactional(readOnly = true)
+    public Page<UserResponse> search(String gender, String roleId, IsActived isActived, Pageable pageable) {
+        String g  = normalize(gender);
+        String rid = normalize(roleId);
 
-        // ---- Probe ----
         User probe = new User();
-        if (g != null) probe.setGender(g);
+        if (g != null)   probe.setGender(g);
+        if (rid != null) probe.setRoleId(rid);
         if (isActived != null) probe.setIsActived(isActived);
-        if (rn != null) {
-            Role r = new Role();
-            r.setRoleName(rn);
-            probe.setRole(r);
-        }
 
-        // ---- Matcher ----
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
                 .withMatcher("gender", m -> m.ignoreCase())
-                .withMatcher("role.roleName", m -> m.ignoreCase())
                 .withIgnorePaths(
                         "userId","fullName","birthDate","email","password","phoneNumber","avatarUrl",
-                        "roleId","createdAt","updateAt","bookshelve","cart","wallet"
+                        "createdAt","updateAt", "bookshelve","cart","wallet","role"
                 )
                 .withIgnoreNullValues();
 
-        Example<User> example = Example.of(probe, matcher);
-
-        // ---- Query ----
-        return userRepository.findAll(example, pageable)
+        return userRepository.findAll(Example.of(probe, matcher), pageable)
                 .map(mapper::toResponse);
     }
+
 
     private String normalize(String s) {
         if (s == null) return null;

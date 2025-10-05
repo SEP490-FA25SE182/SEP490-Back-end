@@ -7,6 +7,7 @@ import com.sep.rookieservice.enums.TransactionEnum;
 import com.sep.rookieservice.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -46,6 +47,7 @@ public class TransactionController {
             @RequestParam(required = false) TransactionEnum status,
             @RequestParam(required = false) IsActived isActived,
             @RequestParam(required = false) String paymentMethodName,
+            @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return service.search(status, isActived, paymentMethodName, pageable);

@@ -2,16 +2,10 @@ package com.sep.rookieservice.service.impl;
 
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
-import com.sep.rookieservice.entity.Cart;
-import com.sep.rookieservice.entity.CartItem;
-import com.sep.rookieservice.entity.Order;
-import com.sep.rookieservice.entity.OrderDetail;
+import com.sep.rookieservice.entity.*;
 import com.sep.rookieservice.enums.OrderEnum;
 import com.sep.rookieservice.mapper.OrderMapper;
-import com.sep.rookieservice.repository.CartItemRepository;
-import com.sep.rookieservice.repository.CartRepository;
-import com.sep.rookieservice.repository.OrderDetailRepository;
-import com.sep.rookieservice.repository.OrderRepository;
+import com.sep.rookieservice.repository.*;
 import com.sep.rookieservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -31,11 +25,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 public class OrderServiceImpl implements OrderService {
+    private static final double MAX_DISCOUNT_RATE = 0.10; // tối đa 10%
+    private static final double COIN_VALUE = 1.0;
 
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final WalletRepository walletRepository;
     private final OrderMapper mapper;
 
     @Override
@@ -115,18 +112,41 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @CacheEvict(value = {"allOrders", "Order", "allCartItems", "CartItem", "allCarts", "Cart"}, allEntries = true)
-    public OrderResponse moveCartToOrder(String cartId, String walletId) {
+    public OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found with id: " + cartId));
         List<CartItem> items = cartItemRepository.findByCartId(cartId);
+        if (items.isEmpty()) throw new RuntimeException("Cart is empty, cannot create order");
 
-        if (items.isEmpty()) {
-            throw new RuntimeException("Cart is empty, cannot create order");
+        // Lấy ví để trừ coin (nếu có dùng điểm)
+        Wallet wallet = walletRepository.findById(walletId)
+                .orElseThrow(() -> new RuntimeException("Wallet not found with id: " + walletId));
+
+        double cartTotal = cart.getTotalPrice();
+
+        // Tính giảm giá từ coin
+        int coinsToUse = 0;
+        double discount = 0.0;
+
+        if (usePoints) {
+            double maxDiscountByRate = cartTotal * MAX_DISCOUNT_RATE;
+            double maxDiscountByCoins = wallet.getCoin() * COIN_VALUE;
+
+            // số tiền có thể giảm là min
+            double allowedDiscount = Math.min(maxDiscountByRate, maxDiscountByCoins);
+
+            // quy ra số coin nguyên sẽ dùng
+            coinsToUse = (int) Math.floor(allowedDiscount / COIN_VALUE);
+            if (coinsToUse > 0) {
+                discount = coinsToUse * COIN_VALUE;
+            }
         }
+
+        double finalTotal = Math.max(0.0, cartTotal - discount);
 
         Order order = Order.builder()
                 .amount(cart.getAmount())
-                .totalPrice(cart.getTotalPrice())
+                .totalPrice(finalTotal)
                 .walletId(walletId)
                 .cartId(cartId)
                 .status(OrderEnum.PENDING.getStatus())
@@ -144,6 +164,13 @@ public class OrderServiceImpl implements OrderService {
                     .bookId(item.getBookId())
                     .build();
             orderDetailRepository.save(detail);
+        }
+
+        // Trừ coin nếu có dùng
+        if (coinsToUse > 0) {
+            wallet.setCoin(wallet.getCoin() - coinsToUse);
+            wallet.setUpdatedAt(Instant.now());
+            walletRepository.save(wallet);
         }
 
         // clear cart

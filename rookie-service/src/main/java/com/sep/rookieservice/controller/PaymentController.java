@@ -23,7 +23,6 @@ public class PaymentController {
     @PostMapping("/webhook")
     public ResponseEntity<Void> webhook(@RequestBody WebhookPayload payload) {
         paymentService.handleWebhook(payload);
-        // Trả 2xx để PayOS biết đã nhận thành công
         return ResponseEntity.ok().build();
     }
 }

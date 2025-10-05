@@ -1,7 +1,6 @@
-package com.sep.aiservice.model;
+package com.sep.aiservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sep.aiservice.enums.AIGenerationEnum;
 import com.sep.aiservice.enums.IsActived;
 import com.sep.aiservice.enums.MessageEnum;
 import jakarta.persistence.*;

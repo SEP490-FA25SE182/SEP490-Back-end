@@ -16,5 +16,6 @@ public interface UserService {
     List<UserResponse> create(List<UserRequest> requests);
     UserResponse update(String id, UserRequest request);
     void softDelete(String id);
-    Page<UserResponse> search(String gender, String roleName, IsActived isActived, Pageable pageable);
+    Page<UserResponse> search(String gender, String roleId, IsActived isActived, Pageable pageable);
+
 }
