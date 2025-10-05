@@ -21,7 +21,12 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "chapters")
+@Table(
+        name = "chapters",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"book_id", "chapter_number"})
+        }
+)
 public class Chapter implements Serializable {
     @Id
     @Column(name = "chapter_id", length = 50)
@@ -31,7 +36,6 @@ public class Chapter implements Serializable {
     @Column(name = "chapter_name", length = 50)
     private String chapterName;
 
-    @UniqueElements
     @Column(name = "chapter_number")
     private int chapterNumber;
 
@@ -62,7 +66,7 @@ public class Chapter implements Serializable {
     private Byte publicationStatus = PublicationEnum.DRAFT.getStatus();
 
     @NotNull
-    @Column(name = "book_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "book_id", length = 50)
     private String bookId;
 
     //ManyToOne
