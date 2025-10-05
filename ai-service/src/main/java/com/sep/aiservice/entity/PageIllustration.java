@@ -1,4 +1,4 @@
-package com.sep.aiservice.model;
+package com.sep.aiservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

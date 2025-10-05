@@ -9,6 +9,7 @@ import com.sep.rookieservice.service.impl.WalletServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -71,6 +72,7 @@ public class WalletController {
     @GetMapping("/search")
     public Page<WalletResponse> search(
             @RequestParam(required = false) IsActived isActived,
+            @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return walletService.search(isActived, pageable);

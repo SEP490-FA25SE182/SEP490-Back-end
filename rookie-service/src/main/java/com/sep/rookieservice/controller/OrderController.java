@@ -9,6 +9,7 @@ import com.sep.rookieservice.service.impl.OrderServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -69,15 +70,20 @@ public class OrderController {
     // Move Cart -> Order
     @PostMapping("/from-cart/{cartId}/wallet/{walletId}")
     public OrderResponse moveCartToOrder(
-            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId,
-            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId) {
-        return orderService.moveCartToOrder(cartId, walletId);
+            @PathVariable
+            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId,
+            @PathVariable
+            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId,
+            @RequestParam(name = "usePoints", defaultValue = "false") boolean usePoints) {
+
+        return orderService.moveCartToOrder(cartId, walletId, usePoints);
     }
 
     // SEARCH
     @GetMapping("/search")
     public Page<OrderResponse> search(
             @RequestParam(required = false) OrderEnum status,
+            @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return orderService.search(status, pageable);

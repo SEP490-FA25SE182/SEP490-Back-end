@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -71,10 +72,12 @@ public class UserController {
     @GetMapping("/search")
     public Page<UserResponse> search(
             @RequestParam(required = false) @Size(max = 10) String gender,
-            @RequestParam(required = false) @Size(max = 50) String roleName,
+            @RequestParam(required = false)
+            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$", message = "Invalid UUID format")
+            String roleId,
             @RequestParam(required = false) IsActived isActived,
-            @PageableDefault(size = 20) Pageable pageable
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
     ) {
-        return userService.search(gender, roleName, isActived, pageable);
+        return userService.search(gender, roleId, isActived, pageable);
     }
 }

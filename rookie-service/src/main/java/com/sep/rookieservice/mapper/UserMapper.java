@@ -10,6 +10,7 @@ import org.mapstruct.*;
 public interface UserMapper {
 
     // Entity -> Response
+    @Mapping(target = "updatedAt", source = "updateAt")
     UserResponse toResponse(User entity);
 
     // Request -> Entity (CHO CREATE)
@@ -38,4 +39,5 @@ public interface UserMapper {
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForUpdate(UserRequest req, @MappingTarget User entity);
+
 }

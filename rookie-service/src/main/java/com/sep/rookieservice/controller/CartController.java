@@ -9,6 +9,7 @@ import com.sep.rookieservice.service.impl.CartServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -63,6 +64,7 @@ public class CartController {
     @GetMapping("/search")
     public Page<CartResponse> search(
             @RequestParam(required = false) IsActived isActived,
+            @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return cartService.search(isActived, pageable);

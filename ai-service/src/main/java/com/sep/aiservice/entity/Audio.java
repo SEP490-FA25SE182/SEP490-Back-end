@@ -1,6 +1,8 @@
-package com.sep.aiservice.model;
+package com.sep.aiservice.entity;
 
+import com.sep.aiservice.enums.IsActived;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,4 +46,9 @@ public class Audio implements Serializable {
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
+    private IsActived isActived = IsActived.ACTIVE;
 }

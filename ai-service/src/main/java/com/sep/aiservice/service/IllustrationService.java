@@ -1,21 +1,19 @@
 package com.sep.aiservice.service;
 
-import com.sep.aiservice.model.Illustration;
-import com.sep.aiservice.repository.IllustrationRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
+import com.sep.aiservice.dto.IllustrationRequest;
+import com.sep.aiservice.dto.IllustrationResponse;
+import com.sep.aiservice.enums.IsActived;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class IllustrationService {
-    private final IllustrationRepository illustrationRepository;
-
-    @Cacheable(value = "allIllustrations", key = "'all'")
-    public List<Illustration> getAllIllustrations() {
-        System.out.println("⏳ Querying DB...");
-        return illustrationRepository.findAll();
-    }
+public interface IllustrationService {
+    List<IllustrationResponse> getAll();
+    IllustrationResponse getById(String id);
+    IllustrationResponse getByTitle(String title);
+    List<IllustrationResponse> create(List<IllustrationRequest> requests);
+    IllustrationResponse update(String id, IllustrationRequest request);
+    void softDelete(String id);
+    Page<IllustrationResponse> search(String style, String format, String title, IsActived isActived, Pageable pageable);
 }
