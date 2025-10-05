@@ -1,9 +1,9 @@
 package com.sep.rookieservice.controller;
 
-import com.sep.rookieservice.dto.BookshelveRequestDTO;
-import com.sep.rookieservice.dto.BookshelveResponseDTO;
+import com.sep.rookieservice.dto.ChapterRequestDTO;
+import com.sep.rookieservice.dto.ChapterResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
-import com.sep.rookieservice.service.BookshelveService;
+import com.sep.rookieservice.service.ChapterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,49 +11,50 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rookie/users/bookshelves")
+@RequestMapping("/api/chapters")
 @RequiredArgsConstructor
-public class BookshelveController {
+public class ChapterController {
 
-    private final BookshelveService service;
+    private final ChapterService service;
 
     @PostMapping
-    public BookshelveResponseDTO create(@Valid @RequestBody BookshelveRequestDTO dto) {
+    public ChapterResponseDTO create(@RequestBody ChapterRequestDTO dto) {
         return service.create(dto);
     }
 
     @GetMapping("/{id}")
-    public BookshelveResponseDTO getById(@PathVariable String id) {
+    public ChapterResponseDTO getById(@PathVariable String id) {
         return service.getById(id);
     }
 
     @PutMapping("/{id}")
-    public BookshelveResponseDTO update(@PathVariable String id, @Valid @RequestBody BookshelveRequestDTO dto) {
+    public ChapterResponseDTO update(@PathVariable String id, @RequestBody ChapterRequestDTO dto) {
         return service.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
+    public void softDelete(@PathVariable String id) {
         service.softDelete(id);
     }
 
     @GetMapping
-    public Page<BookshelveResponseDTO> list(
+    public Page<ChapterResponseDTO> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) String bookId,
+            @RequestParam(required = false) Byte publicationStatus,
+            @RequestParam(required = false) Byte progressStatus,
             @RequestParam(required = false) IsActived isActived
     ) {
 
         Sort sortObj = Sort.unsorted();
         if (sort != null && !sort.isEmpty()) {
+            // Each sort entry is like "field,asc" or "field,desc"
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
                 String[] parts = s.split(",");
@@ -69,6 +70,6 @@ public class BookshelveController {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return service.search(q, userId, isActived, pageable);
+        return service.search(q, bookId, progressStatus, publicationStatus, isActived, pageable);
     }
 }
