@@ -1,20 +1,17 @@
 package com.sep.rookieservice.specification;
 
-import com.sep.rookieservice.entity.Bookshelve;
+import com.sep.rookieservice.entity.Page;
 import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
-public final class BookshelveSpecification {
+public final class PageSpecification {
 
-    private BookshelveSpecification() {}
+    private PageSpecification() {}
 
-    /**
-     * Build specification for Bookshelve search.
-     */
-    public static Specification<Bookshelve> buildSpecification(
+    public static Specification<Page> buildSpecification(
             String q,
-            String userId,
+            String chapterId,
             IsActived isActived
     ) {
         return (root, query, cb) -> {
@@ -22,12 +19,11 @@ public final class BookshelveSpecification {
 
             if (q != null && !q.trim().isEmpty()) {
                 String likePattern = "%" + q.trim().toLowerCase() + "%";
-                predicate = cb.and(predicate,
-                        cb.like(cb.lower(root.get("bookshelveName")), likePattern));
+                predicate = cb.and(predicate, cb.like(cb.lower(root.get("content")), likePattern));
             }
 
-            if (userId != null && !userId.trim().isEmpty()) {
-                predicate = cb.and(predicate, cb.equal(root.get("userId"), userId.trim()));
+            if (chapterId != null && !chapterId.trim().isEmpty()) {
+                predicate = cb.and(predicate, cb.equal(root.get("chapterId"), chapterId.trim()));
             }
 
             if (isActived != null) {
