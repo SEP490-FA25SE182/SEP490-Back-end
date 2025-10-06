@@ -1,5 +1,6 @@
 package com.sep.rookieservice.service.impl;
 
+import com.sep.rookieservice.dto.UserAnalyticsResponse;
 import com.sep.rookieservice.dto.UserRequest;
 import com.sep.rookieservice.dto.UserResponse;
 import com.sep.rookieservice.entity.Role;
@@ -21,6 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -123,6 +129,74 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.findAll(Example.of(probe, matcher), pageable)
                 .map(mapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "UserAnalytics", key = "#monthsBack != null ? #monthsBack : 12")
+    public UserAnalyticsResponse getAnalytics(Integer monthsBack) {
+        int months = (monthsBack == null || monthsBack < 1 || monthsBack > 36) ? 12 : monthsBack;
+
+        long total = userRepository.count();
+
+        List<UserAnalyticsResponse.ActiveCount> byIsActived = Arrays.stream(IsActived.values())
+                .map(st -> {
+                    long c = userRepository.countByIsActived(st);
+                    UserAnalyticsResponse.ActiveCount ac = new UserAnalyticsResponse.ActiveCount();
+                    ac.setStatus(st.name());
+                    ac.setCount(c);
+                    return ac;
+                })
+                .toList();
+
+        List<Role> roles = roleRepository.findAll();
+        List<UserAnalyticsResponse.RoleCount> byRole = new ArrayList<>();
+        for (Role r : roles) {
+            long c = userRepository.countByRoleId(r.getRoleId());
+            UserAnalyticsResponse.RoleCount rc = new UserAnalyticsResponse.RoleCount();
+            rc.setRoleId(r.getRoleId());
+            rc.setRoleName(r.getRoleName());
+            rc.setCount(c);
+            byRole.add(rc);
+        }
+
+        long noRole = userRepository.countByRoleIdIsNull();
+        if (noRole > 0) {
+            UserAnalyticsResponse.RoleCount rc = new UserAnalyticsResponse.RoleCount();
+            rc.setRoleId(null);
+            rc.setRoleName("UNASSIGNED");
+            rc.setCount(noRole);
+            byRole.add(rc);
+        }
+
+        // Đăng ký mới theo tháng (loop từng tháng, không group-by)
+        ZoneId tz = ZoneOffset.UTC;
+        LocalDate startMonth = LocalDate.now(tz).withDayOfMonth(1).minusMonths(months - 1);
+
+        List<UserAnalyticsResponse.MonthlySignup> monthly = new ArrayList<>(months);
+        for (int i = 0; i < months; i++) {
+            LocalDate mStart = startMonth.plusMonths(i);
+            LocalDate mEnd = mStart.plusMonths(1);
+
+            Instant from = mStart.atStartOfDay(tz).toInstant();
+            Instant to = mEnd.atStartOfDay(tz).toInstant();
+
+            long c = userRepository.countByCreatedAtBetween(from, to);
+
+            UserAnalyticsResponse.MonthlySignup ms = new UserAnalyticsResponse.MonthlySignup();
+            ms.setYear(mStart.getYear());
+            ms.setMonth(mStart.getMonthValue());
+            ms.setCount(c);
+            monthly.add(ms);
+        }
+
+        // Build response
+        UserAnalyticsResponse resp = new UserAnalyticsResponse();
+        resp.setTotalUsers(total);
+        resp.setByRole(byRole);
+        resp.setByIsActived(byIsActived);
+        resp.setMonthlySignups(monthly);
+        return resp;
     }
 
 
