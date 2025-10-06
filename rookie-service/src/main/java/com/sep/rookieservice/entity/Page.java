@@ -18,14 +18,18 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "pages")
+@Table(
+        name = "pages",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"chapter_id", "page_number"})
+        }
+)
 public class Page implements Serializable {
     @Id
     @Column(name = "page_id", length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
     private String pageId;
 
-    @UniqueElements
     @Column(name = "page_number")
     private int pageNumber;
 
@@ -44,7 +48,7 @@ public class Page implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     @NotNull
-    @Column(name = "chapter_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "chapter_id", length = 50)
     private String chapterId;
 
     //ManyToOne

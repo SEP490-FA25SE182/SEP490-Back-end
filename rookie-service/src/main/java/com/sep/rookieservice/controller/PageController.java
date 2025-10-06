@@ -1,39 +1,35 @@
 package com.sep.rookieservice.controller;
 
-import com.sep.rookieservice.dto.BookshelveRequestDTO;
-import com.sep.rookieservice.dto.BookshelveResponseDTO;
+import com.sep.rookieservice.dto.PageRequestDTO;
+import com.sep.rookieservice.dto.PageResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
-import com.sep.rookieservice.service.BookshelveService;
+import com.sep.rookieservice.service.PageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rookie/users/bookshelves")
+@RequestMapping("/api/rookie/pages")
 @RequiredArgsConstructor
-public class BookshelveController {
+public class PageController {
 
-    private final BookshelveService service;
+    private final PageService service;
 
     @PostMapping
-    public BookshelveResponseDTO create(@Valid @RequestBody BookshelveRequestDTO dto) {
+    public PageResponseDTO create(@Valid @RequestBody PageRequestDTO dto) {
         return service.create(dto);
     }
 
     @GetMapping("/{id}")
-    public BookshelveResponseDTO getById(@PathVariable String id) {
+    public PageResponseDTO getById(@PathVariable String id) {
         return service.getById(id);
     }
 
     @PutMapping("/{id}")
-    public BookshelveResponseDTO update(@PathVariable String id, @Valid @RequestBody BookshelveRequestDTO dto) {
+    public PageResponseDTO update(@PathVariable String id, @Valid @RequestBody PageRequestDTO dto) {
         return service.update(id, dto);
     }
 
@@ -42,13 +38,14 @@ public class BookshelveController {
         service.softDelete(id);
     }
 
+    // ✅ Pagination + Search + Sort
     @GetMapping
-    public Page<BookshelveResponseDTO> list(
+    public Page<PageResponseDTO> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) String chapterId,
             @RequestParam(required = false) IsActived isActived
     ) {
 
@@ -69,6 +66,6 @@ public class BookshelveController {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return service.search(q, userId, isActived, pageable);
+        return service.search(q, chapterId, isActived, pageable);
     }
 }
