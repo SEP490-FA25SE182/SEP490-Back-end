@@ -1,5 +1,6 @@
 package com.sep.rookieservice.service;
 
+import com.sep.rookieservice.dto.UserAnalyticsResponse;
 import com.sep.rookieservice.dto.UserRequest;
 import com.sep.rookieservice.dto.UserResponse;
 import com.sep.rookieservice.entity.User;
@@ -17,5 +18,6 @@ public interface UserService {
     UserResponse update(String id, UserRequest request);
     void softDelete(String id);
     Page<UserResponse> search(String gender, String roleId, IsActived isActived, Pageable pageable);
+    UserAnalyticsResponse getAnalytics(Integer monthsBack);
 
 }

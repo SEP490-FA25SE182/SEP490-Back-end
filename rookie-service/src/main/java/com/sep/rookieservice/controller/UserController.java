@@ -1,5 +1,6 @@
 package com.sep.rookieservice.controller;
 
+import com.sep.rookieservice.dto.UserAnalyticsResponse;
 import com.sep.rookieservice.dto.UserRequest;
 import com.sep.rookieservice.dto.UserResponse;
 import com.sep.rookieservice.entity.User;
@@ -7,9 +8,7 @@ import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.service.UserService;
 import com.sep.rookieservice.service.impl.UserServiceImpl;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -80,4 +79,13 @@ public class UserController {
     ) {
         return userService.search(gender, roleId, isActived, pageable);
     }
+
+    // ANALYTICS
+    @GetMapping("/analytics")
+    public UserAnalyticsResponse analytics(
+            @RequestParam(required = false) @Min(1) @Max(36) Integer months
+    ) {
+        return userService.getAnalytics(months);
+    }
+
 }
