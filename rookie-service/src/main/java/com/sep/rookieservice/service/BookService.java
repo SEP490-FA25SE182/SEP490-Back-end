@@ -1,5 +1,6 @@
 package com.sep.rookieservice.service;
 
+import com.sep.rookieservice.dto.BookAnalyticsResponse;
 import com.sep.rookieservice.dto.BookRequestDTO;
 import com.sep.rookieservice.dto.BookResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
@@ -19,4 +20,6 @@ public interface BookService {
             IsActived isActived,
             Pageable pageable
     );
+
+    BookAnalyticsResponse getAnalytics(Integer monthsBack);
 }
