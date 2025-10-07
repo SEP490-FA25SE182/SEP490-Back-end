@@ -1,60 +1,70 @@
 package com.sep.rookieservice.controller;
 
-import com.sep.rookieservice.dto.ChapterRequestDTO;
-import com.sep.rookieservice.dto.ChapterResponseDTO;
+import com.sep.rookieservice.dto.FeedbackRequestDTO;
+import com.sep.rookieservice.dto.FeedbackResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
-import com.sep.rookieservice.service.ChapterService;
+import com.sep.rookieservice.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rookie/users/books/chapters")
+@RequestMapping("/api/rookie/users/feedbacks")
 @RequiredArgsConstructor
-public class ChapterController {
+public class FeedbackController {
 
-    private final ChapterService service;
+    private final FeedbackService service;
 
     @PostMapping
-    public ChapterResponseDTO create(@RequestBody ChapterRequestDTO dto) {
-        return service.create(dto);
-    }
-
-    @GetMapping("/{id}")
-    public ChapterResponseDTO getById(@PathVariable String id) {
-        return service.getById(id);
+    public ResponseEntity<FeedbackResponseDTO> create(@RequestBody FeedbackRequestDTO dto) {
+        return ResponseEntity.ok(service.create(dto));
     }
 
     @PutMapping("/{id}")
-    public ChapterResponseDTO update(@PathVariable String id, @RequestBody ChapterRequestDTO dto) {
-        return service.update(id, dto);
+    public ResponseEntity<FeedbackResponseDTO> update(@PathVariable String id, @RequestBody FeedbackRequestDTO dto) {
+        return ResponseEntity.ok(service.update(id, dto));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<FeedbackResponseDTO> getById(@PathVariable String id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @DeleteMapping("/{id}")
-    public void softDelete(@PathVariable String id) {
-        service.softDelete(id);
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Search & pagination endpoint for Feedbacks.
+     * - page: 0-based page index
+     * - size: page size
+     * - sort: e.g. sort=createdAt,desc or multiple: sort=rating,desc&sort=createdAt,asc
+     * - q: search keyword (content)
+     * - bookId: filter by book
+     * - userId: filter by user
+     * - isActived: ACTIVE or INACTIVE (enum name)
+     */
     @GetMapping
-    public Page<ChapterResponseDTO> list(
+    public Page<FeedbackResponseDTO> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String bookId,
-            @RequestParam(required = false) Byte publicationStatus,
-            @RequestParam(required = false) Byte progressStatus,
+            @RequestParam(required = false) String userId,
             @RequestParam(required = false) IsActived isActived
     ) {
 
         Sort sortObj = Sort.unsorted();
         if (sort != null && !sort.isEmpty()) {
-            // Each sort entry is like "field,asc" or "field,desc"
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
                 String[] parts = s.split(",");
@@ -70,6 +80,7 @@ public class ChapterController {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return service.search(q, bookId, progressStatus, publicationStatus, isActived, pageable);
+        return service.search(q, bookId, userId, isActived, pageable);
     }
+
 }

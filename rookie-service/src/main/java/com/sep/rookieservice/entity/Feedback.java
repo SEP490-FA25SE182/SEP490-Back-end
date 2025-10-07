@@ -42,15 +42,15 @@ public class Feedback implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     @NotNull
-    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "user_id", length = 50)
     private String userId;
 
     @NotNull
-    @Column(name = "book_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "book_id", length = 50)
     private String bookId;
 
     @NotNull
-    @Column(name = "order_detail_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "order_detail_id", length = 50)
     private String orderDetailId;
 
     // ManytoOne
