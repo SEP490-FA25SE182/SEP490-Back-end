@@ -4,7 +4,7 @@ import com.sep.rookieservice.entity.Feedback;
 import com.sep.rookieservice.enums.IsActived;
 import org.springframework.data.jpa.domain.Specification;
 
-public class FeedbackSpecification {
+public final class FeedbackSpecification {
 
     public static Specification<Feedback> buildSpecification(String keyword, String bookId, String userId, IsActived isActived) {
         Specification<Feedback> spec = Specification.allOf();
