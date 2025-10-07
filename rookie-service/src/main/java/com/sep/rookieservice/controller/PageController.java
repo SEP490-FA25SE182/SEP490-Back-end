@@ -12,7 +12,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rookie/pages")
+@RequestMapping("/api/rookie/users/books/pages")
 @RequiredArgsConstructor
 public class PageController {
 
