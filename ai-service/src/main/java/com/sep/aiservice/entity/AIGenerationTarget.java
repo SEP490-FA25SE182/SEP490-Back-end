@@ -1,6 +1,7 @@
 package com.sep.aiservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sep.aiservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -33,11 +34,16 @@ public class AIGenerationTarget implements Serializable {
     private Instant updatedAt = Instant.now();
 
     @NotNull
-    @Column(name = "ai_generation_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "ai_generation_id", length = 50)
     private String aiGenerationId;
 
     @Column(name = "target_ref_id", length = 50)
     private String targetRefId;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
+    private IsActived isActived = IsActived.ACTIVE;
 
     //ManyToOne
     @JsonIgnore

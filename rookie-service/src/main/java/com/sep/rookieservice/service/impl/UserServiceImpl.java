@@ -110,20 +110,44 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserResponse> search(String gender, String roleId, IsActived isActived, Pageable pageable) {
-        String g  = normalize(gender);
+    public Page<UserResponse> search(
+            String userId,
+            String fullName,
+            LocalDate birthDate,
+            String gender,
+            String email,
+            String phoneNumber,
+            String roleId,
+            IsActived isActived,
+            Pageable pageable
+    ) {
+        String uid = normalize(userId);
+        String fn  = normalize(fullName);
+        String g   = normalize(gender);
+        String em  = normalize(email);
+        String pn  = normalize(phoneNumber);
         String rid = normalize(roleId);
 
         User probe = new User();
-        if (g != null)   probe.setGender(g);
+        if (uid != null) probe.setUserId(uid);
+        if (fn  != null) probe.setFullName(fn);
+        if (birthDate != null) probe.setBirthDate(birthDate);
+        if (g   != null) probe.setGender(g);
+        if (em  != null) probe.setEmail(em);
+        if (pn  != null) probe.setPhoneNumber(pn);
         if (rid != null) probe.setRoleId(rid);
         if (isActived != null) probe.setIsActived(isActived);
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
-                .withMatcher("gender", m -> m.ignoreCase())
+                .withIgnoreCase()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withMatcher("userId", m -> m.exact())
+                .withMatcher("roleId", m -> m.exact())
                 .withIgnorePaths(
-                        "userId","fullName","birthDate","email","password","phoneNumber","avatarUrl",
-                        "createdAt","updateAt", "bookshelve","cart","wallet","role"
+                        "password", "avatarUrl",
+                        "createdAt", "updateAt",
+                        "addresses", "books", "feedbacks", "userQuizResults",
+                        "bookshelve", "cart", "wallet", "role"
                 )
                 .withIgnoreNullValues();
 

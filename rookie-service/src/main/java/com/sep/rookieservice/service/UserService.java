@@ -8,6 +8,7 @@ import com.sep.rookieservice.enums.IsActived;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface UserService {
@@ -17,7 +18,17 @@ public interface UserService {
     List<UserResponse> create(List<UserRequest> requests);
     UserResponse update(String id, UserRequest request);
     void softDelete(String id);
-    Page<UserResponse> search(String gender, String roleId, IsActived isActived, Pageable pageable);
+    Page<UserResponse> search(
+            String userId,
+            String fullName,
+            LocalDate birthDate,
+            String gender,
+            String email,
+            String phoneNumber,
+            String roleId,
+            IsActived isActived,
+            Pageable pageable
+    );
     UserAnalyticsResponse getAnalytics(Integer monthsBack);
 
 }

@@ -17,6 +17,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -70,14 +71,30 @@ public class UserController {
     // SEARCH
     @GetMapping("/search")
     public Page<UserResponse> search(
-            @RequestParam(required = false) @Size(max = 10) String gender,
+            @RequestParam(required = false)
+            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$", message = "Invalid UUID format")
+            String userId,
+            @RequestParam(required = false) @Size(max = 50)
+            String fullName,
+            @RequestParam(required = false)
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+            LocalDate birthDate,
+            @RequestParam(required = false) @Size(max = 10)
+            String gender,
+            @RequestParam(required = false) @Size(max = 254)
+            String email,
+            @RequestParam(required = false) @Size(max = 20)
+            String phoneNumber,
             @RequestParam(required = false)
             @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$", message = "Invalid UUID format")
             String roleId,
-            @RequestParam(required = false) IsActived isActived,
+            @RequestParam(required = false)
+            IsActived isActived,
             @ParameterObject @PageableDefault(size = 20) Pageable pageable
     ) {
-        return userService.search(gender, roleId, isActived, pageable);
+        return userService.search(
+                userId, fullName, birthDate, gender, email, phoneNumber, roleId, isActived, pageable
+        );
     }
 
     // ANALYTICS

@@ -19,20 +19,58 @@ spring:
           enabled: true        # cho phép tự động định tuyến qua serviceId
           lower-case-service-id: true
       routes:
+        - id: swagger-ui-self
+          uri: forward:/
+          predicates:
+            - Path=/swagger-ui/**, /swagger-ui.html, /v3/api-docs/**, /v3/api-docs.yaml, /webjars/**
+
+        # Rookie business
         - id: rookie-service
           uri: lb://rookie-service
           predicates:
-            - Path=/api/rookie/users,/api/rookie/users/**
+            - Path=/api/rookie/**
+          filters:
+            - StripPrefix=2
 
+        # Rookie OpenAPI docs
+        - id: rookie-service-openapi
+          uri: lb://rookie-service
+          predicates:
+            - Path=/api/rookie/v3/api-docs
+          filters:
+            - RewritePath=/api/rookie/v3/api-docs, /v3/api-docs
+
+        # AI service business
         - id: ai-service
-          uri: lb://ai-service  # dùng serviceId thay vì localhost
+          uri: lb://ai-service
           predicates:
-            - Path=/api/rookie/illustrations,/api/rookie/illustrations/**
+            - Path=/api/ai/**
+          filters:
+            - StripPrefix=2
 
-        - id: ar-service
-          uri: lb://ar-service  # dùng serviceId thay vì localhost
+        # AI OpenAPI docs
+        - id: ai-service-openapi
+          uri: lb://ai-service
           predicates:
-            - Path=/api/rookie/markers,/api/rookie/markers/**
+            - Path=/api/ai/v3/api-docs
+          filters:
+            - RewritePath=/api/ai/v3/api-docs, /v3/api-docs
+
+        # AR service business
+        - id: ar-service
+          uri: lb://ar-service
+          predicates:
+            - Path=/api/ar/**
+          filters:
+            - StripPrefix=2
+
+        # AR OpenAPI docs
+        - id: ar-service-openapi
+          uri: lb://ar-service
+          predicates:
+            - Path=/api/ar/v3/api-docs
+          filters:
+            - RewritePath=/api/ar/v3/api-docs, /v3/api-docs
 
 eureka:
   client:
@@ -44,3 +82,21 @@ eureka:
     prefer-ip-address: true
     ip-address: 127.0.0.1
     instance-id: ${spring.application.name}:${server.port}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    disable-swagger-default-url: true
+    config-url: /v3/api-docs/swagger-config
+    urlsPrimaryName: rookie-service
+    # Danh sách các spec truy cập QUA GATEWAY
+    urls:
+      - name: rookie-service
+        url: /api/rookie/v3/api-docs
+      - name: ai-service
+        url: /api/ai/v3/api-docs
+      - name: ar-service
+        url: /api/ar/v3/api-docs
