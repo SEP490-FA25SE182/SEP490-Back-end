@@ -12,7 +12,6 @@ import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
-
     @PostConstruct
     public void init() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {

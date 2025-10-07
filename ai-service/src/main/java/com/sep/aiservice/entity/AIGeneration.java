@@ -2,7 +2,11 @@ package com.sep.aiservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sep.aiservice.enums.AIGenerationEnum;
+import com.sep.aiservice.enums.GenerationMode;
+import com.sep.aiservice.enums.IsActived;
+import com.sep.aiservice.enums.StylePreset;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,10 +31,10 @@ public class AIGeneration implements Serializable {
     @Column(name = "model_name", length = 50)
     private String modelName;
 
-    @Column(name = "prompt", length = 500)
+    @Column(name = "prompt", length = 1000)
     private String prompt;
 
-    @Column(name = "negative_prompt", length = 500)
+    @Column(name = "negative_prompt", length = 1000)
     private String negativePrompt;
 
     @Column(name = "duration_ms")
@@ -44,6 +48,37 @@ public class AIGeneration implements Serializable {
 
     @Column(name = "user_id", length = 50)
     private String userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mode", length = 20)
+    private GenerationMode mode = GenerationMode.TEXT_TO_IMAGE;
+
+    @Column(name = "aspect_ratio", length = 10)
+    private String aspectRatio;  // ví dụ "3:2"
+
+    @Column(name = "strength")
+    private Double strength;
+
+    @Column(name = "seed")
+    private Long seed;
+
+    @Column(name = "cfg_scale")
+    private Double cfgScale;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "style_preset", length = 30)
+    private StylePreset stylePreset;
+
+    @Column(name = "accept_header", length = 40)
+    private String acceptHeader; // "image/*" | "application/json"
+
+    @Column(name = "input_image_url", length = 500)
+    private String inputImageUrl;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
+    private IsActived isActived = IsActived.ACTIVE;
 
     //OneToMany
     @JsonIgnore

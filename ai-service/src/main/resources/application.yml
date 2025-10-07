@@ -27,7 +27,7 @@ spring:
 
   cache:
     type: redis
-    redis:-
+    redis:
       time-to-live: 600000
       cache-null-values: false
       use-key-prefix: true
@@ -47,3 +47,17 @@ eureka:
     appname: ai-service
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
+
+stability:
+  base-url: https://api.stability.ai
+  api-key: ${STABILITY_KEY}
+  default-model: sd3.5-flash
+  timeout-ms: 60000
+  client:
+    id: rookie-comics    # stability-client-id
+    version: 1.0.0      # stability-client-version
+  default-accept: image/*
+
+storage:
+  base-dir: /data/illustrations
+  public-base-url: https://cdn.example.com/illustrations
