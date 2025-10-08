@@ -43,7 +43,7 @@ public class Question implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     @NotNull
-    @Column(name = "quiz_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "quiz_id", length = 50)
     private String quizId;
 
     //ManyToOne
