@@ -14,7 +14,9 @@ WORKDIR /app
 # CÀI CURL để healthcheck HTTP hoạt động
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /data/illustrations \
+ && chown -R 1000:1000 /data
 USER 1000
 
 ENV TZ=Asia/Ho_Chi_Minh \

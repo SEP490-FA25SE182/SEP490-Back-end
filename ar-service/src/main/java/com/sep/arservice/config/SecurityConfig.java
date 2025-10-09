@@ -14,7 +14,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 new AntPathRequestMatcher("/actuator/**"),
-                                new AntPathRequestMatcher("/api/**")
+                                new AntPathRequestMatcher("/api/**"),
+                                new AntPathRequestMatcher("/v3/api-docs/**"),
+                                new AntPathRequestMatcher("/swagger-ui.html"),
+                                new AntPathRequestMatcher("/swagger-ui/**"),
+                                new AntPathRequestMatcher("/webjars/**")
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
@@ -22,7 +26,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 new AntPathRequestMatcher("/actuator/**"),
-                                new AntPathRequestMatcher("/api/**")
+                                new AntPathRequestMatcher("/api/**"),
+                                new AntPathRequestMatcher("/v3/api-docs/**"),
+                                new AntPathRequestMatcher("/swagger-ui.html"),
+                                new AntPathRequestMatcher("/swagger-ui/**"),
+                                new AntPathRequestMatcher("/webjars/**")
                         )
                 )
                 .formLogin(f -> f.disable())
