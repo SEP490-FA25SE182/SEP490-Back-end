@@ -20,31 +20,14 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig {
 
-    /**
-     * ObjectMapper dành RIÊNG cho Redis, không đụng tới MVC ObjectMapper mặc định.
-     */
-    @Bean("redisObjectMapper")
-    public ObjectMapper redisObjectMapper() {
+    @Bean
+    public RedisCacheConfiguration cacheConfiguration() {
         ObjectMapper om = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        om.activateDefaultTyping(
-                BasicPolymorphicTypeValidator.builder()
-                        .allowIfSubType("java.time")
-                        .allowIfSubType("java.util")
-                        .allowIfSubType("com.sep.rookieservice")
-                        .build(),
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                JsonTypeInfo.As.PROPERTY
-        );
-        return om;
-    }
-
-    @Bean
-    public RedisCacheConfiguration cacheConfiguration(@Qualifier("redisObjectMapper") ObjectMapper redisObjectMapper) {
         GenericJackson2JsonRedisSerializer valueSerializer =
-                new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+                new GenericJackson2JsonRedisSerializer(om);
 
         return RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(
