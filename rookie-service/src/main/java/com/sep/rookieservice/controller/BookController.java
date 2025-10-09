@@ -1,5 +1,6 @@
 package com.sep.rookieservice.controller;
 
+import com.sep.rookieservice.dto.BookAnalyticsResponse;
 import com.sep.rookieservice.dto.BookRequestDTO;
 import com.sep.rookieservice.dto.BookResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
@@ -18,6 +19,7 @@ import java.util.List;
 public class BookController {
 
     private final BookService svc;
+
 
     @Autowired
     public BookController(BookService svc) {
@@ -85,4 +87,14 @@ public class BookController {
         Pageable pageable = PageRequest.of(page, size, sortObj);
         return svc.search(q, authorId, publicationStatus, progressStatus, isActived, pageable);
     }
+
+    /**
+     * Get book analytics for dashboard
+     * @param monthsBack optional, default 12 months
+     */
+    @GetMapping("/analytics")
+    public BookAnalyticsResponse getBookAnalytics(@RequestParam(required = false) Integer monthsBack) {
+        return svc.getAnalytics(monthsBack);
+    }
+
 }

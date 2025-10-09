@@ -1,46 +1,33 @@
 package com.sep.rookieservice.controller;
 
-import com.sep.rookieservice.dto.PageRequestDTO;
-import com.sep.rookieservice.dto.PageResponseDTO;
+import com.sep.rookieservice.dto.QuizRequestDTO;
+import com.sep.rookieservice.dto.QuizResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
-import com.sep.rookieservice.service.PageService;
+import com.sep.rookieservice.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rookie/users/books/pages")
+@RequestMapping("/api/rookie/books/quizzes")
 @RequiredArgsConstructor
-public class PageController {
+public class QuizController {
 
-    private final PageService service;
+    private final QuizService service;
 
-    @PostMapping
-    public PageResponseDTO create(@Valid @RequestBody PageRequestDTO dto) {
-        return service.create(dto);
-    }
-
-    @GetMapping("/{id}")
-    public PageResponseDTO getById(@PathVariable String id) {
-        return service.getById(id);
-    }
-
-    @PutMapping("/{id}")
-    public PageResponseDTO update(@PathVariable String id, @Valid @RequestBody PageRequestDTO dto) {
-        return service.update(id, dto);
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        service.softDelete(id);
-    }
-
-    // ✅ Pagination + Search + Sort
+    /**
+     * Search & pagination endpoint.
+     * - page: 0-based page index
+     * - size: page size
+     * - sort: e.g. sort=title,asc&sort=createdAt,desc
+     * - q: search keyword
+     * - chapterId: filter by chapter
+     * - isActived: ACTIVE/INACTIVE
+     */
     @GetMapping
-    public Page<PageResponseDTO> list(
+    public Page<QuizResponseDTO> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) List<String> sort,
@@ -48,7 +35,6 @@ public class PageController {
             @RequestParam(required = false) String chapterId,
             @RequestParam(required = false) IsActived isActived
     ) {
-
         Sort sortObj = Sort.unsorted();
         if (sort != null && !sort.isEmpty()) {
             for (String s : sort) {
@@ -67,5 +53,25 @@ public class PageController {
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
         return service.search(q, chapterId, isActived, pageable);
+    }
+
+    @PostMapping
+    public QuizResponseDTO create(@RequestBody QuizRequestDTO dto) {
+        return service.create(dto);
+    }
+
+    @PutMapping("/{id}")
+    public QuizResponseDTO update(@PathVariable String id, @RequestBody QuizRequestDTO dto) {
+        return service.update(id, dto);
+    }
+
+    @GetMapping("/{id}")
+    public QuizResponseDTO getById(@PathVariable String id) {
+        return service.getById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) {
+        service.delete(id);
     }
 }
