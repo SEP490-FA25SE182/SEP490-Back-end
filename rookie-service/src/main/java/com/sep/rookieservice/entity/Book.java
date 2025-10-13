@@ -89,6 +89,10 @@ public class Book implements Serializable {
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Wishlist> wishlists;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Blog> blogs;
+
     // ManyToMany
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

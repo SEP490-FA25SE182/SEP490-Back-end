@@ -22,7 +22,7 @@ spring:
         - id: swagger-ui-self
           uri: forward:/
           predicates:
-            - Path=/swagger-ui/**, /swagger-ui.html, /v3/api-docs/**, /v3/api-docs.yaml, /webjars/**
+            - Path=/swagger-ui/**, /swagger-ui.html, /v3/api-docs/**, /v3/api-docs.yaml
 
         # Rookie business
         - id: rookie-service
@@ -80,7 +80,6 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-    ip-address: 127.0.0.1
     instance-id: ${spring.application.name}:${server.port}
 
 springdoc:

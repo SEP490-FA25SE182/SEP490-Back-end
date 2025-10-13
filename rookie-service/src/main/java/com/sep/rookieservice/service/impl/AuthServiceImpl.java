@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
             user.setEmail(email);
             user.setAvatarUrl(decoded.getPicture());
             user.setPassword(hashed);
-            user.setRoleId(resolveRoleIdByName(DEFAULT_ROLE_NAME));
+            user.setRoleId(resolveActiveRoleIdByName(DEFAULT_ROLE_NAME));
             user.setIsActived(IsActived.ACTIVE);
             userRepository.save(user);
         } else {
@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(email);
         user.setPhoneNumber(req.getPhoneNumber());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRoleId(resolveRoleIdByName(DEFAULT_ROLE_NAME));
+        user.setRoleId(resolveActiveRoleIdByName(DEFAULT_ROLE_NAME));
         user.setIsActived(IsActived.ACTIVE);
 
         userRepository.save(user);
@@ -126,6 +126,8 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
         }
         String jwt = issueJwt(user);
+        roleRepository.findByRoleIdAndIsActived(user.getRoleId(), IsActived.ACTIVE)
+                .orElseThrow(() -> new IllegalStateException("Role của tài khoản không ACTIVE"));
         return new AuthResponse(userMapper.toResponse(user), jwt);
     }
 
@@ -223,9 +225,10 @@ public class AuthServiceImpl implements AuthService {
         return sb.toString();
     }
 
-    private String resolveRoleIdByName(String roleName) {
-        return roleRepository.findByRoleNameIgnoreCase(roleName)
-                .orElseThrow(() -> new IllegalStateException("Role '" + roleName + "' chưa được seed"))
+    private String resolveActiveRoleIdByName(String roleName) {
+        return roleRepository.findByRoleNameIgnoreCaseAndIsActived(roleName, IsActived.ACTIVE)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Role '" + roleName + "' không tồn tại hoặc không ở trạng thái ACTIVE"))
                 .getRoleId();
     }
 }

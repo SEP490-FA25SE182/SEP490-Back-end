@@ -35,6 +35,8 @@ services:
     container_name: rookie-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CACHE_TYPE: simple
+      FIREBASE_CREDENTIALS_PATH: /app/firebase.json
       ROOKIE_PORT: ${ROOKIE_PORT:-8081}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
@@ -57,6 +59,8 @@ services:
     ports:
       - "${ROOKIE_PORT:-8081}:8081"
     networks: [sep490-net]
+    volumes:
+      - ./rookie-service/src/main/resources/firebase-service-account.json:/app/firebase.json:ro
 
   # ai-service
   ai-service:
@@ -66,6 +70,11 @@ services:
     container_name: ai-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CACHE_TYPE: simple
+      STORAGE_BASE_DIR: /data/illustrations
+      FIREBASE_CREDENTIALS_PATH: /app/firebase.json
+      STABILITY_ENABLED: "false"
+      STABILITY_KEY: ${STABILITY_KEY}
       AI_PORT: ${AI_PORT:-8082}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
@@ -87,6 +96,9 @@ services:
     ports:
       - "${AI_PORT:-8082}:8082"
     networks: [sep490-net]
+    volumes:
+      - ./_ai_data:/data/illustrations
+      - ./ai-service/src/main/resources/firebase-service-account.json:/app/firebase.json:ro
 
   # ar-service
   ar-service:
@@ -96,6 +108,7 @@ services:
     container_name: ar-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_CACHE_TYPE: simple
       AR_PORT: ${AR_PORT:-8083}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}

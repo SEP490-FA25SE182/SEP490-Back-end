@@ -86,6 +86,11 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<UserQuizResult> userQuizResults;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Blog> blogs;
+
+
     //ManyToOne
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

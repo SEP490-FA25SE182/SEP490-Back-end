@@ -4,23 +4,21 @@ server:
 spring:
   application:
     name: api-gateway
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-      routes: []  # dùng Discovery Locator nên có thể bỏ route tĩnh
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
-
-redis:
-  host: ${REDIS_HOST:redis}
-  port: ${REDIS_PORT:6379}
 
 eureka:
   client:
