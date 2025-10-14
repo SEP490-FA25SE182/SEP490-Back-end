@@ -9,11 +9,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.Instant;
 
 @Data
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -31,9 +35,11 @@ public class Message implements Serializable {
     @Column(name = "content", length = 500)
     private String content;
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
+    @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 

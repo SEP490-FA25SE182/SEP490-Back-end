@@ -29,5 +29,6 @@ public class AIGenerationResponse {
     private Double durationMs;
     private Byte status;
     private Instant createdAt;
+    private Instant updatedAt;
     private String userId;
 }
