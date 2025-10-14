@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.Instant;
+
 @Data
 public class AIGenerationTargetRequest {
 
@@ -19,4 +21,6 @@ public class AIGenerationTargetRequest {
     private String targetRefId;
 
     private IsActived isActived;
+
+    private Instant updatedAt;
 }

@@ -11,12 +11,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 
 @Data
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -43,8 +47,13 @@ public class AIGeneration implements Serializable {
     @Column(name = "status")
     private Byte status = AIGenerationEnum.PENDING.getStatus();
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
     @Column(name = "user_id", length = 50)
     private String userId;

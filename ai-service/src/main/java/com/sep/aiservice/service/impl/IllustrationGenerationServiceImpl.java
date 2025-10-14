@@ -16,6 +16,7 @@ import com.sep.aiservice.mapper.IllustrationMapper;
 import com.sep.aiservice.repository.AIGenerationRepository;
 import com.sep.aiservice.repository.AIGenerationTargetRepository;
 import com.sep.aiservice.repository.IllustrationRepository;
+import com.sep.aiservice.service.AiGenerationLogService;
 import com.sep.aiservice.service.IllustrationGenerationService;
 import com.sep.aiservice.service.StorageService;
 import jakarta.annotation.Nullable;
@@ -43,24 +44,16 @@ import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 
-@Service
 @RequiredArgsConstructor
 @Transactional
+@Service
 public class IllustrationGenerationServiceImpl implements IllustrationGenerationService {
 
     private final WebClient stabilityWebClient;
     private final IllustrationRepository illustrationRepo;
-    private final AIGenerationRepository aiGenRepo;
-    private final AIGenerationTargetRepository aiTargetRepo;
     private final StorageService storage;
-
-    //inject các mapper
-    @Qualifier("illustrationMapper")
+    private final AiGenerationLogService genLog;
     private final IllustrationMapper illustrationMapper;
-    @Qualifier("AIGenerationMapper")
-    private final AIGenerationMapper aiGenerationMapper;
-    @Qualifier("AIGenerationTargetMapper")
-    private final AIGenerationTargetMapper aiGenerationTargetMapper;
 
     @Value("${stability.default-model:sd3.5-flash}")
     private String defaultModel;
@@ -75,35 +68,20 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
     public IllustrationResponse generateSync(GenerateIllustrationRequest req,
                                              @Nullable MultipartFile controlImage,
                                              @Nullable String userId) {
-        long started = System.currentTimeMillis();
-
-        // 1) Log AIGeneration
-        AIGeneration gen = new AIGeneration();
-        gen.setModelName(firstNonBlank(req.getModelName(), defaultModel));
-        gen.setPrompt(req.getPrompt());
-        gen.setNegativePrompt(req.getNegativePrompt());
-        gen.setStatus(AIGenerationEnum.PENDING.getStatus());
-        gen.setUserId(userId);
-        gen.setMode(req.getMode() == null ? GenerationMode.TEXT_TO_IMAGE : req.getMode());
-        gen.setAspectRatio(req.getAspectRatio());
-        gen.setStrength(req.getStrength());
-        gen.setSeed(req.getSeed());
-        gen.setCfgScale(req.getCfgScale());
-        gen.setStylePreset(req.getStylePreset());
-        gen.setAcceptHeader(req.getAccept());
-
-        gen = aiGenRepo.save(gen);
+        long started = System.nanoTime();
+        AIGeneration gen = genLog.begin(firstNonBlank(req.getModelName(), defaultModel),
+                req.getPrompt(),
+                req.getMode()==null?GenerationMode.TEXT_TO_IMAGE:req.getMode(),
+                StringUtils.hasText(req.getAccept())?req.getAccept():defaultAccept,
+                userId);
 
         try {
-            // 2) Gọi Stability
             byte[] imageBytes = callStability(req, controlImage, userId);
 
-            // 3) Lưu file -> URL
             String ext = Optional.ofNullable(req.getFormat()).orElse("png").toLowerCase();
-            String fileName = "illu-" + gen.getAiGenerationId() + "-" + System.currentTimeMillis() + "." + ext;
+            String fileName = "illustrations/illu-" + gen.getAiGenerationId() + "-" + System.currentTimeMillis() + "." + ext;
             String url = storage.save(fileName, imageBytes, "image/" + ext);
 
-            // 4) Ghi Illustration
             Illustration illu = new Illustration();
             illu.setImageUrl(url);
             illu.setStyle(req.getStyle());
@@ -112,30 +90,15 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
             illu.setHeight(req.getHeight());
             illu.setTitle(req.getTitle());
             illu.setIsActived(IsActived.ACTIVE);
-            illu.setUpdatedAt(Instant.now());
             illu = illustrationRepo.save(illu);
 
-            // 5) Target
-            AIGenerationTarget tgt = new AIGenerationTarget();
-            tgt.setAiGenerationId(gen.getAiGenerationId());
-            tgt.setTargetType("ILLUSTRATION");
-            tgt.setTargetRefId(illu.getIllustrationId());
-            tgt.setUpdatedAt(Instant.now());
-            tgt = aiTargetRepo.save(tgt);
+            genLog.linkTarget(gen, "ILLUSTRATION", illu.getIllustrationId());
+            genLog.success(gen, (System.nanoTime() - started)/1_000_000.0);
 
-            // 6) Cập nhật gen
-            gen.setDurationMs(System.currentTimeMillis() - started);
-            gen.setStatus(AIGenerationEnum.SUCCESS.getStatus());
-            gen = aiGenRepo.save(gen);
-
-            AIGenerationResponse genResp = aiGenerationMapper.toResponse(gen);
-            AIGenerationTargetResponse tgtResp = aiGenerationTargetMapper.toResponse(tgt);
             return illustrationMapper.toResponse(illu);
 
         } catch (Exception ex) {
-            gen.setDurationMs(System.currentTimeMillis() - started);
-            gen.setStatus(AIGenerationEnum.FAILED.getStatus());
-            aiGenRepo.save(gen);
+            genLog.fail(gen, (System.nanoTime() - started)/1_000_000.0, ex);
             throw ex;
         }
     }

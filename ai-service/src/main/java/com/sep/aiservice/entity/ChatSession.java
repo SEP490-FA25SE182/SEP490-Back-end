@@ -8,12 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 
 @Data
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -28,9 +32,11 @@ public class ChatSession implements Serializable {
     @Column(name = "title", length = 50)
     private String title;
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
+    @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 

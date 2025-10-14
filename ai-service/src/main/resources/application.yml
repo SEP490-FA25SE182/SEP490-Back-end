@@ -48,6 +48,7 @@ eureka:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
+# Stability
 stability:
   base-url: https://api.stability.ai
   api-key: ${STABILITY_KEY}
@@ -58,6 +59,19 @@ stability:
     version: 1.0.0      # stability-client-version
   default-accept: image/*
 
+#Gemini audio
+gemini:
+  api-key: ${GEMINI_API_KEY}
+  base-url: https://generativelanguage.googleapis.com
+
+# Firebase
 storage:
-  base-dir: /data/illustrations
-  public-base-url: https://cdn.example.com/illustrations
+  provider: firebase
+  bucket: your-bucket-id.appspot.com
+  public-base-url: https://firebasestorage.googleapis.com
+  # Chia folder:
+  image-prefix: illustrations
+  audio-prefix: audios
+
+firebase:
+  service-account-file: ${FIREBASE_CREDENTIALS_PATH}

@@ -7,11 +7,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.Instant;
 
 @Data
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,7 +27,7 @@ public class Audio implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String audioId;
 
-    @Column(name = "audio_url", length = 100)
+    @Column(name = "audio_url", length = 500)
     private String audioUrl;
 
     @Column(name = "voice", length = 50)
@@ -41,9 +45,11 @@ public class Audio implements Serializable {
     @Column(name = "title", length = 50)
     private String title;
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
+    @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 

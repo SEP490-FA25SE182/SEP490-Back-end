@@ -6,6 +6,8 @@ import com.sep.aiservice.enums.StylePreset;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.time.Instant;
+
 @Data
 public class AIGenerationRequest {
 
@@ -56,4 +58,6 @@ public class AIGenerationRequest {
     @Pattern(regexp="(?i)png|jpg|jpeg|webp") private String format = "png";
 
     private IsActived isActived;
+
+    private Instant updatedAt;
 }
