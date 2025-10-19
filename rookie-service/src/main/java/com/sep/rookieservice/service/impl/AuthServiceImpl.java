@@ -24,10 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
 
     private static final String DEFAULT_ROLE_NAME = "customer";
+    private static final Set<String> ALLOWED_SIGNUP_ROLES = Set.of("customer", "author");
 
     @Override
     public AuthResponse loginWithGoogle(String idToken) {
@@ -97,12 +95,14 @@ public class AuthServiceImpl implements AuthService {
         userRepository.findByEmail(email)
                 .ifPresent(u -> { throw new IllegalStateException("Email đã tồn tại"); });
 
+        String resolvedRoleId = resolveSignupRoleIdByIdOrDefault(req.getRoleId());
+
         User user = new User();
         user.setFullName(req.getFullName().trim());
         user.setEmail(email);
         user.setPhoneNumber(req.getPhoneNumber());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRoleId(resolveActiveRoleIdByName(DEFAULT_ROLE_NAME));
+        user.setRoleId(resolvedRoleId);
         user.setIsActived(IsActived.ACTIVE);
 
         userRepository.save(user);
@@ -230,5 +230,21 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new IllegalStateException(
                         "Role '" + roleName + "' không tồn tại hoặc không ở trạng thái ACTIVE"))
                 .getRoleId();
+    }
+
+    private String resolveSignupRoleIdByIdOrDefault(String requestedRoleId) {
+        if (requestedRoleId == null || requestedRoleId.isBlank()) {
+            return resolveActiveRoleIdByName(DEFAULT_ROLE_NAME);
+        }
+        var role = roleRepository.findByRoleIdAndIsActived(requestedRoleId, IsActived.ACTIVE)
+                .orElseThrow(() -> new IllegalArgumentException("roleId không tồn tại hoặc không ACTIVE."));
+        ensureAllowedRoleName(role.getRoleName());
+        return role.getRoleId();
+    }
+
+    private void ensureAllowedRoleName(String roleName) {
+        if (roleName == null || !ALLOWED_SIGNUP_ROLES.contains(roleName.toLowerCase())) {
+            throw new IllegalArgumentException("Chỉ được chọn role: Customer hoặc Author.");
+        }
     }
 }

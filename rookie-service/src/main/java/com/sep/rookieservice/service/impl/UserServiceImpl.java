@@ -18,6 +18,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     @Qualifier("userMapper")
     private final UserMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -76,7 +78,7 @@ public class UserServiceImpl implements UserService {
 
             User u = new User();
             mapper.copyForCreate(req, u);
-            u.setPassword("{noop}" + u.getPassword());
+            u.setPassword(passwordEncoder.encode(req.getPassword()));
             if (u.getIsActived() == null) u.setIsActived(IsActived.ACTIVE);
             if (u.getCreatedAt() == null) u.setCreatedAt(Instant.now());
             u.setUpdateAt(Instant.now());

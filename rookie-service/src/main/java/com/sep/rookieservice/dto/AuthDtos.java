@@ -28,6 +28,8 @@ public class AuthDtos {
         @Size(max = 20)
         @Pattern(regexp = "^[0-9+\\-()\\s]*$", message = "Invalid phone format")
         private String phoneNumber;  // optional
+
+        private String roleId;
     }
 
     @Data
