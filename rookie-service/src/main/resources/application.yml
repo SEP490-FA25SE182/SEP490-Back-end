@@ -72,3 +72,12 @@ rookie:
     checksum-key: ${PAYOS_CHECKSUM_KEY}
     return-url: https://your-frontend.com/checkout/success
     cancel-url: https://your-frontend.com/checkout/cancel
+
+
+ghn:
+  token: 73f8b518-a1d7-11f0-bdaf-ae7fa045a771
+  shop-id: 197577
+  client-id: 2510417
+  base-url: https://online-gateway.ghn.vn/shiip/public-api
+  real-url: https://online-gateway.ghn.vn/shiip/public-api/
+  new: dev-
