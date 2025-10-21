@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-push-image:
+  build-and-push:
+    name: Build & Push All Service Images
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      attestations: write
       id-token: write
 
     steps:
@@ -28,17 +28,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: trinhhoangnhatminh123/sep490be:latest
-          cache-from: type=registry,ref=trinhhoangnhatminh123/sep490be:latest
-          cache-to: type=inline
+      # Build & push tất cả images trong docker-compose.yml
+      - name: Build and push all services using docker-compose
+        run: |
+          export IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}
+          export IMAGE_TAG=latest
+          docker compose build
+          docker compose push
 
   deploy:
-    needs: build-and-push-image
+    name: Deploy to Production Server
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
@@ -50,16 +50,18 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
 
-      - name: Add host to known_hosts
+      - name: Add server to known_hosts
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H 103.9.78.87 >> ~/.ssh/known_hosts
 
-      - name: Connect, Pull, and Build Docker
+      - name: Pull and restart containers
         run: |
           ssh root@103.9.78.87 << 'EOF'
           set -e
           cd /SEP
-          echo "${{ secrets.SSH_PASS_PRODUCTION }}" | sudo -S docker compose pull sep490-be
+          export IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}
+          export IMAGE_TAG=latest
+          echo "${{ secrets.SSH_PASS_PRODUCTION }}" | sudo -S docker compose pull
           echo "${{ secrets.SSH_PASS_PRODUCTION }}" | sudo -S docker compose up -d
           EOF
