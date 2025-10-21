@@ -13,4 +13,8 @@ public class CartItemRequest {
 
     @Min(value = 0, message = "price must be >= 0")
     private Double price;
+
+    private String cartId;
+
+    private String bookId;
 }

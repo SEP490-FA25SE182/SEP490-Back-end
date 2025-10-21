@@ -14,6 +14,8 @@ public interface OrderDetailMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "quantity", source = "quantity"),
+            @Mapping(target = "orderId", source = "orderId"),
+            @Mapping(target = "bookId", source = "bookId"),
             @Mapping(target = "price", source = "price")
     })
     void copyForCreate(OrderDetailRequest req, @MappingTarget OrderDetail entity);

@@ -29,10 +29,10 @@ public class CartItem implements Serializable {
     private double price;
 
     @NotNull
-    @Column(name = "cart_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "cart_id", length = 50)
     private String cartId;
 
-    @Column(name = "book_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "book_id", length = 50)
     private String bookId;
 
     @JsonIgnore

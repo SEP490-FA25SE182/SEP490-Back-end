@@ -30,11 +30,11 @@ public class OrderDetail implements Serializable {
     private double price;
 
     @NotNull
-    @Column(name = "order_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "order_id", length = 50)
     private String orderId;
 
     @NotNull
-    @Column(name = "book_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "book_id", length = 50)
     private String bookId;
 
     //ManyToOne
