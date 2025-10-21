@@ -16,6 +16,7 @@ public interface UserAddressMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "addressInfor", source = "addressInfor"),
+            @Mapping(target = "userId", source = "userId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(UserAddressRequest req, @MappingTarget UserAddress entity);
