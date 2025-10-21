@@ -14,6 +14,6 @@ public class UserAddressRequest {
     @NotBlank
     @Size(max = 100)
     private String addressInfor;
-
+    private String userId;
     private IsActived isActived;
 }
