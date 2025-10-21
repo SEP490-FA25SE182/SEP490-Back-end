@@ -13,5 +13,7 @@ public class WalletRequest {
     @Min(value = 0, message = "coin must be >= 0")
     private Integer coin;
 
+    private String userId;
+
     private IsActived isActived;
 }

@@ -43,12 +43,13 @@ public class Cart implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     @NotNull
-    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "user_id", length = 50)
     private String userId;
 
     //OneToOne
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true, insertable = false, updatable = false)
     private User user;
 
     //OneToMany

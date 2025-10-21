@@ -14,5 +14,9 @@ public class TransactionRequest {
 
     private Long orderCode;
 
+    private String orderId;
+
+    private String paymentMethodId;
+
     private com.sep.rookieservice.enums.IsActived isActived;
 }
