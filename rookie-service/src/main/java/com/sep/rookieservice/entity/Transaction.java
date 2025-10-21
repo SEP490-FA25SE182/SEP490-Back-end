@@ -38,11 +38,11 @@ public class Transaction implements Serializable {
     private Byte status = TransactionEnum.NOT_PAID.getStatus();
 
     @NotNull
-    @Column(name = "payment_method_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "payment_method_id", length = 50)
     private String paymentMethodId;
 
     @NotNull
-    @Column(name = "order_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "order_id", length = 50)
     private String orderId;
 
     @Column(name = "order_code", unique = true)
@@ -61,6 +61,7 @@ public class Transaction implements Serializable {
 
     //OneToOne
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", referencedColumnName = "order_id", nullable = false, unique = true)
+    @JsonIgnore
+    @JoinColumn(name = "order_id", referencedColumnName = "order_id", nullable = false, unique = true, insertable = false, updatable = false)
     private Order order;
 }

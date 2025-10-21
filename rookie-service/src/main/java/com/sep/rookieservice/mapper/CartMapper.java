@@ -16,6 +16,7 @@ public interface CartMapper {
     @Mappings({
             @Mapping(target = "amount", source = "amount"),
             @Mapping(target = "totalPrice", source = "totalPrice"),
+            @Mapping(target = "userId", source = "userId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(CartRequest req, @MappingTarget Cart entity);
