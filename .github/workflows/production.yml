@@ -59,7 +59,7 @@ jobs:
         run: |
           ssh root@103.9.78.87 << 'EOF'
           set -e
-          cd /SEP
+          cd ~/SEP
           export IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}
           export IMAGE_TAG=latest
           echo "${{ secrets.SSH_PASS_PRODUCTION }}" | sudo -S docker compose pull
