@@ -10,6 +10,10 @@ import com.sep.rookieservice.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,5 +80,42 @@ public class RoleServiceImpl implements RoleService {
                 .orElseThrow(() -> new RuntimeException("Role not found: " + id));
         role.setIsActived(IsActived.INACTIVE);
         roleRepository.save(role);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RoleResponse> search(
+            String roleId,
+            String roleName,
+            IsActived isActived,
+            Pageable pageable
+    ) {
+        String rid = normalize(roleId);
+        String rn  = normalize(roleName);
+
+        Role probe = new Role();
+        if (rid != null) probe.setRoleId(rid);
+        if (rn  != null) probe.setRoleName(rn);
+        if (isActived != null) probe.setIsActived(isActived);
+
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnoreCase()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withMatcher("roleId", m -> m.exact())
+                .withMatcher("roleName", m -> m.contains())
+                .withIgnorePaths(
+                        "createdAt",
+                        "users"
+                )
+                .withIgnoreNullValues();
+
+        return roleRepository.findAll(Example.of(probe, matcher), pageable)
+                .map(mapper::toResponse);
+    }
+
+    private String normalize(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
     }
 }
