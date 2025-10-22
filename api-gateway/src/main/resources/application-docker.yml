@@ -29,9 +29,9 @@ spring:
         - id: rookie-service-docs
           uri: lb://rookie-service
           predicates:
-            - Path=/rookie-service/v3/api-docs
+            - Path=/rookie-service/v3/api-docs/**
           filters:
-            - RewritePath=/rookie-service/v3/api-docs, /v3/api-docs
+            - RewritePath=/rookie-service/(?<remaining>.*), /$\{remaining}
         - id: ar-service-docs
           uri: lb://ar-service
           predicates:
