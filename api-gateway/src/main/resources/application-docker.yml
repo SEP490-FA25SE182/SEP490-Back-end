@@ -13,6 +13,19 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+      routes:
+        - id: rookie-service-docs
+          uri: lb://rookie-service
+          predicates:
+            - Path=/rookie-service/v3/api-docs/**
+          filters:
+            - RewritePath=/rookie-service/(?<path>.*), /$\{path}
+        - id: ar-service-docs
+          uri: lb://ar-service
+          predicates:
+            - Path=/ar-service/v3/api-docs/**
+          filters:
+            - RewritePath=/ar-service/(?<path>.*), /$\{path}
 
 management:
   endpoints:
@@ -26,3 +39,26 @@ eureka:
       defaultZone: ${EUREKA_URL:http://discovery-server:8761/eureka}
   instance:
     prefer-ip-address: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: API Gateway
+        url: /v3/api-docs
+      - name: Rookie Service
+        url: /rookie-service/v3/api-docs
+      - name: AR Service
+        url: /ar-service/v3/api-docs
+    config-url: /v3/api-docs/swagger-config
+    urls-primary-name: api-gateway
+    operations-sorter: alpha
+    tags-sorter: alpha
+    try-it-out-enabled: true
+  group-configs:
+    - group: services
+      packages-to-scan: com.sep
+      paths-to-match: /api/**
