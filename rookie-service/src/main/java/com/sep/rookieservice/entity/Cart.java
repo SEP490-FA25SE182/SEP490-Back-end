@@ -48,7 +48,7 @@ public class Cart implements Serializable {
 
     //OneToOne
     @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true, insertable = false, updatable = false)
     private User user;
 

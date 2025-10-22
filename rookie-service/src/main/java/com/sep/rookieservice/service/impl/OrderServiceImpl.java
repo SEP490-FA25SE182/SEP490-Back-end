@@ -174,11 +174,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // clear cart
-        savedOrder.setCartId(null);
-        savedOrder.setCart(null);
-        orderRepository.saveAndFlush(savedOrder);
-        cartItemRepository.deleteAllInBatch(items);
-        cartRepository.delete(cart);
+         cartItemRepository.deleteAll(items);
+         cart.setAmount(0);
+         cart.setTotalPrice(0);
+         cart.setUpdatedAt(Instant.now());
+         cartRepository.save(cart);
 
         return mapper.toResponse(savedOrder);
     }
