@@ -10,31 +10,41 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.Instant;
 
+@Entity
+@Table(name = "wishlists")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "wishlist")
-public class Wishlist implements Serializable {
+public class Wishlist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "wishlist_id", length = 50)
     private String wishlistId;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    private String userId;
 
-    // --- Book ---
+    @Column(name = "book_id", length = 50, insertable = false, updatable = false)
+    private String bookId;
+
+    @Column(name = "bookshelve_id", length = 50, insertable = false, updatable = false)
+    private String bookshelfId;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", referencedColumnName = "book_id", nullable = false)
-    @JsonIgnore
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", referencedColumnName = "book_id", insertable = false, updatable = false)
     private Book book;
 
-    // --- Bookshelve ---
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bookshelve_id", referencedColumnName = "bookshelve_id", nullable = false)
-    @JsonIgnore
-    private Bookshelve bookshelve;
+    @JoinColumn(name = "bookshelve_id", referencedColumnName = "bookshelve_id", insertable = false, updatable = false)
+    private Bookshelve bookshelf;
+
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt = Instant.now();
 }
+
