@@ -33,12 +33,12 @@ jobs:
         run: |
           export IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}
           export IMAGE_TAG=latest
+          export MSSQL_SA_PASSWORD=${{ secrets.MSSQL_SA_PASSWORD }}
 
-          # Build từng service cần thiết
-          docker compose build discovery-server
-          docker compose build rookie-service
-          docker compose build ar-service
-          docker compose build api-gateway
+          docker compose build --no-cache discovery-server
+          docker compose build --no-cache rookie-service
+          docker compose build --no-cache ar-service
+          docker compose build --no-cache api-gateway
 
           # Push các services cần thiết
           docker compose push discovery-server

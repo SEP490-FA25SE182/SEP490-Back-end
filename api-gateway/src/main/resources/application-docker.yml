@@ -26,12 +26,6 @@ spring:
             - Path=/ar-service/v3/api-docs/**
           filters:
             - RewritePath=/ar-service/(?<path>.*), /$\{path}
-        - id: ai-service-docs
-          uri: lb://ai-service
-          predicates:
-            - Path=/ai-service/v3/api-docs/**
-          filters:
-            - RewritePath=/ai-service/(?<path>.*), /$\{path}
 
 management:
   endpoints:
@@ -59,8 +53,6 @@ springdoc:
         url: /rookie-service/v3/api-docs
       - name: AR Service
         url: /ar-service/v3/api-docs
-      - name: AI Service
-        url: /ai-service/v3/api-docs
     config-url: /v3/api-docs/swagger-config
     urls-primary-name: api-gateway
     operations-sorter: alpha
