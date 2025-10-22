@@ -1,4 +1,4 @@
-  server:
+server:
   port: ${ROOKIE_PORT:8081}
 
 spring:
