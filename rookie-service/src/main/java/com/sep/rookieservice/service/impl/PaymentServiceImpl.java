@@ -55,8 +55,8 @@ public class PaymentServiceImpl implements PaymentService {
         order.setAmount(amount);
         order.setUpdatedAt(Instant.now());
 
-        // Đặt description chứa nguyên bản orderId để tra ngược ở webhook/GET
-        String description = "OrderId=" + orderId;
+        // Đặt description chứa nguyên bản orderCode để tra ngược ở webhook/GET
+        String description = maxLen("Order " + orderCode, 25);
 
         String dataStr = PayOSSignature.buildCreateLinkDataString(
                 amount, props.getCancelUrl(), description, orderCode, props.getReturnUrl()
@@ -90,6 +90,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Tạo/ cập nhật Transaction (PROCESSING)
         Transaction tx = txRepo.findByOrderId(orderId).orElseGet(Transaction::new);
+        tx.setOrderId(orderId);
         tx.setOrder(order);
         tx.setPaymentMethodId(pmId);
         tx.setTotalPrice(order.getTotalPrice());
@@ -97,8 +98,8 @@ public class PaymentServiceImpl implements PaymentService {
         tx.setUpdatedAt(Instant.now());
         txRepo.save(tx);
 
-        // Cập nhật Order -> PENDING (đã tạo checkout, chờ thanh toán)
-        order.setStatus(OrderEnum.PENDING.getStatus());
+        // Cập nhật Order -> PROCESSING (Shop đã xác nhận, đơn hàng đang được chuẩn bị)
+        order.setStatus(OrderEnum.PROCESSING.getStatus());
         orderRepo.save(order);
 
         return CreateCheckoutResponse.builder()
@@ -207,6 +208,10 @@ public class PaymentServiceImpl implements PaymentService {
         int space = val.indexOf(' ');
         if (space > 0) val = val.substring(0, space);
         return val.matches("(?i)[0-9a-f\\-]{32,36}") ? val : null;
+    }
+
+    private static String maxLen(String s, int max) {
+        return (s == null || s.length() <= max) ? s : s.substring(0, max);
     }
 
 }
