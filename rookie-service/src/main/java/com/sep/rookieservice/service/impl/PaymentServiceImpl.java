@@ -156,8 +156,8 @@ public class PaymentServiceImpl implements PaymentService {
                 tx.setOrderCode(orderCode);
                 txRepo.save(tx);
 
-                // Order sang PENDING (chờ shop xác nhận)
-                order.setStatus(OrderEnum.PENDING.getStatus());
+                // Order sang PENDING (Shop đã xác nhận)
+                order.setStatus(OrderEnum.PROCESSING.getStatus());
                 order.setUpdatedAt(Instant.now());
                 orderRepo.save(order);
 
