@@ -58,6 +58,6 @@ public class Cart implements Serializable {
     private List<CartItem> cartItems;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cart", fetch = FetchType.LAZY)
     private List<Order> orders;
 }
