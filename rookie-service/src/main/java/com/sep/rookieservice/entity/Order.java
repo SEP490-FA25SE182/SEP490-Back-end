@@ -41,11 +41,10 @@ public class Order implements Serializable {
     private Byte status = OrderEnum.UNORDERED.getStatus();
 
     @NotNull
-    @Column(name = "wallet_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "wallet_id", length = 50)
     private String walletId;
 
-    @NotNull
-    @Column(name = "cart_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "cart_id", length = 50)
     private String cartId;
 
     //ManyToOne

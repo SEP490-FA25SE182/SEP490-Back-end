@@ -29,7 +29,7 @@ public class UserAddress implements Serializable {
     private String addressInfor;
 
     @NotNull
-    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "user_id", length = 50)
     private String userId;
 
     @Column(name = "created_at", updatable = false)

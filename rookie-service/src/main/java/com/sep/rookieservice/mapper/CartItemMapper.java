@@ -15,6 +15,8 @@ public interface CartItemMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "quantity", source = "quantity"),
+            @Mapping(target = "cartId", source = "cartId"),
+            @Mapping(target = "bookId", source = "bookId"),
             @Mapping(target = "price", source = "price")
     })
     void copyForCreate(CartItemRequest req, @MappingTarget CartItem entity);

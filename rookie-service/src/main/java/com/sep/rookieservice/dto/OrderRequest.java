@@ -16,4 +16,7 @@ public class OrderRequest {
 
     @NotNull(message = "status is required")
     private Byte status;
+
+    private String cartId;
+    private String walletId;
 }

@@ -17,6 +17,8 @@ public interface TransactionMapper {
             @Mapping(target = "totalPrice", source = "totalPrice"),
             @Mapping(target = "status", source = "status"),
             @Mapping(target = "orderCode", source = "orderCode"),
+            @Mapping(target = "orderId", source = "orderId"),
+            @Mapping(target = "paymentMethodId", source = "paymentMethodId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(TransactionRequest req, @MappingTarget Transaction entity);
