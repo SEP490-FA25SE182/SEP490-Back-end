@@ -44,7 +44,6 @@ public class Order implements Serializable {
     @Column(name = "wallet_id", length = 50)
     private String walletId;
 
-    @NotNull
     @Column(name = "cart_id", length = 50)
     private String cartId;
 
