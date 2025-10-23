@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-push:
     name: Build & Push All Service Images
-    runs-on: [self-hosted, ubuntu-latest]
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
