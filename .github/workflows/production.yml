@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-push:
     name: Build & Push All Service Images
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     permissions:
       contents: read
       packages: write
@@ -49,7 +49,7 @@ jobs:
   deploy:
     name: Deploy to Production Server
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
 
     steps:
       - name: Checkout repository
