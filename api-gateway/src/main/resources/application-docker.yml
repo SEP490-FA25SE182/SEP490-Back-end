@@ -14,18 +14,30 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        - id: rookie-service
+          uri: lb://rookie-service
+          predicates:
+            - Path=/api/rookie/**
+          filters:
+            - StripPrefix=2
+        - id: ar-service
+          uri: lb://ar-service
+          predicates:
+            - Path=/api/ar/**
+          filters:
+            - StripPrefix=2
         - id: rookie-service-docs
           uri: lb://rookie-service
           predicates:
             - Path=/rookie-service/v3/api-docs/**
           filters:
-            - RewritePath=/rookie-service/(?<path>.*), /$\{path}
+            - RewritePath=/rookie-service/(?<remaining>.*), /$\{remaining}
         - id: ar-service-docs
           uri: lb://ar-service
           predicates:
-            - Path=/ar-service/v3/api-docs/**
+            - Path=/ar-service/v3/api-docs
           filters:
-            - RewritePath=/ar-service/(?<path>.*), /$\{path}
+            - RewritePath=/ar-service/v3/api-docs, /v3/api-docs
 
 management:
   endpoints:
@@ -53,12 +65,6 @@ springdoc:
         url: /rookie-service/v3/api-docs
       - name: AR Service
         url: /ar-service/v3/api-docs
-    config-url: /v3/api-docs/swagger-config
-    urls-primary-name: api-gateway
     operations-sorter: alpha
     tags-sorter: alpha
     try-it-out-enabled: true
-  group-configs:
-    - group: services
-      packages-to-scan: com.sep
-      paths-to-match: /api/**
