@@ -51,6 +51,12 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
+        <!-- Redis (cho caching/session nếu cần) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+        </dependency>
+
         <!-- Swagger/OpenAPI cho WebFlux -->
         <dependency>
             <groupId>org.springdoc</groupId>
