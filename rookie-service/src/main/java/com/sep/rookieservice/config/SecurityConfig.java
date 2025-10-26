@@ -15,9 +15,9 @@ public class SecurityConfig {
                 .cors(c -> {})
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                new AntPathRequestMatcher("/actuator/**"),
-                                new AntPathRequestMatcher("/api/**"),
-                                new AntPathRequestMatcher("/**", "OPTIONS") // cho preflight
+                                "/swagger-ui.html","/swagger-ui/**",
+                                "/v3/api-docs","/v3/api-docs/**",
+                                "/actuator/**"
                         ).permitAll()
                         .anyRequest().permitAll()
                 )

@@ -1,0 +1,53 @@
+name: db
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: [ "CMD-SHELL","/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -No -Q \"SELECT 1\" -C || exit 1" ]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+    networks: [ sep490-net ]
+
+  # Tạo DB & set collation UTF-8 cho tiếng Việt
+  mssql-bootstrap:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      mssql:
+        condition: service_healthy
+    entrypoint: [ "/bin/bash","-lc" ]
+    command:
+      - >
+        /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P "$${SA_PASSWORD}" -No -C -Q "
+        IF DB_ID('rookie_db') IS NULL
+        BEGIN
+          PRINT '>> Creating rookie_db with Vietnamese_100_CI_AS_SC_UTF8...';
+          CREATE DATABASE rookie_db COLLATE Vietnamese_100_CI_AS_SC_UTF8;
+        END
+        ELSE
+        BEGIN
+          PRINT '>> DB exists. Ensuring default DB collation is Vietnamese_100_CI_AS_SC_UTF8...';
+          ALTER DATABASE rookie_db COLLATE Vietnamese_100_CI_AS_SC_UTF8;
+        END"
+    environment:
+      SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    networks: [ sep490-net ]
+    restart: "no"
+
+networks:
+  sep490-net:
+    external: true  # dùng chung network với sep490
+
+volumes:
+  mssql_data:
+    external: true  # dữ liệu bền vững, không bị xóa khi down sep490
