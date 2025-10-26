@@ -54,12 +54,12 @@ public final class PayOSSignature {
                         jsonArr.add(ele);
                     }
                 }
-                parts.add(k + "=" + jsonArr.toString());
+                parts.add(k + "=" + jsonArr);
             } else if (v instanceof Map<?, ?> m) {
                 JSONObject sortedObj = sortJsonObjectKeys((Map<String, Object>) m);
-                parts.add(k + "=" + sortedObj.toString());
+                parts.add(k + "=" + sortedObj);
             } else {
-                parts.add(k + "=" + v.toString());
+                parts.add(k + "=" + v);
             }
         }
         return String.join("&", parts);
