@@ -17,6 +17,10 @@ public interface UserAddressMapper {
     @Mappings({
             @Mapping(target = "addressInfor", source = "addressInfor"),
             @Mapping(target = "userId", source = "userId"),
+            @Mapping(target = "phoneNumber", source = "phoneNumber"),
+            @Mapping(target = "fullName", source = "fullName"),
+            @Mapping(target = "type", source = "type"),
+            @Mapping(target = "default", source = "default"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(UserAddressRequest req, @MappingTarget UserAddress entity);
@@ -25,6 +29,9 @@ public interface UserAddressMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "addressInfor", source = "addressInfor"),
+            @Mapping(target = "phoneNumber", source = "phoneNumber"),
+            @Mapping(target = "fullName", source = "fullName"),
+            @Mapping(target = "type", source = "type"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForUpdate(UserAddressRequest req, @MappingTarget UserAddress entity);

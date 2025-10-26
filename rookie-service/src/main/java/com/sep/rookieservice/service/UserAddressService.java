@@ -15,5 +15,12 @@ public interface UserAddressService {
     List<UserAddressResponse> create(List<UserAddressRequest> requests);
     UserAddressResponse update(String id, UserAddressRequest request);
     void softDelete(String id);
-    Page<UserAddressResponse> search(IsActived isActived, Pageable pageable);
+    Page<UserAddressResponse> search(
+            IsActived isActived,
+            String phoneNumber,
+            String type,
+            String userId,
+            Boolean isDefault,
+            Pageable pageable
+    );
 }

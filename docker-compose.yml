@@ -1,9 +1,9 @@
-
 name: sep490
 services:
   discovery-server:
     build:
       context: ./discovery-server
+    pull_policy: build
     image: ${IMAGE_PREFIX:-local}/discovery-server:${IMAGE_TAG:-dev}
     container_name: discovery-server
     environment:
@@ -19,7 +19,6 @@ services:
       retries: 30
     networks: [sep490-net]
 
-  # service Redis
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -27,10 +26,11 @@ services:
       - "6380:6379"
     networks: [ sep490-net ]
 
-  # rookie-service
   rookie-service:
     build:
       context: ./rookie-service
+      dockerfile: ./Dockerfile
+    pull_policy: build
     image: ${IMAGE_PREFIX:-local}/rookie-service:${IMAGE_TAG:-dev}
     container_name: rookie-service
     environment:
@@ -40,19 +40,17 @@ services:
       ROOKIE_PORT: ${ROOKIE_PORT:-8081}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
-      # === DB cho container ===
+
+      # DB ở stack db (host: mssql)
       DB_URL: jdbc:sqlserver://mssql:1433;databaseName=rookie_db;encrypt=true;trustServerCertificate=true
       DB_USERNAME: sa
       DB_PASSWORD: ${MSSQL_SA_PASSWORD}
       DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
-      # === Redis trong container ===
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
       discovery-server:
-        condition: service_started
-      mssql:
         condition: service_started
       redis:
         condition: service_started
@@ -62,10 +60,11 @@ services:
     volumes:
       - ./rookie-service/src/main/resources/firebase-service-account.json:/app/firebase.json:ro
 
-  # ai-service
   ai-service:
     build:
       context: ./ai-service
+      dockerfile: ./Dockerfile
+    pull_policy: build
     image: ${IMAGE_PREFIX:-local}/ai-service:${IMAGE_TAG:-dev}
     container_name: ai-service
     environment:
@@ -89,8 +88,6 @@ services:
     depends_on:
       discovery-server:
         condition: service_started
-      mssql:
-        condition: service_healthy
       redis:
         condition: service_started
     ports:
@@ -100,10 +97,11 @@ services:
       - ./_ai_data:/data/illustrations
       - ./ai-service/src/main/resources/firebase-service-account.json:/app/firebase.json:ro
 
-  # ar-service
   ar-service:
     build:
       context: ./ar-service
+      dockerfile: ./Dockerfile
+    pull_policy: build
     image: ${IMAGE_PREFIX:-local}/ar-service:${IMAGE_TAG:-dev}
     container_name: ar-service
     environment:
@@ -123,8 +121,6 @@ services:
     depends_on:
       discovery-server:
         condition: service_started
-      mssql:
-        condition: service_healthy
       redis:
         condition: service_started
     ports:
@@ -134,6 +130,8 @@ services:
   api-gateway:
     build:
       context: ./api-gateway
+      dockerfile: ./Dockerfile
+    pull_policy: build
     image: ${IMAGE_PREFIX:-local}/api-gateway:${IMAGE_TAG:-dev}
     container_name: api-gateway
     environment:
@@ -154,44 +152,9 @@ services:
         condition: service_started
     networks: [sep490-net]
 
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mssql
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: ${MSSQL_SA_PASSWORD}
-      MSSQL_PID: "Express"
-    ports:
-      - "1433:1433"
-    volumes:
-      - mssql_data:/var/opt/mssql
-    healthcheck:
-      test: [ "CMD-SHELL","/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -No -Q \"SELECT 1\" -C || exit 1" ]
-      interval: 10s
-      timeout: 3s
-      retries: 30
-    networks: [ sep490-net ]
-
-  mssql-bootstrap:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    depends_on:
-      mssql:
-        condition: service_healthy
-    entrypoint: [ "/bin/bash","-lc" ]
-    command:
-      - >
-        /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P "$${SA_PASSWORD}" -C
-        -Q "IF DB_ID('rookie_db') IS NULL CREATE DATABASE rookie_db;"
-    environment:
-      SA_PASSWORD: ${MSSQL_SA_PASSWORD}
-    networks: [ sep490-net ]
-    restart: "no"
-
-
 networks:
   sep490-net:
-    driver: bridge
+    external: true
 
 volumes:
-  mssql_data:
   uploads_data:

@@ -14,7 +14,6 @@ management:
       exposure:
         include: health,info
 
-
 eureka:
   client:
     service-url:
@@ -24,3 +23,11 @@ eureka:
 
 stability:
   enabled: ${STABILITY_ENABLED:false}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

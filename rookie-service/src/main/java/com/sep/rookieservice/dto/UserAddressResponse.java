@@ -9,6 +9,10 @@ import java.time.Instant;
 public class UserAddressResponse {
     private String userAddressId;
     private String addressInfor;
+    private String phoneNumber;
+    private String fullName;
+    private String type;
+    private boolean isDefault;
     private String userId;
     private Instant createdAt;
     private Instant updatedAt;
