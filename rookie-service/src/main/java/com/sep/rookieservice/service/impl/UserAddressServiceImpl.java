@@ -89,14 +89,35 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public Page<UserAddressResponse> search(IsActived isActived, Pageable pageable) {
+    public Page<UserAddressResponse> search(
+            IsActived isActived,
+            String phoneNumber,
+            String type,
+            String userId,
+            Boolean isDefault,
+            Pageable pageable
+    ) {
         UserAddress probe = new UserAddress();
+
         if (isActived != null) probe.setIsActived(isActived);
+        if (phoneNumber != null && !phoneNumber.isBlank()) probe.setPhoneNumber(phoneNumber.trim());
+        if (type != null && !type.isBlank()) probe.setType(type.trim());
+        if (userId != null && !userId.isBlank()) probe.setUserId(userId.trim());
+        if (isDefault != null) probe.setDefault(isDefault);
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
-                .withIgnorePaths("userAddressId", "addressInfor", "userId",
-                        "createdAt", "updatedAt", "user")
-                .withIgnoreNullValues();
+                .withIgnoreNullValues()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase()
+                .withIgnorePaths(
+                        "userAddressId", "addressInfor",
+                        "createdAt", "updatedAt", "user"
+                )
+                .withMatcher("userId", ExampleMatcher.GenericPropertyMatchers.exact());
+
+        if (isDefault == null) {
+            matcher = matcher.withIgnorePaths("isDefault");
+        }
 
         Example<UserAddress> example = Example.of(probe, matcher);
 
