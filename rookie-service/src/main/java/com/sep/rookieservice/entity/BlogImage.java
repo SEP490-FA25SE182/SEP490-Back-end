@@ -33,7 +33,7 @@ public class BlogImage implements Serializable {
     private String altText;
 
     @Column(name = "position")
-    private Integer position = 0; // để sort ảnh
+    private Integer position = 0;
 
     @Column(name = "blog_id", length = 50)
     private String blogId;
