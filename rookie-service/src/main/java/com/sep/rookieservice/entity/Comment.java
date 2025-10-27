@@ -40,11 +40,11 @@ public class Comment implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     @NotNull
-    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "user_id", length = 50)
     private String userId;
 
     @NotNull
-    @Column(name = "blog_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "blog_id", length = 50)
     private String blogId;
 
     // Many-to-One relationships
