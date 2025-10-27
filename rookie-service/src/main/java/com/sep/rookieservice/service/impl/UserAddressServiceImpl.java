@@ -19,7 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,22 +51,59 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     @Transactional(readOnly = true)
     public List<UserAddressResponse> getByUserId(String userId) {
-        return userAddressRepository.findByUserId(userId).stream().map(mapper::toResponse).toList();
+        return userAddressRepository
+                .findByUserIdAndIsActived(userId, IsActived.ACTIVE)
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     @Override
     @CacheEvict(value = {"allUserAddresses", "UserAddress"}, allEntries = true)
     public List<UserAddressResponse> create(List<UserAddressRequest> requests) {
+
+        Map<String, List<UserAddressRequest>> byUser =
+                requests.stream().collect(Collectors.groupingBy(UserAddressRequest::getUserId));
+
+        byUser.forEach((userId, list) -> {
+            Predicate<UserAddressRequest> isActiveReq =
+                    r -> r.getIsActived() == null || r.getIsActived() == IsActived.ACTIVE;
+
+            long defaultsActiveInReq = list.stream()
+                    .filter(r -> Boolean.TRUE.equals(r.isDefault()) && isActiveReq.test(r))
+                    .count();
+
+            if (defaultsActiveInReq > 1) {
+                throw new IllegalArgumentException("Mỗi user chỉ được 1 địa chỉ mặc định đang ACTIVE.");
+            }
+
+            if (defaultsActiveInReq == 1) {
+                // Có đúng 1 default ACTIVE trong batch -> dọn default ACTIVE cũ ở DB
+                clearActiveDefaultForUser(userId);
+            } else {
+                boolean hasActiveDefaultInDb =
+                        userAddressRepository.countByUserIdAndIsDefaultTrueAndIsActived(userId, IsActived.ACTIVE) > 0;
+
+                if (!hasActiveDefaultInDb) {
+                    list.stream().filter(isActiveReq).findFirst().ifPresent(firstActive -> firstActive.setDefault(true));
+                }
+            }
+        });
+
         var entities = requests.stream().map(req -> {
             var ua = new UserAddress();
             mapper.copyForCreate(req, ua);
+
+            // Mặc định ACTIVE nếu null
             if (ua.getIsActived() == null) ua.setIsActived(IsActived.ACTIVE);
+
             if (ua.getCreatedAt() == null) ua.setCreatedAt(Instant.now());
             ua.setUpdatedAt(Instant.now());
             return ua;
         }).toList();
 
-        return userAddressRepository.saveAll(entities).stream().map(mapper::toResponse).toList();
+        return userAddressRepository.saveAll(entities)
+                .stream().map(mapper::toResponse).toList();
     }
 
     @Override
@@ -123,6 +163,15 @@ public class UserAddressServiceImpl implements UserAddressService {
 
         return userAddressRepository.findAll(example, pageable)
                 .map(mapper::toResponse);
+    }
+
+    private void clearActiveDefaultForUser(String userId) {
+        List<UserAddress> currentActiveDefaults =
+                userAddressRepository.findAllByUserIdAndIsDefaultTrueAndIsActived(userId, IsActived.ACTIVE);
+        if (!currentActiveDefaults.isEmpty()) {
+            currentActiveDefaults.forEach(ua -> ua.setDefault(false));
+            userAddressRepository.saveAll(currentActiveDefaults);
+        }
     }
 }
 

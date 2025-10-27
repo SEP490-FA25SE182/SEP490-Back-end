@@ -45,7 +45,7 @@ public class UserAddress implements Serializable {
     private String userId;
 
     @Column(name = "is_default")
-    private boolean isDefault = false;
+    private boolean isDefault;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
