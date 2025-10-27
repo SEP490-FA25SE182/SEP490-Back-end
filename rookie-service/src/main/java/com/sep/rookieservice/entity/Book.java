@@ -32,7 +32,7 @@ public class Book implements Serializable {
     @Column(name= "book_name", length = 50)
     private String bookName;
 
-    @Column(name = "author_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "author_id", length = 50)
     private String authorId;
 
     @Column(name = "cover_url", length = 500)
