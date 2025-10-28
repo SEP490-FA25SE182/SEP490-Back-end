@@ -114,7 +114,7 @@ public class BlogServiceImpl implements BlogService {
             String authorId,
             String bookId,
             IsActived isActived,
-            Set<String> tagNames,
+            Set<String> tagIds,
             Pageable pageable
     ) {
         Specification<Blog> spec = allOfNonNull(
@@ -123,7 +123,7 @@ public class BlogServiceImpl implements BlogService {
                 BlogSpecification.authorEq(normalize(authorId)),
                 BlogSpecification.bookEq(normalize(bookId)),
                 BlogSpecification.activedEq(isActived),
-                BlogSpecification.hasAnyTagNames(tagNames)
+                BlogSpecification.hasAnyTagIds(tagIds)
         );
 
         Page<Blog> page = repository.findAll(spec, pageable);
@@ -151,6 +151,19 @@ public class BlogServiceImpl implements BlogService {
         Page<Blog> page = repository.findAll(effective);
         List<BlogResponse> mapped = page.getContent().stream().map(mapper::toResponse).toList();
         return new PageImpl<>(mapped, effective, page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BlogResponse> searchForUser(String q, Pageable pageable) {
+        Specification<Blog> spec = Specification.allOf(
+                BlogSpecification.isActiveOnly(),
+                BlogSpecification.userFacingSearch(q)
+        );
+
+        Page<Blog> page = repository.findAll(spec, pageable);
+        List<BlogResponse> mapped = page.getContent().stream().map(mapper::toResponse).toList();
+        return new PageImpl<>(mapped, pageable, page.getTotalElements());
     }
 
     private String normalize(String s) {

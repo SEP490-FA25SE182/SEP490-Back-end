@@ -4,10 +4,7 @@ import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -17,7 +14,9 @@ import java.util.Set;
 
 @Entity
 @Table(name = "blogs")
-@Data
+@Getter @Setter
+@ToString(exclude = {"user","book","images","tags"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,12 +26,15 @@ public class Blog implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String blogId;
 
+    @Column(name = "cover_url", length = 500)
+    private String coverUrl;
+
     @NotNull
     @Size(max = 200)
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Column(name = "content", length = 10000)
+    @Column(name = "content")
     private String content;
 
     @Column(name = "created_at", updatable = false)
@@ -66,7 +68,12 @@ public class Blog implements Serializable {
     @OrderBy("position ASC")
     private List<BlogImage> images;
 
-    @ManyToMany(mappedBy = "blogs", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "blog_tags",
+            joinColumns = @JoinColumn(name = "blog_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
     private Set<Tag> tags = new HashSet<>();
 
 }

@@ -68,10 +68,10 @@ public class BlogController {
             @RequestParam(required = false) @Size(max = 50) String authorId,
             @RequestParam(required = false) @Size(max = 50) String bookId,
             @RequestParam(required = false) IsActived isActived,
-            @RequestParam(required = false) Set<String> tagNames,
+            @RequestParam(required = false) Set<@Size(max = 50) String> tagIds,
             @ParameterObject @PageableDefault(size = 20) Pageable pageable
     ) {
-        return service.search(title, content, authorId, bookId, isActived, tagNames, pageable);
+        return service.search(title, content, authorId, bookId, isActived, tagIds, pageable);
     }
 
     @GetMapping("/filter")
@@ -81,4 +81,13 @@ public class BlogController {
     ) {
         return service.filterByUpdated(order, pageable);
     }
+
+    @GetMapping("/search/user")
+    public Page<BlogResponse> searchForUser(
+            @RequestParam(required = false) @Size(max = 300) String q,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return service.searchForUser(q, pageable);
+    }
+
 }

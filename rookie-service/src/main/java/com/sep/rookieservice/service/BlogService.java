@@ -22,8 +22,9 @@ public interface BlogService {
             String authorId,
             String bookId,
             IsActived isActived,
-            Set<String> tagNames,
+            Set<String> tagIds,
             Pageable pageable
     );
+    Page<BlogResponse> searchForUser(String q, Pageable pageable);
     Page<BlogResponse> filterByUpdated(UpdatedOrder order, Pageable pageable);
 }

@@ -4,6 +4,7 @@ import com.sep.rookieservice.dto.GenreRequestDTO;
 import com.sep.rookieservice.dto.GenreResponseDTO;
 import com.sep.rookieservice.service.GenreService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,12 @@ public class GenreController {
     @PostMapping
     public GenreResponseDTO create(@Valid @RequestBody GenreRequestDTO dto) {
         return svc.create(dto);
+    }
+
+    @PostMapping("/bulk")
+    public List<GenreResponseDTO> createBulk(
+            @RequestBody @NotEmpty List<@Valid GenreRequestDTO> dtos) {
+        return svc.createAll(dtos);
     }
 
     @PutMapping("/{id}")
