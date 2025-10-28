@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @Transactional
@@ -35,6 +36,21 @@ public class GenreServiceImpl implements GenreService {
         genre.setCreatedAt(Instant.now());
         Genre saved = repo.save(genre);
         return mapper.toDto(saved);
+    }
+
+    @Override
+    public List<GenreResponseDTO> createAll(List<GenreRequestDTO> dtos) {
+        Instant now = Instant.now();
+        List<Genre> entities = dtos.stream()
+                .map(dto -> {
+                    Genre g = mapper.toEntity(dto, null);
+                    g.setCreatedAt(now);
+                    return g;
+                })
+                .toList();
+
+        List<Genre> saved = repo.saveAll(entities);
+        return saved.stream().map(mapper::toDto).toList();
     }
 
     @Override
