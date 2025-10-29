@@ -22,6 +22,7 @@ public class Tag implements Serializable {
     @Id
     @Column(name = "tag_id", length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private String tagId;
 
     @NotNull
