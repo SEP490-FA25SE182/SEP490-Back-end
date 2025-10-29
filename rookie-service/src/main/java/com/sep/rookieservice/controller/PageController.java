@@ -53,7 +53,7 @@ public class PageController {
         if (sort != null && !sort.isEmpty()) {
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
-                String[] parts = s.split(",");
+                String[] parts = s.split("-");
                 String prop = parts[0].trim();
                 Sort.Direction dir = Sort.Direction.ASC;
                 if (parts.length > 1) {

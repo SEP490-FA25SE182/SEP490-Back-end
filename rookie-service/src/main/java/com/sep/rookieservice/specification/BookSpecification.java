@@ -18,7 +18,8 @@ public final class BookSpecification {
             Byte progressStatus,
             IsActived isActived,
             BigDecimal minPrice,
-            BigDecimal maxPrice
+            BigDecimal maxPrice,
+            Integer minQuantity
     ) {
         return Specification.allOf(
                 likeNameOrDescription(q),
@@ -26,7 +27,8 @@ public final class BookSpecification {
                 filterByPublication(publicationStatus),
                 filterByProgress(progressStatus),
                 filterByIsActived(isActived),
-                filterByPriceRange(minPrice, maxPrice)
+                filterByPriceRange(minPrice, maxPrice),
+                filterByQuantity(minQuantity)
         );
     }
 
@@ -71,6 +73,13 @@ public final class BookSpecification {
             } else {
                 return cb.lessThanOrEqualTo(root.get("price"), maxPrice);
             }
+        };
+    }
+
+    public static Specification<Book> filterByQuantity(Integer minQuantity) {
+        return (root, query, cb) -> {
+            if (minQuantity == null) return cb.conjunction();
+            return cb.greaterThanOrEqualTo(root.get("quantity"), minQuantity);
         };
     }
 

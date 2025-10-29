@@ -26,6 +26,8 @@ public class BookRequestDTO implements Serializable {
 
     private BigDecimal price;
 
+    private Integer quantity;
+
     private Byte progressStatus;
     private Byte publicationStatus;
 
