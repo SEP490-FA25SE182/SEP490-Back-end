@@ -4,6 +4,7 @@ import com.sep.rookieservice.enums.IsActived;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
@@ -13,6 +14,8 @@ public class BookResponseDTO implements Serializable {
     private String coverUrl;
     private String decription;
     private String authorId;
+
+    private BigDecimal price;
 
     private Byte progressStatus;
     private Byte publicationStatus;

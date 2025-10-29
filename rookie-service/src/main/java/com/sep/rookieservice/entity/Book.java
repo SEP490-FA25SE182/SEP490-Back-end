@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,9 @@ public class Book implements Serializable {
 
     @Column(name = "decription", length = 250)
     private String decription;
+
+    @Column(name = "price", precision = 10, scale = 2)
+    private BigDecimal price;
 
     @Column(name = "progress_status")
     private Byte progressStatus = BookEnum.IN_PROGRESS.getStatus();
