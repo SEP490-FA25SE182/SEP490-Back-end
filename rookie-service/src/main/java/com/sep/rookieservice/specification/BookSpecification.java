@@ -5,6 +5,8 @@ import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.math.BigDecimal;
+
 public final class BookSpecification {
 
     private BookSpecification() {}
@@ -14,14 +16,17 @@ public final class BookSpecification {
             String authorId,
             Byte publicationStatus,
             Byte progressStatus,
-            IsActived isActived
+            IsActived isActived,
+            BigDecimal minPrice,
+            BigDecimal maxPrice
     ) {
         return Specification.allOf(
                 likeNameOrDescription(q),
                 filterByAuthor(authorId),
                 filterByPublication(publicationStatus),
                 filterByProgress(progressStatus),
-                filterByIsActived(isActived)
+                filterByIsActived(isActived),
+                filterByPriceRange(minPrice, maxPrice)
         );
     }
 
@@ -55,4 +60,18 @@ public final class BookSpecification {
         return (root, query, cb) ->
                 (isActived == null) ? cb.conjunction() : cb.equal(root.get("isActived"), isActived);
     }
+
+    public static Specification<Book> filterByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        return (root, query, cb) -> {
+            if (minPrice == null && maxPrice == null) return cb.conjunction();
+            if (minPrice != null && maxPrice != null) {
+                return cb.between(root.get("price"), minPrice, maxPrice);
+            } else if (minPrice != null) {
+                return cb.greaterThanOrEqualTo(root.get("price"), minPrice);
+            } else {
+                return cb.lessThanOrEqualTo(root.get("price"), maxPrice);
+            }
+        };
+    }
+
 }

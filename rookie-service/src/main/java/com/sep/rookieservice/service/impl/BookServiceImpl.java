@@ -22,6 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,6 +90,8 @@ public class BookServiceImpl implements BookService {
     public Page<BookResponseDTO> search(
             String q,
             String authorId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
             Byte publicationStatus,
             Byte progressStatus,
             IsActived isActived,
@@ -96,7 +99,7 @@ public class BookServiceImpl implements BookService {
             String bookshelfId,
             Pageable pageable
     ) {
-        Specification<Book> spec = BookSpecification.buildSpecification(q, authorId, publicationStatus, progressStatus, isActived);
+        Specification<Book> spec = BookSpecification.buildSpecification(q, authorId, publicationStatus, progressStatus, isActived, minPrice, maxPrice);
 
         if (genreId != null && !genreId.isEmpty()) {
             // check membership in collection 'genres'

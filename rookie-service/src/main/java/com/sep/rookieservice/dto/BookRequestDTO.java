@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
@@ -23,6 +24,7 @@ public class BookRequestDTO implements Serializable {
     @Size(max = 50)
     private String authorId;
 
+    private BigDecimal price;
 
     private Byte progressStatus;
     private Byte publicationStatus;
