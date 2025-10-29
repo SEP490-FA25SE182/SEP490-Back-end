@@ -21,6 +21,7 @@ public interface BookService {
             String authorId,
             BigDecimal minPrice,
             BigDecimal maxPrice,
+            Integer minQuantity,
             Byte publicationStatus,
             Byte progressStatus,
             IsActived isActived,
