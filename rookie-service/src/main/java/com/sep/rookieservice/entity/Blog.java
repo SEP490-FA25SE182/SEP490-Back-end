@@ -15,7 +15,7 @@ import java.util.Set;
 @Entity
 @Table(name = "blogs")
 @Getter @Setter
-@ToString(exclude = {"user","book","images","tags"})
+@ToString(exclude = {"user","book","tags"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,6 +24,7 @@ public class Blog implements Serializable {
     @Id
     @Column(name = "blog_id", length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private String blogId;
 
     @Column(name = "cover_url", length = 500)
@@ -62,11 +63,6 @@ public class Blog implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", referencedColumnName = "book_id", insertable = false, updatable = false)
     private Book book;
-
-    //OneToMany
-    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @OrderBy("position ASC")
-    private List<BlogImage> images;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
