@@ -19,5 +19,4 @@ public class OrderRequest {
 
     private String cartId;
     private String walletId;
-    private long orderCode;
 }
