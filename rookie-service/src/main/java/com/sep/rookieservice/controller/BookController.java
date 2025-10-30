@@ -58,6 +58,7 @@ public class BookController {
             @RequestParam(required = false) String authorId,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer minQuantity,
             @RequestParam(required = false) Byte publicationStatus,
             @RequestParam(required = false) Byte progressStatus,
             @RequestParam(required = false) IsActived isActived,
@@ -89,7 +90,7 @@ public class BookController {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return svc.search(q, authorId, minPrice, maxPrice, publicationStatus, progressStatus, isActived, genreId, bookshelfId, pageable);
+        return svc.search(q, authorId, minPrice, maxPrice, minQuantity, publicationStatus, progressStatus, isActived, genreId, bookshelfId, pageable);
     }
 
 

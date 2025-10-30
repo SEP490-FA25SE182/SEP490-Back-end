@@ -5,6 +5,7 @@ import com.sep.rookieservice.enums.BookEnum;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.PublicationEnum;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,6 +45,10 @@ public class Book implements Serializable {
 
     @Column(name = "price", precision = 10, scale = 2)
     private BigDecimal price;
+
+    @Min(0)
+    @Column(name = "quantity")
+    private Integer quantity = 0;
 
     @Column(name = "progress_status")
     private Byte progressStatus = BookEnum.IN_PROGRESS.getStatus();
