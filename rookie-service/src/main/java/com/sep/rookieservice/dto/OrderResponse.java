@@ -14,4 +14,5 @@ public class OrderResponse {
     private String cartId;
     private Instant createdAt;
     private Instant updatedAt;
+    private long orderCode;
 }
