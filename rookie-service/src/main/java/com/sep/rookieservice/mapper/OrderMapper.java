@@ -17,7 +17,6 @@ public interface OrderMapper {
             @Mapping(target = "amount", source = "amount"),
             @Mapping(target = "totalPrice", source = "totalPrice"),
             @Mapping(target = "cartId", source = "cartId"),
-            @Mapping(target = "orderCode", source = "orderCode"),
             @Mapping(target = "walletId", source = "walletId"),
             @Mapping(target = "status", source = "status")
     })
@@ -27,7 +26,6 @@ public interface OrderMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "amount", source = "amount"),
-            @Mapping(target = "orderCode", source = "orderCode"),
             @Mapping(target = "totalPrice", source = "totalPrice"),
             @Mapping(target = "status", source = "status")
     })

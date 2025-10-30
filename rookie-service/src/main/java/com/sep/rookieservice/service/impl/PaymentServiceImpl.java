@@ -47,19 +47,23 @@ public class PaymentServiceImpl implements PaymentService {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
-        // Tạo orderCode (int64) từ orderId — không lưu DB
         long orderCode = generateOrderCodeFromOrderId(orderId);
 
-        // PayOS yêu cầu amount int (VND). totalPrice là double → làm tròn.
         int amount = (int) Math.round(order.getTotalPrice());
         order.setAmount(amount);
         order.setUpdatedAt(Instant.now());
 
-        // Đặt description chứa nguyên bản orderCode để tra ngược ở webhook/GET
-        String description = maxLen("Order " + orderCode, 25);
+        // Description: ngắn gọn, không parse lại
+        String description = buildDescription(orderId, orderCode);
+
+        // Gắn orderId vào returnUrl để FE có thể đọc trực tiếp
+        String returnUrl = props.getReturnUrl();
+        String returnUrlWithOid = returnUrl.contains("?")
+                ? returnUrl + "&orderId=" + orderId
+                : returnUrl + "?orderId=" + orderId;
 
         String dataStr = PayOSSignature.buildCreateLinkDataString(
-                amount, props.getCancelUrl(), description, orderCode, props.getReturnUrl()
+                amount, props.getCancelUrl(), description, orderCode, returnUrlWithOid
         );
         String signature = PayOSSignature.hmacSha256(props.getChecksumKey(), dataStr);
 
@@ -68,7 +72,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .amount(amount)
                 .description(description)
                 .cancelUrl(props.getCancelUrl())
-                .returnUrl(props.getReturnUrl())
+                .returnUrl(returnUrlWithOid)
                 .signature(signature)
                 .build();
 
@@ -77,7 +81,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("Create payment link failed: " + res.getDesc());
         }
 
-        // Ensure PaymentMethod "PayOS" tồn tại
+        // Ensure PaymentMethod "PayOS"
         String pmId = pmRepo.findByMethodNameIgnoreCase(PAYOS_METHOD_NAME)
                 .or(() -> pmRepo.findByProviderIgnoreCase(PAYOS_PROVIDER))
                 .orElseGet(() -> {
@@ -95,10 +99,11 @@ public class PaymentServiceImpl implements PaymentService {
         tx.setPaymentMethodId(pmId);
         tx.setTotalPrice(order.getTotalPrice());
         tx.setStatus(TransactionEnum.PROCESSING.getStatus());
+        tx.setOrderCode(orderCode);
         tx.setUpdatedAt(Instant.now());
         txRepo.save(tx);
 
-        // Cập nhật Order -> PROCESSING (Shop đã xác nhận, đơn hàng đang được chuẩn bị)
+        // Cập nhật Order -> PROCESSING
         order.setStatus(OrderEnum.PROCESSING.getStatus());
         orderRepo.save(order);
 
@@ -113,55 +118,40 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public void handleWebhook(WebhookPayload payload) {
-        //Verify signature theo PayOS
         String dataString = PayOSSignature.buildWebhookDataString(payload.getData());
         String expected = PayOSSignature.hmacSha256(props.getChecksumKey(), dataString);
         if (!expected.equals(payload.getSignature())) {
             throw new SecurityException("Invalid webhook signature");
         }
 
-        // Lấy orderCode, code, và cố gắng lấy orderId từ description
-        Object code = payload.getData().get("code"); // "00" nếu thành công
-        Object orderCodeObj = payload.getData().get("orderCode");
+        Object codeObj = payload.getData().get("code");          // "00" nếu thành công
+        Object orderCodeObj = payload.getData().get("orderCode"); // số long PayOS gửi
         if (orderCodeObj == null) return;
 
         long orderCode = Long.parseLong(orderCodeObj.toString());
 
-        String orderId = tryExtractOrderIdFromPayload(payload.getData());
-        if (orderId == null) {
-            // Gọi PayOS GET /v2/payment-requests/{id} để lấy description rồi parse orderId
-            Map<String,Object> pr = payOSClient.getPaymentRequest(orderCode);
-            // tuỳ SDK/response, thường sẽ có "data" chứa "description"
-            @SuppressWarnings("unchecked")
-            Map<String,Object> data = (Map<String,Object>) pr.getOrDefault("data", Map.of());
-            String description = String.valueOf(data.getOrDefault("description", ""));
-            orderId = tryExtractOrderIdFromDescription(description);
-        }
+        // Tra trực tiếp Transaction theo orderCode
+        Transaction tx = txRepo.findByOrderCode(orderCode)
+                .orElseThrow(() -> new IllegalStateException("Transaction not found by orderCode"));
 
-        if (orderId == null || orderId.isBlank()) {
-            throw new IllegalStateException("Cannot resolve orderId from webhook/payment-request");
-        }
-
-        Order order = orderRepo.findById(orderId)
+        Order order = orderRepo.findById(tx.getOrderId())
                 .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
 
-        Transaction tx = txRepo.findByOrderId(order.getOrderId())
-                .orElseThrow(() -> new IllegalStateException("Transaction not found for order"));
+        String code = String.valueOf(codeObj);
 
-        // Nếu thành công → set PAID + cộng coin; nếu khác "00" set CANCELED
-        if ("00".equals(String.valueOf(code))) {
+        if ("00".equals(code)) {
             if (!TransactionEnum.PAID.equals(TransactionEnum.getByStatus(tx.getStatus()))) {
                 tx.setStatus(TransactionEnum.PAID.getStatus());
                 tx.setUpdatedAt(Instant.now());
                 tx.setOrderCode(orderCode);
                 txRepo.save(tx);
 
-                // Order sang PENDING (Shop đã xác nhận)
+                // Order sang PROCESSING
                 order.setStatus(OrderEnum.PROCESSING.getStatus());
                 order.setUpdatedAt(Instant.now());
                 orderRepo.save(order);
 
-                // Cộng 1% coin (làm tròn xuống)
+                // Cộng coin 1%
                 Wallet w = order.getWallet();
                 if (w != null) {
                     int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
@@ -182,6 +172,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+
     /**
      * Tạo orderCode 10 chữ số (>= 1_000_000_000) từ UUID:
      * - Dùng CRC32 để có int dương ổn định
@@ -194,24 +185,22 @@ public class PaymentServiceImpl implements PaymentService {
         return (x % 9_000_000_000L) + 1_000_000_000L;
     }
 
-    private String tryExtractOrderIdFromPayload(Map<String,Object> data) {
-        Object desc = data.get("description");
-        if (desc == null) return null;
-        return tryExtractOrderIdFromDescription(String.valueOf(desc));
-    }
-
-    private String tryExtractOrderIdFromDescription(String description) {
-        if (description == null) return null;
-        int idx = description.indexOf("OrderId=");
-        if (idx < 0) return null;
-        String val = description.substring(idx + "OrderId=".length()).trim();
-        int space = val.indexOf(' ');
-        if (space > 0) val = val.substring(0, space);
-        return val.matches("(?i)[0-9a-f\\-]{32,36}") ? val : null;
-    }
-
     private static String maxLen(String s, int max) {
         return (s == null || s.length() <= max) ? s : s.substring(0, max);
+    }
+
+    private static String buildDescription(String orderId, long orderCode) {
+        String shortOid = (orderId != null && orderId.length() >= 8)
+                ? orderId.substring(0, 8)
+                : String.valueOf(orderId);
+
+        // Lấy 4 số cuối của orderCode
+        String ocStr = String.valueOf(orderCode);
+        String lastOc = ocStr.length() > 4 ? ocStr.substring(ocStr.length() - 4) : ocStr;
+
+        // Ví dụ: "OID=9f1a2c3d OC=7421" (≤ 25 ký tự)
+        String desc = "OID=" + shortOid + " OC=" + lastOc;
+        return maxLen(desc, 25);
     }
 
 }

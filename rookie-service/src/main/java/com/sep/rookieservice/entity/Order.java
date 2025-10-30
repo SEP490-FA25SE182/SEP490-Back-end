@@ -28,8 +28,6 @@ public class Order implements Serializable {
     @Column(name = "amount")
     private int amount;
 
-    @Column(name = "order_code")
-    private long orderCode;
 
     @Column(name = "total_price")
     private double totalPrice;
