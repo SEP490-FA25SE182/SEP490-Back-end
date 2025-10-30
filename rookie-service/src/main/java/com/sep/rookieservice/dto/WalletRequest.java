@@ -16,4 +16,7 @@ public class WalletRequest {
     private String userId;
 
     private IsActived isActived;
+
+    @Min(value = 0, message = "balance must be >= 0")
+    private double balance;
 }
