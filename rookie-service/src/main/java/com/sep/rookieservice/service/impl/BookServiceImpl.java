@@ -54,6 +54,9 @@ public class BookServiceImpl implements BookService {
         Book entity = mapper.toEntity(dto, null);
         entity.setCreatedAt(Instant.now());
         entity.setUpdatedAt(Instant.now());
+        if (dto.getQuantity() != null && dto.getQuantity() < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
         Book saved = repo.save(entity);
         return mapper.toDto(saved);
     }
@@ -71,6 +74,9 @@ public class BookServiceImpl implements BookService {
         Book existing = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
         Book updated = mapper.toEntity(dto, existing);
+        if (dto.getQuantity() != null && dto.getQuantity() < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
         updated.setUpdatedAt(Instant.now());
         Book saved = repo.save(updated);
         return mapper.toDto(saved);
@@ -92,6 +98,7 @@ public class BookServiceImpl implements BookService {
             String authorId,
             BigDecimal minPrice,
             BigDecimal maxPrice,
+            Integer minQuantity,
             Byte publicationStatus,
             Byte progressStatus,
             IsActived isActived,
@@ -99,7 +106,7 @@ public class BookServiceImpl implements BookService {
             String bookshelfId,
             Pageable pageable
     ) {
-        Specification<Book> spec = BookSpecification.buildSpecification(q, authorId, publicationStatus, progressStatus, isActived, minPrice, maxPrice);
+        Specification<Book> spec = BookSpecification.buildSpecification(q, authorId, publicationStatus, progressStatus, isActived, minPrice, maxPrice, minQuantity);
 
         if (genreId != null && !genreId.isEmpty()) {
             // check membership in collection 'genres'

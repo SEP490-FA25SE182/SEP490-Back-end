@@ -56,7 +56,7 @@ public class NotificationController {
         if (sort != null) {
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
-                String[] parts = s.split(",");
+                String[] parts = s.split("-");
                 Sort.Direction dir = Sort.Direction.ASC;
                 if (parts.length > 1) {
                     try { dir = Sort.Direction.fromString(parts[1].trim()); } catch (IllegalArgumentException ignored) {}

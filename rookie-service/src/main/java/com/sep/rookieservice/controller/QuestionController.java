@@ -33,7 +33,7 @@ public class QuestionController {
         Sort sortObj = Sort.unsorted();
         if (sort != null && !sort.isEmpty()) {
             for (String s : sort) {
-                String[] parts = s.split(",");
+                String[] parts = s.split("-");
                 String prop = parts[0].trim();
                 Sort.Direction dir = (parts.length > 1) ? Sort.Direction.fromString(parts[1].trim()) : Sort.Direction.ASC;
                 sortObj = sortObj.and(Sort.by(dir, prop));

@@ -17,6 +17,8 @@ public class BookResponseDTO implements Serializable {
 
     private BigDecimal price;
 
+    private Integer quantity;
+
     private Byte progressStatus;
     private Byte publicationStatus;
     private IsActived isActived;
