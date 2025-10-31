@@ -15,17 +15,18 @@ public class SecurityConfig {
                 .cors(c -> {})
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                new AntPathRequestMatcher("/actuator/**"),
-                                new AntPathRequestMatcher("/api/**"),
-                                new AntPathRequestMatcher("/**", "OPTIONS") // cho preflight
+                                "/swagger-ui.html","/swagger-ui/**",
+                                "/v3/api-docs","/v3/api-docs/**",
+                                "/actuator/**"
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()))
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
-                                new AntPathRequestMatcher("/actuator/**"),
-                                new AntPathRequestMatcher("/api/**")
+                                "/swagger-ui.html","/swagger-ui/**",
+                                "/v3/api-docs","/v3/api-docs/**",
+                                "/actuator/**"
                         )
                 )
                 .formLogin(f -> f.disable())
@@ -49,7 +50,7 @@ public class SecurityConfig {
                 "Location","Content-Disposition"
         ));
         config.setAllowCredentials(true);
-        config.setMaxAge(java.time.Duration.ofHours(1)); // cache preflight
+        config.setMaxAge(java.time.Duration.ofHours(1));
 
         var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
