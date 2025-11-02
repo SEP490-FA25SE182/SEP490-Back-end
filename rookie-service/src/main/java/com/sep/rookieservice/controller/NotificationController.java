@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -34,6 +35,11 @@ public class NotificationController {
     @PutMapping("/{id}")
     public NotificationResponseDTO update(@PathVariable String id, @Valid @RequestBody NotificationRequestDTO dto) {
         return svc.update(id, dto);
+    }
+
+    @PatchMapping("/{id}/read")
+    public NotificationResponseDTO markAsRead(@PathVariable String id) {
+        return svc.markAsRead(id);
     }
 
     @DeleteMapping("/{id}")

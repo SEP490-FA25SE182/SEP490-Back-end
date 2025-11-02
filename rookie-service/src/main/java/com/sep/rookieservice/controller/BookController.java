@@ -134,4 +134,20 @@ public class BookController {
     public BookAnalyticsResponse getBookAnalytics(@RequestParam(required = false) Integer monthsBack) {
         return svc.getAnalytics(monthsBack);
     }
+
+    @PatchMapping("/{id}/progress-status")
+    public BookResponseDTO updateProgressStatus(
+            @PathVariable String id,
+            @RequestParam Byte progressStatus
+    ) {
+        return svc.updateProgressStatus(id, progressStatus);
+    }
+
+    @PatchMapping("/{id}/publication-status")
+    public BookResponseDTO updatePublicationStatus(
+            @PathVariable String id,
+            @RequestParam Byte publicationStatus
+    ) {
+        return svc.updatePublicationStatus(id, publicationStatus);
+    }
 }

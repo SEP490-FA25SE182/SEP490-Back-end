@@ -37,4 +37,7 @@ public interface BookService {
     BookResponseDTO removeBookFromBookshelf(String bookId, String shelfId);
 
     BookAnalyticsResponse getAnalytics(Integer monthsBack);
+
+    BookResponseDTO updateProgressStatus(String id, Byte progressStatus);
+    BookResponseDTO updatePublicationStatus(String id, Byte publicationStatus);
 }
