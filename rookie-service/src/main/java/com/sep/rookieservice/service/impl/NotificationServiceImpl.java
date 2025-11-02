@@ -12,6 +12,7 @@ import com.sep.rookieservice.specification.NotificationSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +25,22 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository repo;
     private final NotificationMapper mapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public NotificationResponseDTO create(NotificationRequestDTO dto) {
         Notification entity = mapper.toEntity(dto);
         entity.setCreatedAt(Instant.now());
         entity.setUpdatedAt(Instant.now());
+        entity.setIsRead(false);
+
         Notification saved = repo.save(entity);
-        return mapper.toDto(saved);
+        NotificationResponseDTO response = mapper.toDto(saved);
+
+        //Real-time WebSocket push
+        messagingTemplate.convertAndSend("/topic/notifications/" + saved.getUserId(), response);
+
+        return response;
     }
 
     @Override
@@ -51,7 +60,12 @@ public class NotificationServiceImpl implements NotificationService {
         existing.setUpdatedAt(Instant.now());
 
         Notification saved = repo.save(existing);
-        return mapper.toDto(saved);
+        NotificationResponseDTO response = mapper.toDto(saved);
+
+        //Optional: broadcast update event
+        messagingTemplate.convertAndSend("/topic/notifications/" + saved.getUserId(), response);
+
+        return response;
     }
 
     @Override
@@ -63,11 +77,31 @@ public class NotificationServiceImpl implements NotificationService {
         repo.save(existing);
     }
 
+    //NEW: Mark as Read
+    @Override
+    public NotificationResponseDTO markAsRead(String id) {
+        Notification notification = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + id));
+
+        notification.setIsRead(true);
+        notification.setUpdatedAt(Instant.now());
+
+        Notification saved = repo.save(notification);
+        NotificationResponseDTO response = mapper.toDto(saved);
+
+        //Send real-time update to the user's notification topic
+        messagingTemplate.convertAndSend("/topic/notifications/" + saved.getUserId(), response);
+
+        return response;
+    }
+
     @Override
     @Transactional(readOnly = true)
-    public Page<NotificationResponseDTO> search(String q, String userId, String bookId, String orderId, IsActived isActived, Pageable pageable) {
+    public Page<NotificationResponseDTO> search(
+            String q, String userId, String bookId, String orderId,
+            IsActived isActived, Pageable pageable
+    ) {
         Specification<Notification> spec = NotificationSpecification.build(q, userId, bookId, orderId, isActived);
-        Page<Notification> page = repo.findAll(spec, pageable);
-        return page.map(mapper::toDto);
+        return repo.findAll(spec, pageable).map(mapper::toDto);
     }
 }
