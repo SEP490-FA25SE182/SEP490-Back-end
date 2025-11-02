@@ -10,10 +10,8 @@ import com.sep.rookieservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.*;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -189,20 +187,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderResponse> search(OrderEnum status, Pageable pageable) {
+    public Page<OrderResponse> search(String userId, OrderEnum status, Pageable pageable) {
+        // Lấy walletId từ userId (Order bắt buộc có walletId)
+        var walletOpt = walletRepository.findByUserId(userId);
+        if (walletOpt.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        String walletId = walletOpt.get().getWalletId();
+
+        // Probe cho Example
         Order probe = new Order();
+        probe.setWalletId(walletId);
         if (status != null) {
-            probe.setStatus(status.getStatus()); // convert enum -> byte
+            probe.setStatus(status.getStatus());
         }
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
-                .withIgnorePaths("orderId", "amount", "totalPrice", "updatedAt", "createdAt",
-                        "walletId", "cartId", "wallet", "cart", "orderDetails", "transaction")
+                .withIgnorePaths(
+                        "amount", "totalPrice", "updatedAt", "createdAt",
+                        "cartId", "wallet", "cart", "orderDetails", "transaction", "orderId"
+                )
                 .withIgnoreNullValues();
 
         Example<Order> example = Example.of(probe, matcher);
 
-        return orderRepository.findAll(example, pageable)
+        Pageable sorted = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "updatedAt")
+        );
+
+        return orderRepository.findAll(example, sorted)
                 .map(mapper::toResponse);
     }
+
 }

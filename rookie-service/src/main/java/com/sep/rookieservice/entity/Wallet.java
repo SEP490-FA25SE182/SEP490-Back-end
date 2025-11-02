@@ -29,6 +29,9 @@ public class Wallet implements Serializable {
     @Column(name = "coin")
     private int coin;
 
+    @Column(name = "balance")
+    private double balance = 0.0;
+
     @NotNull
     @Column(name = "user_id", length = 50)
     private String userId;

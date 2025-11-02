@@ -20,10 +20,12 @@ public class IllustrationGenerateController {
 
     @PostMapping(value="/generate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public IllustrationResponse generate(
-            @RequestPart("meta") @Valid GenerateIllustrationRequest meta,
+            @RequestPart("meta") String metaJson,
             @RequestPart(value="controlImage", required=false) MultipartFile controlImage,
             @RequestHeader(value="X-User-Id", required=false) String userId
-    ) {
+    ) throws Exception {
+        GenerateIllustrationRequest meta =
+                new com.fasterxml.jackson.databind.ObjectMapper().readValue(metaJson, GenerateIllustrationRequest.class);
         return generationService.generateSync(meta, controlImage, userId);
     }
 }
