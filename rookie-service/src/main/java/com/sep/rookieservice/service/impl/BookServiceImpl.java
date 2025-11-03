@@ -230,4 +230,27 @@ public class BookServiceImpl implements BookService {
 
         return resp;
     }
+
+    @Override
+    public BookResponseDTO updateProgressStatus(String id, Byte progressStatus) {
+        Book book = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        book.setProgressStatus(progressStatus);
+        book.setUpdatedAt(Instant.now());
+        Book saved = repo.save(book);
+        return mapper.toDto(saved);
+    }
+
+    @Override
+    public BookResponseDTO updatePublicationStatus(String id, Byte publicationStatus) {
+        Book book = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        book.setPublicationStatus(publicationStatus);
+        book.setUpdatedAt(Instant.now());
+        Book saved = repo.save(book);
+        return mapper.toDto(saved);
+    }
+
 }
