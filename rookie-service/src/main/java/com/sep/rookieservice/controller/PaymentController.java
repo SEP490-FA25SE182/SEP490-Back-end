@@ -15,8 +15,12 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/{orderId}/checkout")
-    public ResponseEntity<CreateCheckoutResponse> createCheckout(@PathVariable String orderId) {
-        return ResponseEntity.ok(paymentService.createCheckout(orderId));
+    public ResponseEntity<CreateCheckoutResponse> createCheckout(
+            @PathVariable String orderId,
+            @RequestParam(required = false) String returnUrl,
+            @RequestParam(required = false) String cancelUrl
+    ) {
+        return ResponseEntity.ok(paymentService.createCheckout(orderId, returnUrl, cancelUrl));
     }
 
     // Webhook: cần mở public, bỏ auth
