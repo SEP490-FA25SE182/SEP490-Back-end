@@ -18,5 +18,8 @@ public class OrderRequest {
     private Byte status;
 
     private String cartId;
+
     private String walletId;
+
+    private String userAddressId;
 }

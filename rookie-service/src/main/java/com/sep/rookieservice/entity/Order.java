@@ -28,7 +28,6 @@ public class Order implements Serializable {
     @Column(name = "amount")
     private int amount;
 
-
     @Column(name = "total_price")
     private double totalPrice;
 
@@ -48,6 +47,9 @@ public class Order implements Serializable {
     @Column(name = "cart_id", length = 50)
     private String cartId;
 
+    @Column(name = "user_address_id", length = 50)
+    private String userAddressId;
+
     //ManyToOne
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,6 +60,11 @@ public class Order implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", referencedColumnName = "cart_id", insertable = false, updatable = false)
     private Cart cart;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_address_id", referencedColumnName = "user_address_id", insertable = false, updatable = false)
+    private UserAddress userAddress;
 
     //OneToMany
     @JsonIgnore
