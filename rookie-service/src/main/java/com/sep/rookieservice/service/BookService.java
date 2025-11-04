@@ -40,4 +40,6 @@ public interface BookService {
 
     BookResponseDTO updateProgressStatus(String id, Byte progressStatus);
     BookResponseDTO updatePublicationStatus(String id, Byte publicationStatus);
+
+    Page<BookResponseDTO> getBooksByBookshelfId(String bookshelfId, Pageable pageable);
 }
