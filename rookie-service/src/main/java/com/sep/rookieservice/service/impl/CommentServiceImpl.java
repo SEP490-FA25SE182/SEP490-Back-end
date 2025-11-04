@@ -15,6 +15,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
@@ -75,5 +77,21 @@ public class CommentServiceImpl implements CommentService {
             return repo.countByBlogIdAndIsActivedAndIsPublished(blogId, IsActived.ACTIVE, true);
         }
         return repo.countByBlogIdAndIsActived(blogId, IsActived.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CommentResponseDTO> getByBlogId(String blogId) {
+        if (blogId == null || blogId.isBlank()) {
+            return List.of();
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+        List<Comment> entities = repo.findAll(
+                CommentSpecification.forPublicByBlogId(blogId),
+                sort
+        );
+        return entities.stream()
+                .map(mapper::toDto)
+                .toList();
     }
 }
