@@ -15,6 +15,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 
@@ -79,6 +80,13 @@ public class BookshelveServiceImpl implements BookshelveService {
     public Page<BookshelveResponseDTO> search(String q, String userId, IsActived isActived, Pageable pageable) {
         Specification<Bookshelve> spec = BookshelveSpecification.buildSpecification(q, userId, isActived);
         Page<Bookshelve> page = repo.findAll(spec, pageable);
+        return page.map(mapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BookshelveResponseDTO> getBookshelvesByUserId(String userId, Pageable pageable) {
+        Page<Bookshelve> page = repo.findByUserIdAndIsActived(userId, IsActived.ACTIVE, pageable);
         return page.map(mapper::toDto);
     }
 }

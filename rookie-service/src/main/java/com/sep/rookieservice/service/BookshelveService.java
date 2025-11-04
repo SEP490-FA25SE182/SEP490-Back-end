@@ -12,4 +12,5 @@ public interface BookshelveService {
     BookshelveResponseDTO update(String id, BookshelveRequestDTO dto);
     void softDelete(String id);
     Page<BookshelveResponseDTO> search(String q, String userId, IsActived isActived, Pageable pageable);
+    Page<BookshelveResponseDTO> getBookshelvesByUserId(String userId, Pageable pageable);
 }

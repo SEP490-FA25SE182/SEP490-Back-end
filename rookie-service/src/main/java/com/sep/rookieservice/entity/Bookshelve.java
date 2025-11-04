@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -50,8 +51,7 @@ public class Bookshelve implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "wishlist",joinColumns = @JoinColumn(name = "bookshelve_id", referencedColumnName = "bookshelve_id"), inverseJoinColumns = @JoinColumn(name = "book_id", referencedColumnName = "book_id"))
-    private List<Book> books;
+    @ManyToMany(mappedBy = "bookshelves", fetch = FetchType.LAZY)
+    private List<Book> books = new ArrayList<>();
 
 }
