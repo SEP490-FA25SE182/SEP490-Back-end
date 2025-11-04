@@ -15,4 +15,5 @@ public class OrderResponse {
     private Instant createdAt;
     private Instant updatedAt;
     private String userAddressId;
+    private String reason;
 }

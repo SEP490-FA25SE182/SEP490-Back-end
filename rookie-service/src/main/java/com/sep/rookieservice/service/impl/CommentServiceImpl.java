@@ -64,4 +64,16 @@ public class CommentServiceImpl implements CommentService {
         Page<Comment> page = repo.findAll(spec, pageable);
         return page.map(mapper::toDto);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByBlogId(String blogId, boolean onlyPublished) {
+        if (blogId == null || blogId.isBlank()) {
+            throw new IllegalArgumentException("blogId is required");
+        }
+        if (onlyPublished) {
+            return repo.countByBlogIdAndIsActivedAndIsPublished(blogId, IsActived.ACTIVE, true);
+        }
+        return repo.countByBlogIdAndIsActived(blogId, IsActived.ACTIVE);
+    }
 }

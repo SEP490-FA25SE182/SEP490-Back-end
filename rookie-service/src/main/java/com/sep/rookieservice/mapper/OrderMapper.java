@@ -19,6 +19,7 @@ public interface OrderMapper {
             @Mapping(target = "cartId", source = "cartId"),
             @Mapping(target = "userAddressId", source = "userAddressId"),
             @Mapping(target = "walletId", source = "walletId"),
+            @Mapping(target = "reason", source = "reason"),
             @Mapping(target = "status", source = "status")
     })
     void copyForCreate(OrderRequest req, @MappingTarget Order entity);
@@ -29,6 +30,7 @@ public interface OrderMapper {
             @Mapping(target = "amount", source = "amount"),
             @Mapping(target = "totalPrice", source = "totalPrice"),
             @Mapping(target = "userAddressId", source = "userAddressId"),
+            @Mapping(target = "reason", source = "reason"),
             @Mapping(target = "status", source = "status")
     })
     void copyForUpdate(OrderRequest req, @MappingTarget Order entity);
