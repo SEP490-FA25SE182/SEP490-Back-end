@@ -50,6 +50,9 @@ public class Order implements Serializable {
     @Column(name = "user_address_id", length = 50)
     private String userAddressId;
 
+    @Column(name = "reason", length = 250)
+    private String reason;
+
     //ManyToOne
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

@@ -12,4 +12,5 @@ public interface CommentService {
     CommentResponseDTO getById(String id);
     void delete(String id);
     Page<CommentResponseDTO> search(String q, String blogId, String userId, IsActived isActived, Pageable pageable);
+    long countByBlogId(String blogId, boolean onlyPublished);
 }

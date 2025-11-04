@@ -25,6 +25,9 @@ public class Comment implements Serializable {
     @Column(name = "content", length = 500)
     private String content;
 
+    @Column(name = "name", length = 50)
+    private String name;
+
     @Column(name = "is_published")
     private Boolean isPublished = true;
 

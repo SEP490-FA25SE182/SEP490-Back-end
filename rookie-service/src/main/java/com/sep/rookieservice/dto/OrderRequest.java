@@ -22,4 +22,6 @@ public class OrderRequest {
     private String walletId;
 
     private String userAddressId;
+
+    private String reason;
 }

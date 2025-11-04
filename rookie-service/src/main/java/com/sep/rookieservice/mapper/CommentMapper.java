@@ -12,6 +12,7 @@ public class CommentMapper {
         if (existing == null) existing = new Comment();
 
         existing.setContent(dto.getContent());
+        existing.setName(dto.getName());
         existing.setIsPublished(dto.getIsPublished() != null ? dto.getIsPublished() : true);
         existing.setIsActived(dto.getIsActived());
         existing.setUserId(dto.getUserId());
@@ -25,6 +26,7 @@ public class CommentMapper {
         CommentResponseDTO dto = new CommentResponseDTO();
         dto.setCommentId(entity.getCommentId());
         dto.setContent(entity.getContent());
+        dto.setName(entity.getName());
         dto.setIsPublished(entity.getIsPublished());
         dto.setUserId(entity.getUserId());
         dto.setBlogId(entity.getBlogId());
