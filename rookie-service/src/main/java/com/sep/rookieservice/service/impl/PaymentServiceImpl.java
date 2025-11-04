@@ -27,6 +27,8 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.zip.CRC32;
 
+import static org.apache.http.util.TextUtils.isBlank;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -43,27 +45,29 @@ public class PaymentServiceImpl implements PaymentService {
     private static final String PAYOS_PROVIDER   = "PayOS";
 
     @Override
-    public CreateCheckoutResponse createCheckout(String orderId) {
+    public CreateCheckoutResponse createCheckout(String orderId, String returnUrl, String cancelUrl) {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         long orderCode = generateOrderCodeFromOrderId(orderId);
 
         int amount = (int) Math.round(order.getTotalPrice());
-        order.setAmount(amount);
+        order.setTotalPrice(amount);
         order.setUpdatedAt(Instant.now());
 
-        // Description: ngắn gọn, không parse lại
         String description = buildDescription(orderId, orderCode);
 
-        // Gắn orderId vào returnUrl để FE có thể đọc trực tiếp
-        String returnUrl = props.getReturnUrl();
-        String returnUrlWithOid = returnUrl.contains("?")
-                ? returnUrl + "&orderId=" + orderId
-                : returnUrl + "?orderId=" + orderId;
+        // nếu client không truyền thì dùng default từ application.yml
+        String finalReturnUrl = isBlank(returnUrl) ? props.getReturnUrl() : returnUrl;
+        String finalCancelUrl = isBlank(cancelUrl) ? props.getCancelUrl() : cancelUrl;
+
+        // thêm orderId vào returnUrl để FE đọc trực tiếp
+        String returnUrlWithOid = finalReturnUrl.contains("?")
+                ? finalReturnUrl + "&orderId=" + orderId
+                : finalReturnUrl + "?orderId=" + orderId;
 
         String dataStr = PayOSSignature.buildCreateLinkDataString(
-                amount, props.getCancelUrl(), description, orderCode, returnUrlWithOid
+                amount, finalCancelUrl, description, orderCode, returnUrlWithOid
         );
         String signature = PayOSSignature.hmacSha256(props.getChecksumKey(), dataStr);
 
@@ -71,7 +75,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orderCode(orderCode)
                 .amount(amount)
                 .description(description)
-                .cancelUrl(props.getCancelUrl())
+                .cancelUrl(finalCancelUrl)
                 .returnUrl(returnUrlWithOid)
                 .signature(signature)
                 .build();
@@ -81,7 +85,6 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("Create payment link failed: " + res.getDesc());
         }
 
-        // Ensure PaymentMethod "PayOS"
         String pmId = pmRepo.findByMethodNameIgnoreCase(PAYOS_METHOD_NAME)
                 .or(() -> pmRepo.findByProviderIgnoreCase(PAYOS_PROVIDER))
                 .orElseGet(() -> {
@@ -92,7 +95,6 @@ public class PaymentServiceImpl implements PaymentService {
                     return pmRepo.save(pm);
                 }).getPaymentMethodId();
 
-        // Tạo/ cập nhật Transaction (PROCESSING)
         Transaction tx = txRepo.findByOrderId(orderId).orElseGet(Transaction::new);
         tx.setOrderId(orderId);
         tx.setOrder(order);
@@ -103,7 +105,6 @@ public class PaymentServiceImpl implements PaymentService {
         tx.setUpdatedAt(Instant.now());
         txRepo.save(tx);
 
-        // Cập nhật Order -> PROCESSING
         order.setStatus(OrderEnum.PROCESSING.getStatus());
         orderRepo.save(order);
 

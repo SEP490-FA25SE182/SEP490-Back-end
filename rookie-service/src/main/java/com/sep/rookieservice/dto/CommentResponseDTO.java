@@ -8,6 +8,7 @@ import java.time.Instant;
 public class CommentResponseDTO {
     private String commentId;
     private String content;
+    private String name;
     private Boolean isPublished;
     private String userId;
     private String blogId;

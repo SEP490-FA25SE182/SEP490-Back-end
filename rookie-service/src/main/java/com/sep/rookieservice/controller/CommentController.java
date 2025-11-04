@@ -9,6 +9,7 @@ import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rookie/users/comments")
@@ -60,5 +61,23 @@ public class CommentController {
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
         return service.search(q, blogId, userId, isActived, pageable);
+    }
+
+    @GetMapping("/count")
+    public Map<String, Object> countByBlogId(
+            @RequestParam String blogId,
+            @RequestParam(defaultValue = "true") boolean onlyPublished
+    ) {
+        long count = service.countByBlogId(blogId, onlyPublished);
+        return Map.of(
+                "blogId", blogId,
+                "onlyPublished", onlyPublished,
+                "count", count
+        );
+    }
+
+    @GetMapping("/by-blog/{blogId}")
+    public List<CommentResponseDTO> getByBlogId(@PathVariable String blogId) {
+        return service.getByBlogId(blogId);
     }
 }

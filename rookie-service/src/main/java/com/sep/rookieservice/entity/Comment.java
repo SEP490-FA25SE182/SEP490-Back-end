@@ -25,6 +25,9 @@ public class Comment implements Serializable {
     @Column(name = "content", length = 500)
     private String content;
 
+    @Column(name = "name", length = 50)
+    private String name;
+
     @Column(name = "is_published")
     private Boolean isPublished = true;
 
@@ -39,7 +42,7 @@ public class Comment implements Serializable {
     @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
 
-    @NotNull
+
     @Column(name = "user_id", length = 50)
     private String userId;
 
