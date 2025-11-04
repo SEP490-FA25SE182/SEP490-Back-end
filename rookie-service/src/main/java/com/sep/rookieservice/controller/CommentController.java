@@ -75,4 +75,9 @@ public class CommentController {
                 "count", count
         );
     }
+
+    @GetMapping("/by-blog/{blogId}")
+    public List<CommentResponseDTO> getByBlogId(@PathVariable String blogId) {
+        return service.getByBlogId(blogId);
+    }
 }

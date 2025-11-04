@@ -1,5 +1,6 @@
 package com.sep.rookieservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -54,6 +55,10 @@ public class Blog implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments;
 
     //ManyToOne
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
