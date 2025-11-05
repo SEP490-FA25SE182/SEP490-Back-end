@@ -13,5 +13,10 @@ public class WalletRequest {
     @Min(value = 0, message = "coin must be >= 0")
     private Integer coin;
 
+    private String userId;
+
     private IsActived isActived;
+
+    @Min(value = 0, message = "balance must be >= 0")
+    private double balance;
 }

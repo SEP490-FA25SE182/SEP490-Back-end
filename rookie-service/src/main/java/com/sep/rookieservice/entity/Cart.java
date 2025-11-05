@@ -43,12 +43,13 @@ public class Cart implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     @NotNull
-    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "user_id", length = 50)
     private String userId;
 
     //OneToOne
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true, insertable = false, updatable = false)
     private User user;
 
     //OneToMany
@@ -57,6 +58,6 @@ public class Cart implements Serializable {
     private List<CartItem> cartItems;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cart", fetch = FetchType.LAZY)
     private List<Order> orders;
 }

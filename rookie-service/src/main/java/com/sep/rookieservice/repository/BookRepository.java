@@ -2,23 +2,40 @@ package com.sep.rookieservice.repository;
 
 import com.sep.rookieservice.entity.Book;
 import com.sep.rookieservice.enums.IsActived;
+import feign.Param;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.List;
 
+@Repository
 public interface BookRepository extends JpaRepository<Book, String>, JpaSpecificationExecutor<Book> {
 
     long countByIsActived(IsActived isActived);
-
-    long countByCreatedAtBetween(Instant from, Instant to);
 
     List<Book> findTop10ByOrderByCreatedAtDesc();
 
     List<Book> findTop10ByOrderByUpdatedAtDesc();
 
-    @Query("SELECT b FROM Book b WHERE b.isActived = 'ACTIVE' AND b.createdAt >= :since ORDER BY b.createdAt DESC")
+    long countByCreatedAtBetween(Instant from, Instant to);
+
+    @Query("SELECT b FROM Book b WHERE b.createdAt >= :since ORDER BY b.createdAt DESC")
     List<Book> findFeaturedBooksSince(Instant since);
+
+    @Query("""
+        SELECT b FROM Book b
+        JOIN b.bookshelves bs
+        WHERE bs.bookshelveId = :shelfId
+        AND b.isActived = :isActived
+    """)
+    Page<Book> findAllByBookshelfIdAndIsActived(
+            @Param("shelfId") String shelfId,
+            @Param("isActived") IsActived isActived,
+            Pageable pageable
+    );
 }

@@ -16,6 +16,7 @@ public class CartRequest {
     @Min(value = 0, message = "totalPrice must be >= 0")
     private Double totalPrice;     // sẽ bị IGNORE trong update
 
+    private String userId;
     private IsActived isActived;
 }
 

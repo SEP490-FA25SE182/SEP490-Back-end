@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -36,6 +37,11 @@ public class NotificationController {
         return svc.update(id, dto);
     }
 
+    @PatchMapping("/{id}/read")
+    public NotificationResponseDTO markAsRead(@PathVariable String id) {
+        return svc.markAsRead(id);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         svc.softDelete(id);
@@ -56,7 +62,7 @@ public class NotificationController {
         if (sort != null) {
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
-                String[] parts = s.split(",");
+                String[] parts = s.split("-");
                 Sort.Direction dir = Sort.Direction.ASC;
                 if (parts.length > 1) {
                     try { dir = Sort.Direction.fromString(parts[1].trim()); } catch (IllegalArgumentException ignored) {}

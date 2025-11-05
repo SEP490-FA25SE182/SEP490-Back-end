@@ -29,8 +29,11 @@ public class Wallet implements Serializable {
     @Column(name = "coin")
     private int coin;
 
+    @Column(name = "balance")
+    private double balance = 0.0;
+
     @NotNull
-    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "user_id", length = 50)
     private String userId;
 
     @Column(name = "updated_at")
@@ -45,8 +48,9 @@ public class Wallet implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     //OneToOne
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false, unique = true, insertable = false, updatable = false)
     private User user;
 
     //OneToMany

@@ -5,15 +5,18 @@ import com.sep.rookieservice.dto.BlogResponse;
 import com.sep.rookieservice.entity.Blog;
 import com.sep.rookieservice.entity.Tag;
 import com.sep.rookieservice.enums.IsActived;
+import com.sep.rookieservice.enums.UpdatedOrder;
 import com.sep.rookieservice.mapper.BlogMapper;
 import com.sep.rookieservice.repository.BlogRepository;
 import com.sep.rookieservice.repository.TagRepository;
 import com.sep.rookieservice.service.BlogService;
+import com.sep.rookieservice.specification.BlogSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,68 +115,60 @@ public class BlogServiceImpl implements BlogService {
             String bookId,
             IsActived isActived,
             Set<String> tagIds,
-            Set<String> tagNames,
             Pageable pageable
     ) {
-        String t = normalize(title);
-        String c = normalize(content);
-        String a = normalize(authorId);
-        String b = normalize(bookId);
+        Specification<Blog> spec = allOfNonNull(
+                BlogSpecification.titleContains(normalize(title)),
+                BlogSpecification.contentContains(normalize(content)),
+                BlogSpecification.authorEq(normalize(authorId)),
+                BlogSpecification.bookEq(normalize(bookId)),
+                BlogSpecification.activedEq(isActived),
+                BlogSpecification.hasAnyTagIds(tagIds)
+        );
 
-        Blog probe = new Blog();
-        if (t != null) probe.setTitle(t);
-        if (c != null) probe.setContent(c);
-        if (a != null) probe.setAuthorId(a);
-        if (b != null) probe.setBookId(b);
-        if (isActived != null) probe.setIsActived(isActived);
+        Page<Blog> page = repository.findAll(spec, pageable);
+        List<BlogResponse> mapped = page.getContent().stream().map(mapper::toResponse).toList();
+        return new PageImpl<>(mapped, pageable, page.getTotalElements());
+    }
 
-        ExampleMatcher matcher = ExampleMatcher.matchingAll()
-                .withMatcher("title", m -> m.ignoreCase().contains())
-                .withMatcher("content", m -> m.ignoreCase().contains())
-                .withMatcher("authorId", m -> m.ignoreCase())
-                .withMatcher("bookId", m -> m.ignoreCase())
-                .withIgnorePaths(
-                        "blogId", "createdAt", "updatedAt",
-                        "user", "book", "images", "tags"
-                )
-                .withIgnoreNullValues();
+    @SafeVarargs
+    private final Specification<Blog> allOfNonNull(Specification<Blog>... specs) {
+        var list = Arrays.stream(specs).filter(Objects::nonNull).toList();
+        return list.isEmpty() ? null : Specification.allOf(list);
+    }
 
-        List<Blog> base = repository.findAll(Example.of(probe, matcher));
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BlogResponse> filterByUpdated(UpdatedOrder order, Pageable pageable) {
+        Sort sort = (order == UpdatedOrder.OLDEST)
+                ? Sort.by(Sort.Order.asc("updatedAt"))
+                : Sort.by(Sort.Order.desc("updatedAt"));
 
-        // Lọc theo tags trong memory
-        boolean filterByIds = tagIds != null && !tagIds.isEmpty();
-        boolean filterByNames = tagNames != null && !tagNames.isEmpty();
+        Pageable effective = pageable.getSort().isUnsorted()
+                ? PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort.and(pageable.getSort()));
 
-        List<Blog> filtered = base.stream()
-                .filter(blog -> {
-                    if (!filterByIds && !filterByNames) return true;
-                    Set<String> bIds = blog.getTags() == null ? Set.of()
-                            : blog.getTags().stream().map(Tag::getTagId).collect(Collectors.toSet());
-                    Set<String> bNames = blog.getTags() == null ? Set.of()
-                            : blog.getTags().stream().map(Tag::getName).map(s -> s == null ? null : s.toLowerCase()).filter(Objects::nonNull).collect(Collectors.toSet());
+        Page<Blog> page = repository.findAll(effective);
+        List<BlogResponse> mapped = page.getContent().stream().map(mapper::toResponse).toList();
+        return new PageImpl<>(mapped, effective, page.getTotalElements());
+    }
 
-                    boolean okIds = !filterByIds || bIds.containsAll(tagIds);
-                    boolean okNames = !filterByNames || bNames.containsAll(
-                            tagNames.stream().filter(Objects::nonNull).map(String::toLowerCase).collect(Collectors.toSet())
-                    );
-                    return okIds && okNames;
-                })
-                .toList();
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BlogResponse> searchForUser(String q, Pageable pageable) {
+        Specification<Blog> spec = Specification.allOf(
+                BlogSpecification.isActiveOnly(),
+                BlogSpecification.userFacingSearch(q)
+        );
 
-        // Manual paging
-        int total = filtered.size();
-        int page = pageable.getPageNumber();
-        int size = pageable.getPageSize();
-        int from = Math.min(page * size, total);
-        int to = Math.min(from + size, total);
-        List<BlogResponse> contentPage = filtered.subList(from, to).stream().map(mapper::toResponse).toList();
-
-        return new PageImpl<>(contentPage, pageable, total);
+        Page<Blog> page = repository.findAll(spec, pageable);
+        List<BlogResponse> mapped = page.getContent().stream().map(mapper::toResponse).toList();
+        return new PageImpl<>(mapped, pageable, page.getTotalElements());
     }
 
     private String normalize(String s) {
         if (s == null) return null;
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
+        s = s.trim();
+        return s.isEmpty() ? null : s;
     }
 }

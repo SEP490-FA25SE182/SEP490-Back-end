@@ -7,9 +7,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface NotificationService {
+
     NotificationResponseDTO create(NotificationRequestDTO dto);
+
     NotificationResponseDTO getById(String id);
+
     NotificationResponseDTO update(String id, NotificationRequestDTO dto);
+
     void softDelete(String id);
-    Page<NotificationResponseDTO> search(String q, String userId, String bookId, String orderId, IsActived isActived, Pageable pageable);
+
+    Page<NotificationResponseDTO> search(
+            String q,
+            String userId,
+            String bookId,
+            String orderId,
+            IsActived isActived,
+            Pageable pageable
+    );
+
+    NotificationResponseDTO markAsRead(String id);
 }

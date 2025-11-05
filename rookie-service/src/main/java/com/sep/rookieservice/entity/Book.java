@@ -5,6 +5,7 @@ import com.sep.rookieservice.enums.BookEnum;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.PublicationEnum;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +13,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -22,6 +25,7 @@ import java.util.List;
 @Entity
 @Table(name = "books")
 public class Book implements Serializable {
+
     @Id
     @Column(name = "book_id", length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,7 +34,7 @@ public class Book implements Serializable {
     @Column(name= "book_name", length = 50)
     private String bookName;
 
-    @Column(name = "author_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "author_id", length = 50)
     private String authorId;
 
     @Column(name = "cover_url", length = 500)
@@ -39,14 +43,18 @@ public class Book implements Serializable {
     @Column(name = "decription", length = 250)
     private String decription;
 
+    @Column(name = "price", precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Min(0)
+    @Column(name = "quantity")
+    private Integer quantity = 0;
+
     @Column(name = "progress_status")
     private Byte progressStatus = BookEnum.IN_PROGRESS.getStatus();
 
     @Column(name = "publication_status")
     private Byte publicationStatus = PublicationEnum.DRAFT.getStatus();
-
-    @Column(name = "bookshelve_id", length = 50, insertable = false, updatable = false)
-    private String bookshelveId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -62,44 +70,60 @@ public class Book implements Serializable {
     @Column(name = "published_date")
     private Instant publishedDate;
 
-    //@ManyToOne
+    // ===================== RELATIONSHIPS =====================
+
+    /** Many Books -> One Author (User) **/
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User author;
 
-    //OneToMany
+    /** One Book -> Many CartItems **/
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<CartItem> cartItems;
+    private List<CartItem> cartItems = new ArrayList<>();
 
+    /** One Book -> Many OrderDetails **/
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderDetail> orderDetails;
+    private List<OrderDetail> orderDetails = new ArrayList<>();
 
+    /** One Book -> Many Feedbacks **/
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Feedback> feedbacks;
+    private List<Feedback> feedbacks = new ArrayList<>();
 
+    /** One Book -> Many Chapters **/
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Chapter> chapters;
+    private List<Chapter> chapters = new ArrayList<>();
 
+    /** One Book -> Many Blogs **/
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Wishlist> wishlists;
+    private List<Blog> blogs = new ArrayList<>();
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Blog> blogs;
-
-    // ManyToMany
+    /**
+     * Many-to-Many: Book <-> Genre
+     * Join Table: book_genres
+     */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "book_genres", // tên bảng join sẽ được tạo ra
+            name = "book_genres",
             joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id", referencedColumnName = "genre_id")
     )
+    private List<Genre> genres = new ArrayList<>();
 
-    private List<Genre> genres;
+    /**
+     * Many-to-Many: Book <-> Bookshelf
+     * Join Table: wishlist (acts as linking table)
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "wishlists", // use existing table
+            joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "bookshelve_id", referencedColumnName = "bookshelve_id")
+    )
+    private List<Bookshelve> bookshelves = new ArrayList<>();
 }

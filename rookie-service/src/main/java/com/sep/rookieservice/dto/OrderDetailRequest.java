@@ -14,4 +14,8 @@ public class OrderDetailRequest {
     @Min(value = 0, message = "price must be >= 0")
     private Double price;
 
+    private String orderId;
+
+    private String bookId;
+
 }

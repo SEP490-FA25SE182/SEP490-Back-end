@@ -8,10 +8,9 @@ import com.sep.rookieservice.service.BookService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -19,7 +18,6 @@ import java.util.List;
 public class BookController {
 
     private final BookService svc;
-
 
     @Autowired
     public BookController(BookService svc) {
@@ -48,12 +46,8 @@ public class BookController {
 
     /**
      * Search & pagination endpoint.
-     * - page: 0-based page index
-     * - size: page size
-     * - sort: e.g. sort=bookName,asc or multiple: sort=bookName,asc&sort=createdAt,desc
-     * - q: search query for name + description
-     * - authorId, publicationStatus, progressStatus
-     * - isActived: ACTIVE or INACTIVE (enum name)
+     * Example:
+     * /api/rookie/users/books?page=0&size=20&sort=createdAt,desc&q=magic
      */
     @GetMapping
     public Page<BookResponseDTO> list(
@@ -62,39 +56,123 @@ public class BookController {
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String authorId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer minQuantity,
             @RequestParam(required = false) Byte publicationStatus,
             @RequestParam(required = false) Byte progressStatus,
-            @RequestParam(required = false) IsActived isActived
+            @RequestParam(required = false) IsActived isActived,
+            @RequestParam(required = false) String genreId,
+            @RequestParam(required = false) String bookshelfId
     ) {
-
         Sort sortObj = Sort.unsorted();
+
         if (sort != null && !sort.isEmpty()) {
-            // Each sort entry is like "field,asc" or "field,desc"
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
-                String[] parts = s.split(",");
+
+                String[] parts = s.split("-");
                 String prop = parts[0].trim();
                 Sort.Direction dir = Sort.Direction.ASC;
+
                 if (parts.length > 1) {
                     try {
-                        dir = Sort.Direction.fromString(parts[1].trim());
-                    } catch (IllegalArgumentException ignore) {}
+                        dir = Sort.Direction.valueOf(parts[1].trim().toUpperCase());
+                    } catch (IllegalArgumentException ignored) {
+                        String dirStr = parts[1].trim().toUpperCase();
+                        if (dirStr.equals("DESC")) {
+                        dir = Sort.Direction.DESC;
+                        }
+                    }
                 }
                 sortObj = sortObj.and(Sort.by(dir, prop));
             }
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return svc.search(q, authorId, publicationStatus, progressStatus, isActived, pageable);
+        return svc.search(q, authorId, minPrice, maxPrice, minQuantity, publicationStatus, progressStatus, isActived, genreId, bookshelfId, pageable);
+    }
+
+
+    @PostMapping("/{bookId}/genres")
+    public BookResponseDTO addGenresToBook(
+            @PathVariable String bookId,
+            @RequestBody List<String> genreIds
+    ) {
+        return svc.addGenresToBook(bookId, genreIds);
+    }
+
+    @DeleteMapping("/{bookId}/genres/{genreId}")
+    public BookResponseDTO removeGenreFromBook(
+            @PathVariable String bookId,
+            @PathVariable String genreId
+    ) {
+        return svc.removeGenreFromBook(bookId, genreId);
+    }
+
+    @PostMapping("/{bookId}/bookshelves")
+    public BookResponseDTO addBookToBookshelves(
+            @PathVariable String bookId,
+            @RequestBody List<String> shelfIds
+    ) {
+        return svc.addBookToBookshelves(bookId, shelfIds);
+    }
+
+    @DeleteMapping("/{bookId}/bookshelves/{shelfId}")
+    public BookResponseDTO removeBookFromBookshelf(
+            @PathVariable String bookId,
+            @PathVariable String shelfId
+    ) {
+        return svc.removeBookFromBookshelf(bookId, shelfId);
     }
 
     /**
-     * Get book analytics for dashboard
-     * @param monthsBack optional, default 12 months
+     * Analytics endpoint for dashboard visualization
+     * Example: /api/rookie/users/books/analytics?monthsBack=6
      */
     @GetMapping("/analytics")
     public BookAnalyticsResponse getBookAnalytics(@RequestParam(required = false) Integer monthsBack) {
         return svc.getAnalytics(monthsBack);
+    }
+
+    @PatchMapping("/{id}/progress-status")
+    public BookResponseDTO updateProgressStatus(
+            @PathVariable String id,
+            @RequestParam Byte progressStatus
+    ) {
+        return svc.updateProgressStatus(id, progressStatus);
+    }
+
+    @PatchMapping("/{id}/publication-status")
+    public BookResponseDTO updatePublicationStatus(
+            @PathVariable String id,
+            @RequestParam Byte publicationStatus
+    ) {
+        return svc.updatePublicationStatus(id, publicationStatus);
+    }
+
+    @GetMapping("/bookshelves/{bookshelfId}")
+    public Page<BookResponseDTO> getBooksByBookshelfId(
+            @PathVariable String bookshelfId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) List<String> sort
+    ) {
+        Sort sortObj = Sort.unsorted();
+
+        if (sort != null && !sort.isEmpty()) {
+            for (String s : sort) {
+                if (s == null || s.trim().isEmpty()) continue;
+                String[] parts = s.split("-");
+                String prop = parts[0].trim();
+                Sort.Direction dir = (parts.length > 1 && parts[1].equalsIgnoreCase("desc"))
+                        ? Sort.Direction.DESC : Sort.Direction.ASC;
+                sortObj = sortObj.and(Sort.by(dir, prop));
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+        return svc.getBooksByBookshelfId(bookshelfId, pageable);
     }
 
 }

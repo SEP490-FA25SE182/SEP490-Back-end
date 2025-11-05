@@ -41,12 +41,17 @@ public class Order implements Serializable {
     private Byte status = OrderEnum.UNORDERED.getStatus();
 
     @NotNull
-    @Column(name = "wallet_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "wallet_id", length = 50)
     private String walletId;
 
-    @NotNull
-    @Column(name = "cart_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "cart_id", length = 50)
     private String cartId;
+
+    @Column(name = "user_address_id", length = 50)
+    private String userAddressId;
+
+    @Column(name = "reason", length = 250)
+    private String reason;
 
     //ManyToOne
     @JsonIgnore
@@ -58,6 +63,11 @@ public class Order implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", referencedColumnName = "cart_id", insertable = false, updatable = false)
     private Cart cart;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_address_id", referencedColumnName = "user_address_id", insertable = false, updatable = false)
+    private UserAddress userAddress;
 
     //OneToMany
     @JsonIgnore

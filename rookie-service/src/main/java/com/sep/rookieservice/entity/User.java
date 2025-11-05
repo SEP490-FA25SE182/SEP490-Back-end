@@ -46,8 +46,8 @@ public class User implements Serializable {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Size(max = 20)
-    @Column(name = "phone_number", length = 20)
+    @Size(max = 10)
+    @Column(name = "phone_number", length = 10)
     private String phoneNumber;
 
     @Size(max = 1000)
@@ -103,8 +103,8 @@ public class User implements Serializable {
     private Bookshelve bookshelve;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
-    private Cart cart;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Cart> carts;
 
     @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)

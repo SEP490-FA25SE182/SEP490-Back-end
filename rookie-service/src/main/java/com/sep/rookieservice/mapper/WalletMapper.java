@@ -16,6 +16,8 @@ public interface WalletMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "coin", source = "coin"),
+            @Mapping(target = "balance", source = "balance"),
+            @Mapping(target = "userId", source = "userId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(WalletRequest req, @MappingTarget Wallet entity);
@@ -24,6 +26,7 @@ public interface WalletMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "coin", source = "coin"),
+            @Mapping(target = "balance", source = "balance"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForUpdate(WalletRequest req, @MappingTarget Wallet entity);

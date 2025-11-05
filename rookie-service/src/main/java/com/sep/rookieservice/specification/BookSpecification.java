@@ -5,48 +5,82 @@ import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.math.BigDecimal;
+
 public final class BookSpecification {
 
     private BookSpecification() {}
 
-    /**
-     * Build a specification to search by q (bookName, decription),
-     * and optional filters authorId, publicationStatus, progressStatus, isActived.
-     */
     public static Specification<Book> buildSpecification(
             String q,
             String authorId,
             Byte publicationStatus,
             Byte progressStatus,
-            IsActived isActived
+            IsActived isActived,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Integer minQuantity
     ) {
+        return Specification.allOf(
+                likeNameOrDescription(q),
+                filterByAuthor(authorId),
+                filterByPublication(publicationStatus),
+                filterByProgress(progressStatus),
+                filterByIsActived(isActived),
+                filterByPriceRange(minPrice, maxPrice),
+                filterByQuantity(minQuantity)
+        );
+    }
+
+    private static Specification<Book> likeNameOrDescription(String q) {
         return (root, query, cb) -> {
-            Predicate predicate = cb.conjunction();
-
-            if (q != null && !q.trim().isEmpty()) {
-                String likePattern = "%" + q.trim().toLowerCase() + "%";
-                Predicate nameLike = cb.like(cb.lower(root.get("bookName")), likePattern);
-                Predicate descLike = cb.like(cb.lower(root.get("decription")), likePattern);
-                predicate = cb.and(predicate, cb.or(nameLike, descLike));
-            }
-
-            if (authorId != null && !authorId.trim().isEmpty()) {
-                predicate = cb.and(predicate, cb.equal(root.get("authorId"), authorId.trim()));
-            }
-
-            if (publicationStatus != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("publicationStatus"), publicationStatus));
-            }
-
-            if (progressStatus != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("progressStatus"), progressStatus));
-            }
-
-            if (isActived != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("isActived"), isActived));
-            }
-
-            return predicate;
+            if (q == null || q.trim().isEmpty()) return cb.conjunction();
+            String likePattern = "%" + q.trim().toLowerCase() + "%";
+            Predicate nameLike = cb.like(cb.lower(root.get("bookName")), likePattern);
+            Predicate descLike = cb.like(cb.lower(root.get("decription")), likePattern);
+            return cb.or(nameLike, descLike);
         };
     }
+
+    private static Specification<Book> filterByAuthor(String authorId) {
+        return (root, query, cb) ->
+                (authorId == null || authorId.isEmpty()) ? cb.conjunction()
+                        : cb.equal(root.get("authorId"), authorId);
+    }
+
+    private static Specification<Book> filterByPublication(Byte status) {
+        return (root, query, cb) ->
+                (status == null) ? cb.conjunction() : cb.equal(root.get("publicationStatus"), status);
+    }
+
+    private static Specification<Book> filterByProgress(Byte progress) {
+        return (root, query, cb) ->
+                (progress == null) ? cb.conjunction() : cb.equal(root.get("progressStatus"), progress);
+    }
+
+    private static Specification<Book> filterByIsActived(IsActived isActived) {
+        return (root, query, cb) ->
+                (isActived == null) ? cb.conjunction() : cb.equal(root.get("isActived"), isActived);
+    }
+
+    public static Specification<Book> filterByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        return (root, query, cb) -> {
+            if (minPrice == null && maxPrice == null) return cb.conjunction();
+            if (minPrice != null && maxPrice != null) {
+                return cb.between(root.get("price"), minPrice, maxPrice);
+            } else if (minPrice != null) {
+                return cb.greaterThanOrEqualTo(root.get("price"), minPrice);
+            } else {
+                return cb.lessThanOrEqualTo(root.get("price"), maxPrice);
+            }
+        };
+    }
+
+    public static Specification<Book> filterByQuantity(Integer minQuantity) {
+        return (root, query, cb) -> {
+            if (minQuantity == null) return cb.conjunction();
+            return cb.greaterThanOrEqualTo(root.get("quantity"), minQuantity);
+        };
+    }
+
 }
