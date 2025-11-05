@@ -13,5 +13,5 @@ public interface GenreService {
     GenreResponseDTO update(String id, GenreRequestDTO dto);
     GenreResponseDTO getById(String id);
     void delete(String id);
-    Page<GenreResponseDTO> search(String keyword, Pageable pageable);
+    Page<GenreResponseDTO> search(String keyword, String bookId, Pageable pageable);
 }
