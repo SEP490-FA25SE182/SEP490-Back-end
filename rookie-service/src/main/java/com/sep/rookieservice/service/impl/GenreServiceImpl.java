@@ -8,6 +8,8 @@ import com.sep.rookieservice.mapper.GenreMapper;
 import com.sep.rookieservice.repository.GenreRepository;
 import com.sep.rookieservice.service.GenreService;
 import com.sep.rookieservice.specification.GenreSpecification;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -79,9 +81,18 @@ public class GenreServiceImpl implements GenreService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GenreResponseDTO> search(String keyword, Pageable pageable) {
+    public Page<GenreResponseDTO> search(String keyword, String bookId, Pageable pageable) {
         Specification<Genre> spec = GenreSpecification.buildSpecification(keyword);
+
+        if (bookId != null && !bookId.isBlank()) {
+            spec = spec.and((root, query, cb) -> {
+                Join<Object, Object> bookJoin = root.join("books", JoinType.INNER);
+                return cb.equal(bookJoin.get("bookId"), bookId);
+            });
+        }
+
         Page<Genre> page = repo.findAll(spec, pageable);
         return page.map(mapper::toDto);
     }
+
 }
