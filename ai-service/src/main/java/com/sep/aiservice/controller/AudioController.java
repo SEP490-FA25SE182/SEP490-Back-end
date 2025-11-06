@@ -74,9 +74,10 @@ public class AudioController {
             @RequestParam(required = false) @Size(max = 10) String language,
             @RequestParam(required = false) @Size(max = 50) String title,
             @RequestParam(required = false) IsActived isActived,
+            @RequestParam(required = false) @Size(max = 50) String userId,
             @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return audioService.search(voice, format, language, title, isActived, pageable);
+        return audioService.search(voice, format, language, title, isActived, userId, pageable);
     }
 }

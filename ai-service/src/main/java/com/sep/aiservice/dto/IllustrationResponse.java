@@ -14,6 +14,7 @@ public class IllustrationResponse {
     private Integer width;
     private Integer height;
     private String title;
+    private String userId;
     private Instant updatedAt;
     private IsActived isActived;
 }

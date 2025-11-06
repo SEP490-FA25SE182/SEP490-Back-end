@@ -20,6 +20,7 @@ public interface AudioMapper {
             @Mapping(target = "language", source = "language"),
             @Mapping(target = "durationMs", source = "durationMs"),
             @Mapping(target = "title", source = "title"),
+            @Mapping(target = "userId", source = "userId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(AudioRequest req, @MappingTarget Audio entity);
@@ -33,6 +34,7 @@ public interface AudioMapper {
             @Mapping(target = "language", source = "language"),
             @Mapping(target = "durationMs", source = "durationMs"),
             @Mapping(target = "title", source = "title"),
+            @Mapping(target = "userId", source = "userId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForUpdate(AudioRequest req, @MappingTarget Audio entity);

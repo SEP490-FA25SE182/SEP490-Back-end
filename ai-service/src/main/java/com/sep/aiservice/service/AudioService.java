@@ -16,5 +16,5 @@ public interface AudioService {
     AudioResponse update(String id, AudioRequest request);
     void softDelete(String id);
     Page<AudioResponse> search(String voice, String format, String language, String title,
-                               IsActived isActived, Pageable pageable);
+                               IsActived isActived, String userId, Pageable pageable);
 }

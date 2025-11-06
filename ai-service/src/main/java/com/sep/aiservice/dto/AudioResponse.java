@@ -14,6 +14,7 @@ public class AudioResponse {
     private String language;
     private Double durationMs;
     private String title;
+    private String userId;
     private Instant updatedAt;
     private IsActived isActived;
 }

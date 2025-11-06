@@ -119,6 +119,7 @@ public class TextToSpeechServiceImpl implements TextToSpeechService {
             audio.setTitle(Optional.ofNullable(req.getTitle()).orElse("tts-" + gen.getAiGenerationId()));
             audio.setDurationMs(durationMs);
             audio.setIsActived(IsActived.ACTIVE);
+            audio.setUserId(userId);
             audio = audioRepo.save(audio);
 
             genLog.linkTarget(gen, "AUDIO", audio.getAudioId());
