@@ -150,4 +150,29 @@ public class BookController {
     ) {
         return svc.updatePublicationStatus(id, publicationStatus);
     }
+
+    @GetMapping("/bookshelves/{bookshelfId}")
+    public Page<BookResponseDTO> getBooksByBookshelfId(
+            @PathVariable String bookshelfId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) List<String> sort
+    ) {
+        Sort sortObj = Sort.unsorted();
+
+        if (sort != null && !sort.isEmpty()) {
+            for (String s : sort) {
+                if (s == null || s.trim().isEmpty()) continue;
+                String[] parts = s.split("-");
+                String prop = parts[0].trim();
+                Sort.Direction dir = (parts.length > 1 && parts[1].equalsIgnoreCase("desc"))
+                        ? Sort.Direction.DESC : Sort.Direction.ASC;
+                sortObj = sortObj.and(Sort.by(dir, prop));
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+        return svc.getBooksByBookshelfId(bookshelfId, pageable);
+    }
+
 }

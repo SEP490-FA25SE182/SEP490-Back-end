@@ -56,7 +56,7 @@ public class BookshelveController {
         if (sort != null && !sort.isEmpty()) {
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
-                String[] parts = s.split(",");
+                String[] parts = s.split("-");
                 String prop = parts[0].trim();
                 Sort.Direction dir = Sort.Direction.ASC;
                 if (parts.length > 1) {
@@ -71,4 +71,29 @@ public class BookshelveController {
         Pageable pageable = PageRequest.of(page, size, sortObj);
         return service.search(q, userId, isActived, pageable);
     }
+
+    @GetMapping("/{userId}/bookshelves")
+    public Page<BookshelveResponseDTO> getBookshelvesByUserId(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) List<String> sort
+    ) {
+        Sort sortObj = Sort.unsorted();
+        if (sort != null && !sort.isEmpty()) {
+            for (String s : sort) {
+                if (s == null || s.trim().isEmpty()) continue;
+                String[] parts = s.split("-");
+                String prop = parts[0].trim();
+                Sort.Direction dir = parts.length > 1 && parts[1].equalsIgnoreCase("desc")
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+                sortObj = sortObj.and(Sort.by(dir, prop));
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+        return service.getBookshelvesByUserId(userId, pageable);
+    }
+
 }

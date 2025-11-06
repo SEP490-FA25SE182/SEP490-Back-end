@@ -53,7 +53,8 @@ public class GenreController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) List<String> sort,
-            @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String bookId
     ) {
         Sort sortObj = Sort.unsorted();
         if (sort != null && !sort.isEmpty()) {
@@ -61,12 +62,14 @@ public class GenreController {
                 if (s == null || s.trim().isEmpty()) continue;
                 String[] parts = s.split("-");
                 String field = parts[0].trim();
-                Sort.Direction dir = (parts.length > 1) ? Sort.Direction.fromString(parts[1].trim()) : Sort.Direction.ASC;
+                Sort.Direction dir = (parts.length > 1)
+                        ? Sort.Direction.fromString(parts[1].trim())
+                        : Sort.Direction.ASC;
                 sortObj = sortObj.and(Sort.by(dir, field));
             }
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return svc.search(keyword, pageable);
+        return svc.search(keyword, bookId, pageable);
     }
 }
