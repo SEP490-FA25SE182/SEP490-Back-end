@@ -78,9 +78,10 @@ public class IllustrationController {
             @RequestParam(required = false) @Size(max = 10) String format,
             @RequestParam(required = false) @Size(max = 50) String title,
             @RequestParam(required = false) IsActived isActived,
+            @RequestParam(required = false) @Size(max = 50) String userId,
             @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return illustrationService.search(style, format, title, isActived, pageable);
+        return illustrationService.search(style, format, title, isActived, userId, pageable);
     }
 }

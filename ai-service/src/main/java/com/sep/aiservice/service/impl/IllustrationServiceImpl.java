@@ -106,21 +106,24 @@ public class IllustrationServiceImpl implements IllustrationService {
     @Override
     @Transactional(readOnly = true)
     public Page<IllustrationResponse> search(String style, String format, String title,
-                                             IsActived isActived, Pageable pageable) {
+                                             IsActived isActived, String userId, Pageable pageable) {
         String s = normalize(style);
         String f = normalize(format);
         String t = normalize(title);
+        String u = normalize(userId);
 
         Illustration probe = new Illustration();
         if (s != null) probe.setStyle(s);
         if (f != null) probe.setFormat(f);
         if (t != null) probe.setTitle(t);
+        if (u != null) probe.setUserId(u);
         if (isActived != null) probe.setIsActived(isActived);
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
                 .withMatcher("style", m -> m.ignoreCase())
                 .withMatcher("format", m -> m.ignoreCase())
                 .withMatcher("title", m -> m.ignoreCase().contains())
+                .withMatcher("userId", m -> m.ignoreCase())
                 .withIgnorePaths(
                         "illustrationId", "imageUrl", "width", "height",
                         "createdAt", "updatedAt"

@@ -1,20 +1,11 @@
 package com.sep.aiservice.service.impl;
-
-import com.sep.aiservice.dto.AIGenerationResponse;
-import com.sep.aiservice.dto.AIGenerationTargetResponse;
 import com.sep.aiservice.dto.GenerateIllustrationRequest;
 import com.sep.aiservice.dto.IllustrationResponse;
 import com.sep.aiservice.entity.AIGeneration;
-import com.sep.aiservice.entity.AIGenerationTarget;
 import com.sep.aiservice.entity.Illustration;
-import com.sep.aiservice.enums.AIGenerationEnum;
 import com.sep.aiservice.enums.GenerationMode;
 import com.sep.aiservice.enums.IsActived;
-import com.sep.aiservice.mapper.AIGenerationMapper;
-import com.sep.aiservice.mapper.AIGenerationTargetMapper;
 import com.sep.aiservice.mapper.IllustrationMapper;
-import com.sep.aiservice.repository.AIGenerationRepository;
-import com.sep.aiservice.repository.AIGenerationTargetRepository;
 import com.sep.aiservice.repository.IllustrationRepository;
 import com.sep.aiservice.service.AiGenerationLogService;
 import com.sep.aiservice.service.IllustrationGenerationService;
@@ -27,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
@@ -41,10 +31,8 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Optional;
 
-import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 
 @RequiredArgsConstructor
 @Transactional
@@ -93,7 +81,7 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
             }
 
             String ext = Optional.ofNullable(req.getFormat()).orElse("png").toLowerCase();
-            String fileName = "illustrations/illu-" + gen.getAiGenerationId() + "-" + System.currentTimeMillis() + "." + ext;
+            String fileName = "illustrations/illu-" + req.getTitle() + "-" + System.currentTimeMillis() + "." + ext;
             String url = storage.save(fileName, imageBytes, "image/" + ext);
 
             Illustration illu = new Illustration();
@@ -104,6 +92,7 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
             illu.setHeight(req.getHeight());
             illu.setTitle(req.getTitle());
             illu.setIsActived(IsActived.ACTIVE);
+            illu.setUserId(userId);
             illu = illustrationRepo.save(illu);
 
             genLog.linkTarget(gen, "ILLUSTRATION", illu.getIllustrationId());

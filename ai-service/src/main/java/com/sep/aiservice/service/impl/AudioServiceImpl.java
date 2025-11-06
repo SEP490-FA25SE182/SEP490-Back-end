@@ -105,17 +105,20 @@ public class AudioServiceImpl implements AudioService {
     @Override
     @Transactional(readOnly = true)
     public Page<AudioResponse> search(String voice, String format, String language, String title,
-                                      IsActived isActived, Pageable pageable) {
+                                      IsActived isActived, String userId, Pageable pageable) {
+
         String v = normalize(voice);
         String f = normalize(format);
         String l = normalize(language);
         String t = normalize(title);
+        String u = normalize(userId);
 
         Audio probe = new Audio();
         if (v != null) probe.setVoice(v);
         if (f != null) probe.setFormat(f);
         if (l != null) probe.setLanguage(l);
         if (t != null) probe.setTitle(t);
+        if (u != null) probe.setUserId(u);
         if (isActived != null) probe.setIsActived(isActived);
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
@@ -123,6 +126,7 @@ public class AudioServiceImpl implements AudioService {
                 .withMatcher("format", m -> m.ignoreCase())
                 .withMatcher("language", m -> m.ignoreCase())
                 .withMatcher("title", m -> m.ignoreCase().contains())
+                .withMatcher("userId", m -> m.ignoreCase())
                 .withIgnorePaths(
                         "audioId", "audioUrl", "durationMs",
                         "createdAt", "updatedAt"

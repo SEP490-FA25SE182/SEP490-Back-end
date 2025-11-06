@@ -15,5 +15,6 @@ public interface IllustrationService {
     List<IllustrationResponse> create(List<IllustrationRequest> requests);
     IllustrationResponse update(String id, IllustrationRequest request);
     void softDelete(String id);
-    Page<IllustrationResponse> search(String style, String format, String title, IsActived isActived, Pageable pageable);
+    Page<IllustrationResponse> search(String style, String format, String title,
+                                      IsActived isActived, String userId, Pageable pageable);
 }

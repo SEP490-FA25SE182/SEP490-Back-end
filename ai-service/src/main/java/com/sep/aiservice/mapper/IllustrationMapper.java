@@ -21,6 +21,7 @@ public interface IllustrationMapper {
             @Mapping(target = "width", source = "width"),
             @Mapping(target = "height", source = "height"),
             @Mapping(target = "title", source = "title"),
+            @Mapping(target = "userId", source = "userId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(IllustrationRequest req, @MappingTarget Illustration entity);
@@ -34,6 +35,7 @@ public interface IllustrationMapper {
             @Mapping(target = "width", source = "width"),
             @Mapping(target = "height", source = "height"),
             @Mapping(target = "title", source = "title"),
+            @Mapping(target = "userId", source = "userId"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForUpdate(IllustrationRequest req, @MappingTarget Illustration entity);
