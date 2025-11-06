@@ -126,13 +126,26 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDTO addGenresToBook(String bookId, List<String> genreIds) {
-        Book book = repo.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        Book book = repo.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+
         List<Genre> genres = genreRepo.findAllById(genreIds);
-        if (book.getGenres() == null) book.setGenres(new ArrayList<>());
-        book.getGenres().addAll(genres);
+
+        if (book.getGenres() == null) {
+            book.setGenres(new ArrayList<>());
+        }
+
+        for (Genre g : genres) {
+            if (!book.getGenres().contains(g)) {
+                book.getGenres().add(g);
+            }
+        }
+
+        book.setUpdatedAt(Instant.now());
         Book saved = repo.save(book);
         return mapper.toDto(saved);
     }
+
 
     @Override
     public BookResponseDTO removeGenreFromBook(String bookId, String genreId) {
@@ -146,13 +159,26 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDTO addBookToBookshelves(String bookId, List<String> shelfIds) {
-        Book book = repo.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        Book book = repo.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+
         List<Bookshelve> shelves = shelfRepo.findAllById(shelfIds);
-        if (book.getBookshelves() == null) book.setBookshelves(new ArrayList<>());
-        book.getBookshelves().addAll(shelves);
+
+        if (book.getBookshelves() == null) {
+            book.setBookshelves(new ArrayList<>());
+        }
+
+        for (Bookshelve s : shelves) {
+            if (!book.getBookshelves().contains(s)) {
+                book.getBookshelves().add(s);
+            }
+        }
+
+        book.setUpdatedAt(Instant.now());
         Book saved = repo.save(book);
         return mapper.toDto(saved);
     }
+
 
     @Override
     public BookResponseDTO removeBookFromBookshelf(String bookId, String shelfId) {
@@ -252,5 +278,13 @@ public class BookServiceImpl implements BookService {
         Book saved = repo.save(book);
         return mapper.toDto(saved);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BookResponseDTO> getBooksByBookshelfId(String bookshelfId, Pageable pageable) {
+        Page<Book> page = repo.findAllByBookshelfIdAndIsActived(bookshelfId, IsActived.ACTIVE, pageable);
+        return page.map(mapper::toDto);
+    }
+
 
 }
