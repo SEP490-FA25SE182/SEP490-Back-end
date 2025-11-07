@@ -19,6 +19,7 @@ public interface TransactionMapper {
             @Mapping(target = "orderCode", source = "orderCode"),
             @Mapping(target = "orderId", source = "orderId"),
             @Mapping(target = "paymentMethodId", source = "paymentMethodId"),
+            @Mapping(target = "transType", source = "transType"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(TransactionRequest req, @MappingTarget Transaction entity);
@@ -29,6 +30,7 @@ public interface TransactionMapper {
             @Mapping(target = "totalPrice", source = "totalPrice"),
             @Mapping(target = "status", source = "status"),
             @Mapping(target = "orderCode", source = "orderCode"),
+            @Mapping(target = "transType", source = "transType"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForUpdate(TransactionRequest req, @MappingTarget Transaction entity);

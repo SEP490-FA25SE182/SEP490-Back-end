@@ -3,6 +3,7 @@ package com.sep.rookieservice.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.TransactionEnum;
+import com.sep.rookieservice.enums.TransactionType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -53,15 +54,19 @@ public class Transaction implements Serializable {
     @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trans_type", length = 10)
+    private TransactionType transType = TransactionType.PAYMENT;
+
     //ManyToOne
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_method_id", referencedColumnName = "payment_method_id", insertable = false, updatable = false)
     private PaymentMethod paymentMethod;
 
-    //OneToOne
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
-    @JoinColumn(name = "order_id", referencedColumnName = "order_id", nullable = false, unique = true, insertable = false, updatable = false)
+    @JoinColumn(name = "order_id", referencedColumnName = "order_id", insertable = false, updatable = false)
     private Order order;
 }
