@@ -4,6 +4,7 @@ import com.sep.rookieservice.dto.TransactionRequest;
 import com.sep.rookieservice.dto.TransactionResponse;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.TransactionEnum;
+import com.sep.rookieservice.enums.TransactionType;
 import com.sep.rookieservice.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,16 @@ public class TransactionController {
         return service.create(req);
     }
 
+    @PostMapping("/wallet")
+    public TransactionResponse createWallet(@RequestBody @Valid TransactionRequest req) {
+        return service.createWallet(req);
+    }
+
+    @PostMapping("/cod")
+    public TransactionResponse createCOD(@RequestBody @Valid TransactionRequest req) {
+        return service.createCOD(req);
+    }
+
     @GetMapping("/{id}")
     public TransactionResponse getById(@PathVariable String id) {
         return service.getById(id);
@@ -46,10 +57,13 @@ public class TransactionController {
     public Page<TransactionResponse> search(
             @RequestParam(required = false) TransactionEnum status,
             @RequestParam(required = false) IsActived isActived,
+            @RequestParam(required = false) TransactionType transType,
             @RequestParam(required = false) String paymentMethodName,
+            @RequestParam(required = false) String orderId,
+            @RequestParam(required = false) String paymentMethodId,
             @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return service.search(status, isActived, paymentMethodName, pageable);
+        return service.search(status, isActived, paymentMethodName, orderId, paymentMethodId,transType, pageable);
     }
 }

@@ -1,6 +1,7 @@
 package com.sep.rookieservice.dto;
 
 import com.sep.rookieservice.enums.IsActived;
+import com.sep.rookieservice.enums.TransactionType;
 import lombok.Data;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ public class TransactionResponse {
     private String orderId;
     private Long orderCode;
     private IsActived isActived;
+    private TransactionType transType;
     private Instant createdAt;
     private Instant updatedAt;
 }

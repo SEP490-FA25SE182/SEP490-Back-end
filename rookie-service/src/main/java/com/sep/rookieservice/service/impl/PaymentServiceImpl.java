@@ -11,6 +11,7 @@ import com.sep.rookieservice.entity.Transaction;
 import com.sep.rookieservice.entity.Wallet;
 import com.sep.rookieservice.enums.OrderEnum;
 import com.sep.rookieservice.enums.TransactionEnum;
+import com.sep.rookieservice.enums.TransactionType;
 import com.sep.rookieservice.gateway.PayOSClient;
 import com.sep.rookieservice.repository.OrderRepository;
 import com.sep.rookieservice.repository.PaymentMethodRepository;
@@ -103,6 +104,7 @@ public class PaymentServiceImpl implements PaymentService {
         tx.setStatus(TransactionEnum.PROCESSING.getStatus());
         tx.setOrderCode(orderCode);
         tx.setUpdatedAt(Instant.now());
+        tx.setTransType(TransactionType.PAYMENT);
         txRepo.save(tx);
 
         order.setStatus(OrderEnum.PROCESSING.getStatus());
