@@ -29,5 +29,15 @@ public class PaymentController {
         paymentService.handleWebhook(payload);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/wallets/{walletId}/deposit")
+    public ResponseEntity<CreateCheckoutResponse> deposit(
+            @PathVariable String walletId,
+            @RequestParam int amount,
+            @RequestParam(required = false) String returnUrl,
+            @RequestParam(required = false) String cancelUrl
+    ) {
+        return ResponseEntity.ok(paymentService.deposit(amount, walletId, returnUrl, cancelUrl));
+    }
 }
 

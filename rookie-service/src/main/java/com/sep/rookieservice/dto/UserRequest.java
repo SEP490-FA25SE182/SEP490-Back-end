@@ -41,4 +41,6 @@ public class UserRequest {
     private String roleId;
 
     private IsActived isActived;
+
+    private double royalty = 0.0;
 }

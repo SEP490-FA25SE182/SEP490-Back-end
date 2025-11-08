@@ -11,6 +11,7 @@ import com.sep.rookieservice.mapper.TransactionMapper;
 import com.sep.rookieservice.repository.PaymentMethodRepository;
 import com.sep.rookieservice.repository.TransactionRepository;
 import com.sep.rookieservice.service.TransactionService;
+import com.sep.rookieservice.util.TransactionQbe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -141,42 +142,12 @@ public class TransactionServiceImpl implements TransactionService {
             TransactionType transType,
             Pageable pageable
     ) {
-        String pmName = normalize(paymentMethodName);
-        String ordId = normalize(orderId);
-        String pmId  = normalize(paymentMethodId);
-
-        Transaction probe = new Transaction();
-        if (status != null)    probe.setStatus(status.getStatus());
-        if (isActived != null) probe.setIsActived(isActived);
-        if (ordId != null)     probe.setOrderId(ordId);
-        if (transType != null)    probe.setTransType(transType);
-        if (pmId  != null)     probe.setPaymentMethodId(pmId);
-        if (pmName != null) {
-            PaymentMethod pm = new PaymentMethod();
-            pm.setMethodName(pmName);
-            probe.setPaymentMethod(pm);
-        }
-
-        ExampleMatcher matcher = ExampleMatcher.matchingAll()
-                .withIgnorePaths(
-                        "transactionId","totalPrice","updatedAt","createdAt",
-                        "orderCode","order"
-                )
-                .withMatcher("paymentMethod.methodName", m -> m.contains().ignoreCase())
-                .withMatcher("orderId", m -> m.contains().ignoreCase())
-                .withMatcher("paymentMethodId", m -> m.contains().ignoreCase())
-                .withIgnoreNullValues();
-
-        Example<Transaction> example = Example.of(probe, matcher);
+        Example<Transaction> example = TransactionQbe.example(
+                status, isActived, paymentMethodName, orderId, paymentMethodId, transType
+        );
 
         return repository.findAll(example, pageable)
                 .map(mapper::toResponse);
-    }
-
-    private String normalize(String s) {
-        if (s == null) return null;
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
     }
 
     @Transactional(readOnly = true)

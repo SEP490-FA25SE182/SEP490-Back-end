@@ -64,6 +64,9 @@ public class User implements Serializable {
     @Column(name = "updated_at")
     private Instant updateAt = Instant.now();
 
+    @Column(name = "royalty")
+    private double royalty = 0.0;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "is_actived", nullable = false, length = 10)
