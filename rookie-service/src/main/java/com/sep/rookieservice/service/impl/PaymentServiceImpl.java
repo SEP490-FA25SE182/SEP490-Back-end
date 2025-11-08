@@ -127,38 +127,48 @@ public class PaymentServiceImpl implements PaymentService {
             throw new SecurityException("Invalid webhook signature");
         }
 
-        Object codeObj = payload.getData().get("code");          // "00" nếu thành công
-        Object orderCodeObj = payload.getData().get("orderCode"); // số long PayOS gửi
+        Object codeObj = payload.getData().get("code");
+        Object orderCodeObj = payload.getData().get("orderCode");
+        Object amountObj = payload.getData().get("amount");
         if (orderCodeObj == null) return;
 
         long orderCode = Long.parseLong(orderCodeObj.toString());
+        int amount = amountObj == null ? 0 : Integer.parseInt(amountObj.toString());
+        String code = String.valueOf(codeObj);
 
-        // Tra trực tiếp Transaction theo orderCode
         Transaction tx = txRepo.findByOrderCode(orderCode)
                 .orElseThrow(() -> new IllegalStateException("Transaction not found by orderCode"));
-
-        Order order = orderRepo.findById(tx.getOrderId())
-                .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
-
-        String code = String.valueOf(codeObj);
 
         if ("00".equals(code)) {
             if (!TransactionEnum.PAID.equals(TransactionEnum.getByStatus(tx.getStatus()))) {
                 tx.setStatus(TransactionEnum.PAID.getStatus());
                 tx.setUpdatedAt(Instant.now());
-                tx.setOrderCode(orderCode);
                 txRepo.save(tx);
 
-                // Order sang PROCESSING
-                order.setStatus(OrderEnum.PROCESSING.getStatus());
-                order.setUpdatedAt(Instant.now());
-                orderRepo.save(order);
+                if (tx.getTransType() == TransactionType.PAYMENT) {
+                    // Giữ nguyên luồng PAYMENT đơn hàng của bạn
+                    Order order = orderRepo.findById(tx.getOrderId())
+                            .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
+                    order.setStatus(OrderEnum.PROCESSING.getStatus());
+                    order.setUpdatedAt(Instant.now());
+                    orderRepo.save(order);
 
-                // Cộng coin 1%
-                Wallet w = order.getWallet();
-                if (w != null) {
-                    int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
-                    w.setCoin(w.getCoin() + bonus);
+                    Wallet w = order.getWallet();
+                    if (w != null) {
+                        int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
+                        w.setCoin(w.getCoin() + bonus);
+                        w.setUpdatedAt(Instant.now());
+                        walletRepo.save(w);
+                    }
+                } else if (tx.getTransType() == TransactionType.DEPOSIT) {
+                    // Dùng walletId đã lưu sẵn trong Transaction
+                    if (tx.getWalletId() == null) {
+                        throw new IllegalStateException("DEPOSIT transaction missing walletId");
+                    }
+                    Wallet w = walletRepo.findById(tx.getWalletId())
+                            .orElseThrow(() -> new IllegalStateException("Wallet not found"));
+                    int credited = amount > 0 ? amount : (int) Math.round(tx.getTotalPrice());
+                    w.setBalance(w.getBalance() + credited);
                     w.setUpdatedAt(Instant.now());
                     walletRepo.save(w);
                 }
@@ -166,15 +176,17 @@ public class PaymentServiceImpl implements PaymentService {
         } else {
             tx.setStatus(TransactionEnum.CANCELED.getStatus());
             tx.setUpdatedAt(Instant.now());
-            tx.setOrderCode(orderCode);
             txRepo.save(tx);
 
-            order.setStatus(OrderEnum.CANCELLED.getStatus());
-            order.setUpdatedAt(Instant.now());
-            orderRepo.save(order);
+            if (tx.getTransType() == TransactionType.PAYMENT && tx.getOrderId() != null) {
+                Order order = orderRepo.findById(tx.getOrderId())
+                        .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
+                order.setStatus(OrderEnum.CANCELLED.getStatus());
+                order.setUpdatedAt(Instant.now());
+                orderRepo.save(order);
+            }
         }
     }
-
 
     /**
      * Tạo orderCode 10 chữ số (>= 1_000_000_000) từ UUID:
@@ -204,6 +216,78 @@ public class PaymentServiceImpl implements PaymentService {
         // Ví dụ: "OID=9f1a2c3d OC=7421" (≤ 25 ký tự)
         String desc = "OID=" + shortOid + " OC=" + lastOc;
         return maxLen(desc, 25);
+    }
+
+    @Override
+    public CreateCheckoutResponse deposit(int amount, String walletId, String returnUrl, String cancelUrl) {
+        if (amount <= 0) throw new IllegalArgumentException("Amount must be > 0");
+
+        Wallet wallet = walletRepo.findById(walletId)
+                .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
+
+        long orderCode = generateOrderCodeFromOrderId("WALLET:" + walletId + ":" + Instant.now().toEpochMilli());
+        String desc = buildDepositDescription(walletId, orderCode);
+
+        String finalReturnUrl = isBlank(returnUrl) ? props.getReturnUrl() : returnUrl;
+        String finalCancelUrl = isBlank(cancelUrl) ? props.getCancelUrl() : cancelUrl;
+
+        String returnUrlWithType = finalReturnUrl + (finalReturnUrl.contains("?") ? "&" : "?")
+                + "type=DEPOSIT&orderCode=" + orderCode;
+
+        String dataStr = PayOSSignature.buildCreateLinkDataString(
+                amount, finalCancelUrl, desc, orderCode, returnUrlWithType
+        );
+        String signature = PayOSSignature.hmacSha256(props.getChecksumKey(), dataStr);
+
+        PayOSCreateLinkRequest req = PayOSCreateLinkRequest.builder()
+                .orderCode(orderCode)
+                .amount(amount)
+                .description(desc)
+                .cancelUrl(finalCancelUrl)
+                .returnUrl(returnUrlWithType)
+                .signature(signature)
+                .build();
+
+        PayOSCreateLinkResponse res = payOSClient.createPaymentLink(req);
+        if (!"00".equals(res.getCode())) {
+            throw new IllegalStateException("Create payment link failed: " + res.getDesc());
+        }
+
+        String pmId = pmRepo.findByMethodNameIgnoreCase(PAYOS_METHOD_NAME)
+                .or(() -> pmRepo.findByProviderIgnoreCase(PAYOS_PROVIDER))
+                .orElseGet(() -> {
+                    PaymentMethod pm = new PaymentMethod();
+                    pm.setMethodName(PAYOS_METHOD_NAME);
+                    pm.setProvider(PAYOS_PROVIDER);
+                    pm.setDecription("Thanh toán qua PayOS VietQR");
+                    return pmRepo.save(pm);
+                }).getPaymentMethodId();
+
+        // Tạo Transaction làm “intent” DEPOSIT
+        Transaction tx = new Transaction();
+        tx.setPaymentMethodId(pmId);
+        tx.setTotalPrice(amount);
+        tx.setStatus(TransactionEnum.PROCESSING.getStatus());
+        tx.setOrderCode(orderCode);
+        tx.setUpdatedAt(Instant.now());
+        tx.setTransType(TransactionType.DEPOSIT);
+        tx.setWalletId(walletId);
+        txRepo.save(tx);
+
+        return CreateCheckoutResponse.builder()
+                .checkoutUrl(res.getData().getCheckoutUrl())
+                .qrCode(res.getData().getQrCode())
+                .paymentLinkId(res.getData().getPaymentLinkId())
+                .orderCode(res.getData().getOrderCode())
+                .amount(res.getData().getAmount())
+                .build();
+    }
+
+    private static String buildDepositDescription(String walletId, long orderCode) {
+        String shortWid = (walletId != null && walletId.length() >= 8) ? walletId.substring(0, 8) : String.valueOf(walletId);
+        String ocStr = String.valueOf(orderCode);
+        String lastOc = ocStr.length() > 4 ? ocStr.substring(ocStr.length() - 4) : ocStr;
+        return maxLen("DEP WAL=" + shortWid + " OC=" + lastOc, 25);
     }
 
 }

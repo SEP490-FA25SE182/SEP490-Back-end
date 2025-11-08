@@ -42,12 +42,15 @@ public class Transaction implements Serializable {
     @Column(name = "payment_method_id", length = 50)
     private String paymentMethodId;
 
-    @NotNull
+
     @Column(name = "order_id", length = 50)
     private String orderId;
 
     @Column(name = "order_code", unique = true)
     private Long orderCode;
+
+    @Column(name = "wallet_id", length = 50)
+    private String walletId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -69,4 +72,9 @@ public class Transaction implements Serializable {
     @JsonIgnore
     @JoinColumn(name = "order_id", referencedColumnName = "order_id", insertable = false, updatable = false)
     private Order order;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id", referencedColumnName = "wallet_id", insertable = false, updatable = false)
+    private Wallet wallet;
 }
