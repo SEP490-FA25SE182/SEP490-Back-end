@@ -19,6 +19,8 @@ public class TransactionRequest {
 
     private String paymentMethodId;
 
+    private String walletId;
+
     private TransactionType transType;
 
     private com.sep.rookieservice.enums.IsActived isActived;

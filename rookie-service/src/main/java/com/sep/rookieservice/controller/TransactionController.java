@@ -61,9 +61,10 @@ public class TransactionController {
             @RequestParam(required = false) String paymentMethodName,
             @RequestParam(required = false) String orderId,
             @RequestParam(required = false) String paymentMethodId,
+            @RequestParam(required = false) String walletId,
             @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return service.search(status, isActived, paymentMethodName, orderId, paymentMethodId,transType, pageable);
+        return service.search(status, isActived, paymentMethodName, orderId, paymentMethodId,transType, walletId, pageable);
     }
 }

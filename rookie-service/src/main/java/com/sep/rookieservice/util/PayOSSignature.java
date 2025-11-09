@@ -4,6 +4,7 @@ import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.commons.codec.digest.HmacUtils;
 
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,5 +76,44 @@ public final class PayOSSignature {
         JSONObject sorted = new JSONObject();
         map.keySet().stream().sorted().forEach(k -> sorted.put(k, map.get(k)));
         return sorted;
+    }
+
+    // PayOSSignature.java
+    public static String buildSignatureFromMap(Map<String, Object> data) {
+        // sort keys alpha
+        List<String> keys = new ArrayList<>(data.keySet());
+        Collections.sort(keys);
+
+        List<String> parts = new ArrayList<>();
+        for (String k : keys) {
+            Object v = data.get(k);
+            String val;
+            if (v == null || "null".equals(v) || "undefined".equals(v)) {
+                val = "";
+            } else if (v instanceof Map<?, ?> m) {
+                // object -> sort keys trước khi stringify
+                JSONObject sortedObj = sortJsonObjectKeys((Map<String, Object>) m);
+                val = sortedObj.toJSONString();
+            } else if (v instanceof List<?> list) {
+                // array -> stringify giữ nguyên thứ tự phần tử
+                JSONArray arr = new JSONArray();
+                for (Object ele : list) {
+                    if (ele instanceof Map<?, ?> mm) {
+                        arr.add(sortJsonObjectKeys((Map<String, Object>) mm));
+                    } else {
+                        arr.add(ele);
+                    }
+                }
+                val = arr.toJSONString();
+            } else {
+                val = String.valueOf(v);
+            }
+            try {
+                val = URLEncoder.encode(val, StandardCharsets.UTF_8);
+            } catch (Exception ignore) {  }
+
+            parts.add(k + "=" + val);
+        }
+        return String.join("&", parts);
     }
 }

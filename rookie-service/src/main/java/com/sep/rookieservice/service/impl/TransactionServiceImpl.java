@@ -15,10 +15,7 @@ import com.sep.rookieservice.util.TransactionQbe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,14 +137,20 @@ public class TransactionServiceImpl implements TransactionService {
             String orderId,
             String paymentMethodId,
             TransactionType transType,
+            String walletId,
             Pageable pageable
     ) {
-        Example<Transaction> example = TransactionQbe.example(
-                status, isActived, paymentMethodName, orderId, paymentMethodId, transType
+        var example = TransactionQbe.example(
+                status, isActived, paymentMethodName, orderId, paymentMethodId, transType, walletId
         );
 
-        return repository.findAll(example, pageable)
-                .map(mapper::toResponse);
+        // nếu client không truyền sort → mặc định updatedAt DESC
+        Pageable sorted = pageable.getSort().isSorted()
+                ? pageable
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        return repository.findAll(example, sorted).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
