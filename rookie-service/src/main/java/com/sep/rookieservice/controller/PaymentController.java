@@ -39,5 +39,23 @@ public class PaymentController {
     ) {
         return ResponseEntity.ok(paymentService.deposit(amount, walletId, returnUrl, cancelUrl));
     }
+
+    @PostMapping("/wallets/{walletId}/withdraw")
+    public ResponseEntity<CreateCheckoutResponse> withdraw(
+            @PathVariable String walletId,
+            @RequestParam int amount,
+            @RequestParam String accountName,
+            @RequestParam String bankName,
+            @RequestParam String accountNumber,
+            @RequestParam(required = false) String returnUrl,
+            @RequestParam(required = false) String cancelUrl
+    ) {
+        return ResponseEntity.ok(
+                paymentService.withdraw(
+                        amount, walletId, accountName, bankName, accountNumber, returnUrl, cancelUrl
+                )
+        );
+    }
+
 }
 

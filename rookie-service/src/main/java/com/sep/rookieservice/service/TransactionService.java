@@ -15,6 +15,6 @@ public interface TransactionService {
     TransactionResponse getById(String id);
     TransactionResponse update(String id, TransactionRequest req);
     void softDelete(String id);
-    Page<TransactionResponse> search(TransactionEnum status, IsActived isActived,
-                                     String paymentMethodName, String orderId, String paymentMethodId, TransactionType transType, Pageable pageable);
+    Page<TransactionResponse> search(TransactionEnum status, IsActived isActived, String paymentMethodName,
+                                     String orderId, String paymentMethodId, TransactionType transType, String walletId, Pageable pageable);
 }

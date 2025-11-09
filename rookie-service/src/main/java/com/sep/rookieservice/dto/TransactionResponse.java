@@ -14,6 +14,7 @@ public class TransactionResponse {
     private String paymentMethodId;
     private String orderId;
     private Long orderCode;
+    private String walletId;
     private IsActived isActived;
     private TransactionType transType;
     private Instant createdAt;
