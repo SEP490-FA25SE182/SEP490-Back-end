@@ -64,3 +64,5 @@ springdoc:
         url: /rookie-service/v3/api-docs
       - name: AR Service
         url: /ar-service/v3/api-docs
+  webjars:
+    prefix: /webjars
