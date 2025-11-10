@@ -5,6 +5,7 @@ import com.sep.rookieservice.enums.BookEnum;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.PublicationEnum;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +34,7 @@ public class Book implements Serializable {
     @Column(name= "book_name", length = 50)
     private String bookName;
 
-    @Column(name = "author_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "author_id", length = 50)
     private String authorId;
 
     @Column(name = "cover_url", length = 500)
@@ -40,6 +42,13 @@ public class Book implements Serializable {
 
     @Column(name = "decription", length = 250)
     private String decription;
+
+    @Column(name = "price", precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Min(0)
+    @Column(name = "quantity")
+    private Integer quantity = 0;
 
     @Column(name = "progress_status")
     private Byte progressStatus = BookEnum.IN_PROGRESS.getStatus();

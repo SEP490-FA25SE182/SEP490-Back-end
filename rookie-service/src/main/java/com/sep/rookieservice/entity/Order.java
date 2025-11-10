@@ -47,6 +47,12 @@ public class Order implements Serializable {
     @Column(name = "cart_id", length = 50)
     private String cartId;
 
+    @Column(name = "user_address_id", length = 50)
+    private String userAddressId;
+
+    @Column(name = "reason", length = 250)
+    private String reason;
+
     //ManyToOne
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,13 +64,17 @@ public class Order implements Serializable {
     @JoinColumn(name = "cart_id", referencedColumnName = "cart_id", insertable = false, updatable = false)
     private Cart cart;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_address_id", referencedColumnName = "user_address_id", insertable = false, updatable = false)
+    private UserAddress userAddress;
+
     //OneToMany
     @JsonIgnore
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderDetail> orderDetails;
 
-    //OneToOne
     @JsonIgnore
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
-    private Transaction transaction;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Transaction> transactions;
 }

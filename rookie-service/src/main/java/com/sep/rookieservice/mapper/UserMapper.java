@@ -24,6 +24,7 @@ public interface UserMapper {
             @Mapping(target = "phoneNumber", source = "phoneNumber"),
             @Mapping(target = "avatarUrl", source = "avatarUrl"),
             @Mapping(target = "roleId", source = "roleId"),
+            @Mapping(target = "royalty", source = "royalty"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForCreate(UserRequest req, @MappingTarget User entity);
@@ -36,6 +37,7 @@ public interface UserMapper {
             @Mapping(target = "gender", source = "gender"),
             @Mapping(target = "phoneNumber", source = "phoneNumber"),
             @Mapping(target = "avatarUrl", source = "avatarUrl"),
+            @Mapping(target = "royalty", source = "royalty"),
             @Mapping(target = "isActived", source = "isActived")
     })
     void copyForUpdate(UserRequest req, @MappingTarget User entity);

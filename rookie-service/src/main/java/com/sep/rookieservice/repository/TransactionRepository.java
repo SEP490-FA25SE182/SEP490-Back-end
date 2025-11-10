@@ -11,4 +11,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     Optional<Transaction> findByOrder_OrderId(String orderId);
     Optional<Transaction> findByOrderId(String orderId);
     boolean existsByOrderCode(Long orderCode);
+    Optional<Transaction> findByOrderCode(Long orderCode);
 }

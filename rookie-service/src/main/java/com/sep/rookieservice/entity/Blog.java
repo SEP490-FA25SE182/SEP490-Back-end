@@ -1,13 +1,11 @@
 package com.sep.rookieservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -17,7 +15,9 @@ import java.util.Set;
 
 @Entity
 @Table(name = "blogs")
-@Data
+@Getter @Setter
+@ToString(exclude = {"user","book","tags"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,14 +25,18 @@ public class Blog implements Serializable {
     @Id
     @Column(name = "blog_id", length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private String blogId;
+
+    @Column(name = "cover_url", length = 500)
+    private String coverUrl;
 
     @NotNull
     @Size(max = 200)
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Column(name = "content", length = 10000)
+    @Column(name = "content")
     private String content;
 
     @Column(name = "created_at", updatable = false)
@@ -52,6 +56,10 @@ public class Blog implements Serializable {
     @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments;
+
     //ManyToOne
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", referencedColumnName = "user_id", insertable = false, updatable = false)
@@ -61,12 +69,12 @@ public class Blog implements Serializable {
     @JoinColumn(name = "book_id", referencedColumnName = "book_id", insertable = false, updatable = false)
     private Book book;
 
-    //OneToMany
-    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @OrderBy("position ASC")
-    private List<BlogImage> images;
-
-    @ManyToMany(mappedBy = "blogs", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "blog_tags",
+            joinColumns = @JoinColumn(name = "blog_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
     private Set<Tag> tags = new HashSet<>();
 
 }

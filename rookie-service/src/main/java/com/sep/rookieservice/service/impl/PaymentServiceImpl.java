@@ -1,16 +1,15 @@
 package com.sep.rookieservice.service.impl;
 
 import com.sep.rookieservice.config.PayOSProperties;
-import com.sep.rookieservice.dto.CreateCheckoutResponse;
-import com.sep.rookieservice.dto.PayOSCreateLinkRequest;
-import com.sep.rookieservice.dto.PayOSCreateLinkResponse;
-import com.sep.rookieservice.dto.WebhookPayload;
+import com.sep.rookieservice.dto.*;
 import com.sep.rookieservice.entity.Order;
 import com.sep.rookieservice.entity.PaymentMethod;
 import com.sep.rookieservice.entity.Transaction;
 import com.sep.rookieservice.entity.Wallet;
+import com.sep.rookieservice.enums.BankBin;
 import com.sep.rookieservice.enums.OrderEnum;
 import com.sep.rookieservice.enums.TransactionEnum;
+import com.sep.rookieservice.enums.TransactionType;
 import com.sep.rookieservice.gateway.PayOSClient;
 import com.sep.rookieservice.repository.OrderRepository;
 import com.sep.rookieservice.repository.PaymentMethodRepository;
@@ -19,13 +18,22 @@ import com.sep.rookieservice.repository.WalletRepository;
 import com.sep.rookieservice.service.PaymentService;
 import com.sep.rookieservice.util.PayOSSignature;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.CRC32;
+
+import static org.apache.http.util.TextUtils.isBlank;
 
 @Service
 @RequiredArgsConstructor
@@ -43,23 +51,29 @@ public class PaymentServiceImpl implements PaymentService {
     private static final String PAYOS_PROVIDER   = "PayOS";
 
     @Override
-    public CreateCheckoutResponse createCheckout(String orderId) {
+    public CreateCheckoutResponse createCheckout(String orderId, String returnUrl, String cancelUrl) {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
-        // Tạo orderCode (int64) từ orderId — không lưu DB
         long orderCode = generateOrderCodeFromOrderId(orderId);
 
-        // PayOS yêu cầu amount int (VND). totalPrice là double → làm tròn.
         int amount = (int) Math.round(order.getTotalPrice());
-        order.setAmount(amount);
+        order.setTotalPrice(amount);
         order.setUpdatedAt(Instant.now());
 
-        // Đặt description chứa nguyên bản orderCode để tra ngược ở webhook/GET
-        String description = maxLen("Order " + orderCode, 25);
+        String description = buildDescription(orderId, orderCode);
+
+        // nếu client không truyền thì dùng default từ application.yml
+        String finalReturnUrl = isBlank(returnUrl) ? props.getReturnUrl() : returnUrl;
+        String finalCancelUrl = isBlank(cancelUrl) ? props.getCancelUrl() : cancelUrl;
+
+        // thêm orderId vào returnUrl để FE đọc trực tiếp
+        String returnUrlWithOid = finalReturnUrl.contains("?")
+                ? finalReturnUrl + "&orderId=" + orderId
+                : finalReturnUrl + "?orderId=" + orderId;
 
         String dataStr = PayOSSignature.buildCreateLinkDataString(
-                amount, props.getCancelUrl(), description, orderCode, props.getReturnUrl()
+                amount, finalCancelUrl, description, orderCode, returnUrlWithOid
         );
         String signature = PayOSSignature.hmacSha256(props.getChecksumKey(), dataStr);
 
@@ -67,8 +81,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .orderCode(orderCode)
                 .amount(amount)
                 .description(description)
-                .cancelUrl(props.getCancelUrl())
-                .returnUrl(props.getReturnUrl())
+                .cancelUrl(finalCancelUrl)
+                .returnUrl(returnUrlWithOid)
                 .signature(signature)
                 .build();
 
@@ -77,28 +91,19 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("Create payment link failed: " + res.getDesc());
         }
 
-        // Ensure PaymentMethod "PayOS" tồn tại
-        String pmId = pmRepo.findByMethodNameIgnoreCase(PAYOS_METHOD_NAME)
-                .or(() -> pmRepo.findByProviderIgnoreCase(PAYOS_PROVIDER))
-                .orElseGet(() -> {
-                    PaymentMethod pm = new PaymentMethod();
-                    pm.setMethodName(PAYOS_METHOD_NAME);
-                    pm.setProvider(PAYOS_PROVIDER);
-                    pm.setDecription("Thanh toán qua PayOS VietQR");
-                    return pmRepo.save(pm);
-                }).getPaymentMethodId();
+        String pmId = pmEnsurePayOS();
 
-        // Tạo/ cập nhật Transaction (PROCESSING)
         Transaction tx = txRepo.findByOrderId(orderId).orElseGet(Transaction::new);
         tx.setOrderId(orderId);
         tx.setOrder(order);
         tx.setPaymentMethodId(pmId);
         tx.setTotalPrice(order.getTotalPrice());
         tx.setStatus(TransactionEnum.PROCESSING.getStatus());
+        tx.setOrderCode(orderCode);
         tx.setUpdatedAt(Instant.now());
+        tx.setTransType(TransactionType.PAYMENT);
         txRepo.save(tx);
 
-        // Cập nhật Order -> PROCESSING (Shop đã xác nhận, đơn hàng đang được chuẩn bị)
         order.setStatus(OrderEnum.PROCESSING.getStatus());
         orderRepo.save(order);
 
@@ -113,59 +118,54 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public void handleWebhook(WebhookPayload payload) {
-        //Verify signature theo PayOS
         String dataString = PayOSSignature.buildWebhookDataString(payload.getData());
         String expected = PayOSSignature.hmacSha256(props.getChecksumKey(), dataString);
         if (!expected.equals(payload.getSignature())) {
             throw new SecurityException("Invalid webhook signature");
         }
 
-        // Lấy orderCode, code, và cố gắng lấy orderId từ description
-        Object code = payload.getData().get("code"); // "00" nếu thành công
+        Object codeObj = payload.getData().get("code");
         Object orderCodeObj = payload.getData().get("orderCode");
+        Object amountObj = payload.getData().get("amount");
         if (orderCodeObj == null) return;
 
         long orderCode = Long.parseLong(orderCodeObj.toString());
+        int amount = amountObj == null ? 0 : Integer.parseInt(amountObj.toString());
+        String code = String.valueOf(codeObj);
 
-        String orderId = tryExtractOrderIdFromPayload(payload.getData());
-        if (orderId == null) {
-            // Gọi PayOS GET /v2/payment-requests/{id} để lấy description rồi parse orderId
-            Map<String,Object> pr = payOSClient.getPaymentRequest(orderCode);
-            // tuỳ SDK/response, thường sẽ có "data" chứa "description"
-            @SuppressWarnings("unchecked")
-            Map<String,Object> data = (Map<String,Object>) pr.getOrDefault("data", Map.of());
-            String description = String.valueOf(data.getOrDefault("description", ""));
-            orderId = tryExtractOrderIdFromDescription(description);
-        }
+        Transaction tx = txRepo.findByOrderCode(orderCode)
+                .orElseThrow(() -> new IllegalStateException("Transaction not found by orderCode"));
 
-        if (orderId == null || orderId.isBlank()) {
-            throw new IllegalStateException("Cannot resolve orderId from webhook/payment-request");
-        }
-
-        Order order = orderRepo.findById(orderId)
-                .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
-
-        Transaction tx = txRepo.findByOrderId(order.getOrderId())
-                .orElseThrow(() -> new IllegalStateException("Transaction not found for order"));
-
-        // Nếu thành công → set PAID + cộng coin; nếu khác "00" set CANCELED
-        if ("00".equals(String.valueOf(code))) {
+        if ("00".equals(code)) {
             if (!TransactionEnum.PAID.equals(TransactionEnum.getByStatus(tx.getStatus()))) {
                 tx.setStatus(TransactionEnum.PAID.getStatus());
                 tx.setUpdatedAt(Instant.now());
-                tx.setOrderCode(orderCode);
                 txRepo.save(tx);
 
-                // Order sang PENDING (Shop đã xác nhận)
-                order.setStatus(OrderEnum.PROCESSING.getStatus());
-                order.setUpdatedAt(Instant.now());
-                orderRepo.save(order);
+                if (tx.getTransType() == TransactionType.PAYMENT) {
+                    // Giữ nguyên luồng PAYMENT đơn hàng của bạn
+                    Order order = orderRepo.findById(tx.getOrderId())
+                            .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
+                    order.setStatus(OrderEnum.PROCESSING.getStatus());
+                    order.setUpdatedAt(Instant.now());
+                    orderRepo.save(order);
 
-                // Cộng 1% coin (làm tròn xuống)
-                Wallet w = order.getWallet();
-                if (w != null) {
-                    int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
-                    w.setCoin(w.getCoin() + bonus);
+                    Wallet w = order.getWallet();
+                    if (w != null) {
+                        int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
+                        w.setCoin(w.getCoin() + bonus);
+                        w.setUpdatedAt(Instant.now());
+                        walletRepo.save(w);
+                    }
+                } else if (tx.getTransType() == TransactionType.DEPOSIT) {
+                    // Dùng walletId đã lưu sẵn trong Transaction
+                    if (tx.getWalletId() == null) {
+                        throw new IllegalStateException("DEPOSIT transaction missing walletId");
+                    }
+                    Wallet w = walletRepo.findById(tx.getWalletId())
+                            .orElseThrow(() -> new IllegalStateException("Wallet not found"));
+                    int credited = amount > 0 ? amount : (int) Math.round(tx.getTotalPrice());
+                    w.setBalance(w.getBalance() + credited);
                     w.setUpdatedAt(Instant.now());
                     walletRepo.save(w);
                 }
@@ -173,12 +173,15 @@ public class PaymentServiceImpl implements PaymentService {
         } else {
             tx.setStatus(TransactionEnum.CANCELED.getStatus());
             tx.setUpdatedAt(Instant.now());
-            tx.setOrderCode(orderCode);
             txRepo.save(tx);
 
-            order.setStatus(OrderEnum.CANCELLED.getStatus());
-            order.setUpdatedAt(Instant.now());
-            orderRepo.save(order);
+            if (tx.getTransType() == TransactionType.PAYMENT && tx.getOrderId() != null) {
+                Order order = orderRepo.findById(tx.getOrderId())
+                        .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
+                order.setStatus(OrderEnum.CANCELLED.getStatus());
+                order.setUpdatedAt(Instant.now());
+                orderRepo.save(order);
+            }
         }
     }
 
@@ -194,25 +197,99 @@ public class PaymentServiceImpl implements PaymentService {
         return (x % 9_000_000_000L) + 1_000_000_000L;
     }
 
-    private String tryExtractOrderIdFromPayload(Map<String,Object> data) {
-        Object desc = data.get("description");
-        if (desc == null) return null;
-        return tryExtractOrderIdFromDescription(String.valueOf(desc));
-    }
-
-    private String tryExtractOrderIdFromDescription(String description) {
-        if (description == null) return null;
-        int idx = description.indexOf("OrderId=");
-        if (idx < 0) return null;
-        String val = description.substring(idx + "OrderId=".length()).trim();
-        int space = val.indexOf(' ');
-        if (space > 0) val = val.substring(0, space);
-        return val.matches("(?i)[0-9a-f\\-]{32,36}") ? val : null;
-    }
-
     private static String maxLen(String s, int max) {
         return (s == null || s.length() <= max) ? s : s.substring(0, max);
     }
 
+    private static String buildDescription(String orderId, long orderCode) {
+        String shortOid = (orderId != null && orderId.length() >= 8)
+                ? orderId.substring(0, 8)
+                : String.valueOf(orderId);
+
+        // Lấy 4 số cuối của orderCode
+        String ocStr = String.valueOf(orderCode);
+        String lastOc = ocStr.length() > 4 ? ocStr.substring(ocStr.length() - 4) : ocStr;
+
+        // Ví dụ: "OID=9f1a2c3d OC=7421" (≤ 25 ký tự)
+        String desc = "OID=" + shortOid + " OC=" + lastOc;
+        return maxLen(desc, 25);
+    }
+
+    @Override
+    public CreateCheckoutResponse deposit(int amount, String walletId, String returnUrl, String cancelUrl) {
+        if (amount <= 0) throw new IllegalArgumentException("Amount must be > 0");
+
+        Wallet wallet = walletRepo.findById(walletId)
+                .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
+
+        long orderCode = generateOrderCodeFromOrderId("WALLET:" + walletId + ":" + Instant.now().toEpochMilli());
+        String desc = buildDepositDescription(walletId, orderCode);
+
+        String finalReturnUrl = isBlank(returnUrl) ? props.getReturnUrl() : returnUrl;
+        String finalCancelUrl = isBlank(cancelUrl) ? props.getCancelUrl() : cancelUrl;
+
+        String returnUrlWithType = finalReturnUrl + (finalReturnUrl.contains("?") ? "&" : "?")
+                + "type=DEPOSIT&orderCode=" + orderCode;
+
+        String dataStr = PayOSSignature.buildCreateLinkDataString(
+                amount, finalCancelUrl, desc, orderCode, returnUrlWithType
+        );
+        String signature = PayOSSignature.hmacSha256(props.getChecksumKey(), dataStr);
+
+        PayOSCreateLinkRequest req = PayOSCreateLinkRequest.builder()
+                .orderCode(orderCode)
+                .amount(amount)
+                .description(desc)
+                .cancelUrl(finalCancelUrl)
+                .returnUrl(returnUrlWithType)
+                .signature(signature)
+                .build();
+
+        PayOSCreateLinkResponse res = payOSClient.createPaymentLink(req);
+        if (!"00".equals(res.getCode())) {
+            throw new IllegalStateException("Create payment link failed: " + res.getDesc());
+        }
+
+        String pmId = pmEnsurePayOS();
+
+        // Tạo Transaction làm “intent” DEPOSIT
+        Transaction tx = new Transaction();
+        tx.setPaymentMethodId(pmId);
+        tx.setTotalPrice(amount);
+        tx.setStatus(TransactionEnum.PROCESSING.getStatus());
+        tx.setOrderCode(orderCode);
+        tx.setUpdatedAt(Instant.now());
+        tx.setTransType(TransactionType.DEPOSIT);
+        tx.setWalletId(walletId);
+        txRepo.save(tx);
+
+        return CreateCheckoutResponse.builder()
+                .checkoutUrl(res.getData().getCheckoutUrl())
+                .qrCode(res.getData().getQrCode())
+                .paymentLinkId(res.getData().getPaymentLinkId())
+                .orderCode(res.getData().getOrderCode())
+                .amount(res.getData().getAmount())
+                .build();
+    }
+
+    private static String buildDepositDescription(String walletId, long orderCode) {
+        String shortWid = (walletId != null && walletId.length() >= 8) ? walletId.substring(0, 8) : String.valueOf(walletId);
+        String ocStr = String.valueOf(orderCode);
+        String lastOc = ocStr.length() > 4 ? ocStr.substring(ocStr.length() - 4) : ocStr;
+        return maxLen("DEP WAL=" + shortWid + " OC=" + lastOc, 25);
+    }
+
+
+    private String pmEnsurePayOS() {
+        return pmRepo.findByMethodNameIgnoreCase(PAYOS_METHOD_NAME)
+                .or(() -> pmRepo.findByProviderIgnoreCase(PAYOS_PROVIDER))
+                .orElseGet(() -> {
+                    PaymentMethod pm = new PaymentMethod();
+                    pm.setMethodName(PAYOS_METHOD_NAME);
+                    pm.setProvider(PAYOS_PROVIDER);
+                    pm.setDecription("Thanh toán qua PayOS VietQR");
+                    return pmRepo.save(pm);
+                }).getPaymentMethodId();
+    }
 }
 

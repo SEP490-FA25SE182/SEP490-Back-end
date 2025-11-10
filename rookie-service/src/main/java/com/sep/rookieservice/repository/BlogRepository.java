@@ -2,8 +2,10 @@ package com.sep.rookieservice.repository;
 
 import com.sep.rookieservice.entity.Blog;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BlogRepository extends JpaRepository<Blog, String> {
+public interface BlogRepository extends JpaRepository<Blog, String>, JpaSpecificationExecutor<Blog> {
 }
+

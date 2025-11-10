@@ -9,6 +9,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,7 +21,7 @@ public class UserAddress implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "user_address_id")
+    @Column(name = "user_address_id", length = 50)
     private String userAddressId;
 
     @NotNull
@@ -28,9 +29,24 @@ public class UserAddress implements Serializable {
     @Column(name = "address_infor", length = 100, nullable = false)
     private String addressInfor;
 
+    @Size(max = 10)
+    @Column(name = "phone_number", length = 10)
+    private String phoneNumber;
+
+    @Size(max = 50)
+    @Column(name = "full_name", length = 50)
+    private String fullName;
+
+    @Size(max = 10)
+    @Column(name = "type", length = 10)
+    private String type;
+
     @NotNull
     @Column(name = "user_id", length = 50)
     private String userId;
+
+    @Column(name = "is_default")
+    private boolean isDefault;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
@@ -48,4 +64,8 @@ public class UserAddress implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "userAddress", fetch = FetchType.LAZY)
+    private List<Order> orders;
 }

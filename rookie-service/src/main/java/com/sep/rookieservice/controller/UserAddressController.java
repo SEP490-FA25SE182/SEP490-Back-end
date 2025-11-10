@@ -72,9 +72,13 @@ public class UserAddressController {
     @GetMapping("/search")
     public Page<UserAddressResponse> search(
             @RequestParam(required = false) IsActived isActived,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Boolean isDefault,
             @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return userAddressService.search(isActived, pageable);
+        return userAddressService.search(isActived, phoneNumber, type, userId, isDefault, pageable);
     }
 }

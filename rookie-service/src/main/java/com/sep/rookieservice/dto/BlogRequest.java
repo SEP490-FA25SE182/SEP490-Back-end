@@ -13,6 +13,8 @@ public class BlogRequest {
     @Size(max = 200)
     private String title;
 
+    private String coverUrl;
+
     @Size(max = 10000)
     private String content;
 

@@ -45,6 +45,9 @@ public class Illustration implements Serializable {
     @Column(name = "title", length = 50)
     private String title;
 
+    @Column(name = "user_id", length = 50)
+    private String userId;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();

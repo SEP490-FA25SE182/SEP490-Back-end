@@ -9,6 +9,7 @@ import java.time.Instant;
 public class WalletResponse {
     private String walletId;
     private int coin;
+    private double balance;
     private String userId;
     private Instant createdAt;
     private Instant updatedAt;

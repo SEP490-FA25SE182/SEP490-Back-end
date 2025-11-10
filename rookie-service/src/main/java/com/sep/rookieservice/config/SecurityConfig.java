@@ -4,7 +4,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.time.Duration;
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -12,48 +17,54 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(c -> {})
+                // Enable CORS using the bean defined below
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Disable CSRF for REST APIs
+                .csrf(csrf -> csrf.disable())
+
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                new AntPathRequestMatcher("/actuator/**"),
-                                new AntPathRequestMatcher("/api/**"),
-                                new AntPathRequestMatcher("/**", "OPTIONS") // cho preflight
+                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs", "/v3/api-docs/**",
+                                "/actuator/**",
+                                "/api/**" // all your APIs open for now
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
-                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(
-                                new AntPathRequestMatcher("/actuator/**"),
-                                new AntPathRequestMatcher("/api/**")
-                        )
-                )
+
+                // Disable login form and use stateless REST API
                 .formLogin(f -> f.disable())
-                .httpBasic(b -> {});
+                .httpBasic(b -> b.disable())
+
+                // Optional: allow H2 console if you use it locally
+                .headers(h -> h.frameOptions(f -> f.sameOrigin()));
 
         return http.build();
     }
 
     @Bean
-    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-        var config = new org.springframework.web.cors.CorsConfiguration();
-        config.setAllowedOrigins(java.util.List.of(
-                "http://localhost:5173",
-                "http://127.0.0.1:5173"
-        ));
-        config.setAllowedMethods(java.util.List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-        config.setAllowedHeaders(java.util.List.of(
-                "Authorization","Content-Type","Accept","X-Requested-With","Origin"
-        ));
-        config.setExposedHeaders(java.util.List.of(
-                "Location","Content-Disposition"
-        ));
-        config.setAllowCredentials(true);
-        config.setMaxAge(java.time.Duration.ofHours(1)); // cache preflight
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
-        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:8080",
+                "https://frontend.arbookrookie.xyz", // production frontend
+                "https://backend.arbookrookie.xyz"   // swagger or gateway access
+        ));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
+        config.setExposedHeaders(List.of("Location", "Content-Disposition"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(Duration.ofHours(1));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 }
-

@@ -32,4 +32,6 @@ public class IllustrationRequest {
     private String title;
 
     private IsActived isActived;
+
+    private String userId;
 }

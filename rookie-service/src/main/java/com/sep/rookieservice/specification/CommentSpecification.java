@@ -32,4 +32,16 @@ public class CommentSpecification {
     private static Specification<Comment> byIsActived(IsActived isActived) {
         return (root, query, cb) -> isActived == null ? cb.conjunction() : cb.equal(root.get("isActived"), isActived);
     }
+
+    public static Specification<Comment> forPublicByBlogId(String blogId) {
+        return Specification.allOf(
+                byBlogId(blogId),
+                byIsActived(IsActived.ACTIVE),
+                isPublishedTrue()
+        );
+    }
+
+    private static Specification<Comment> isPublishedTrue() {
+        return (root, query, cb) -> cb.isTrue(root.get("isPublished"));
+    }
 }

@@ -6,16 +6,16 @@ import com.sep.rookieservice.entity.PaymentMethod;
 import com.sep.rookieservice.entity.Transaction;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.TransactionEnum;
+import com.sep.rookieservice.enums.TransactionType;
 import com.sep.rookieservice.mapper.TransactionMapper;
+import com.sep.rookieservice.repository.PaymentMethodRepository;
 import com.sep.rookieservice.repository.TransactionRepository;
 import com.sep.rookieservice.service.TransactionService;
+import com.sep.rookieservice.util.TransactionQbe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +27,7 @@ import java.time.Instant;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository repository;
+    private final PaymentMethodRepository paymentMethodRepository;
     private final TransactionMapper mapper;
 
     @Override
@@ -40,6 +41,47 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction e = new Transaction();
         mapper.copyForCreate(req, e);
+        if (e.getCreatedAt() == null) e.setCreatedAt(Instant.now());
+        e.setUpdatedAt(Instant.now());
+
+        return mapper.toResponse(repository.save(e));
+    }
+
+    @CacheEvict(value = {"allTransactions","Transaction"}, allEntries = true)
+    public TransactionResponse createWallet(TransactionRequest req) {
+        TransactionEnum.getByStatus(req.getStatus());
+
+        // validate orderCode
+        if (req.getOrderCode() != null && repository.existsByOrderCode(req.getOrderCode())) {
+            throw new IllegalArgumentException("orderCode đã tồn tại");
+        }
+
+        PaymentMethod pm = findActivePaymentMethod("Rookies", "Rookies");
+
+        Transaction e = new Transaction();
+        mapper.copyForCreate(req, e);
+        e.setPaymentMethodId(pm.getPaymentMethodId());
+        if (e.getCreatedAt() == null) e.setCreatedAt(Instant.now());
+        e.setUpdatedAt(Instant.now());
+
+        return mapper.toResponse(repository.save(e));
+    }
+
+    @CacheEvict(value = {"allTransactions","Transaction"}, allEntries = true)
+    public TransactionResponse createCOD(TransactionRequest req) {
+        TransactionEnum.getByStatus(req.getStatus());
+
+        // validate orderCode
+        if (req.getOrderCode() != null && repository.existsByOrderCode(req.getOrderCode())) {
+            throw new IllegalArgumentException("orderCode đã tồn tại");
+        }
+
+        PaymentMethod pm = findActivePaymentMethod("COD", "COD");
+
+        Transaction e = new Transaction();
+        e.setTransType(TransactionType.PAYMENT);
+        mapper.copyForCreate(req, e);
+        e.setPaymentMethodId(pm.getPaymentMethodId());
         if (e.getCreatedAt() == null) e.setCreatedAt(Instant.now());
         e.setUpdatedAt(Instant.now());
 
@@ -88,40 +130,45 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "allTransactions", key = "'search'")
-    public Page<TransactionResponse> search(TransactionEnum status,
-                                            IsActived isActived,
-                                            String paymentMethodName,
-                                            Pageable pageable) {
-        String pmName = normalize(paymentMethodName);
+    public Page<TransactionResponse> search(
+            TransactionEnum status,
+            IsActived isActived,
+            String paymentMethodName,
+            String orderId,
+            String paymentMethodId,
+            TransactionType transType,
+            String walletId,
+            Pageable pageable
+    ) {
+        var example = TransactionQbe.example(
+                status, isActived, paymentMethodName, orderId, paymentMethodId, transType, walletId
+        );
 
-        Transaction probe = new Transaction();
-        if (status != null)    probe.setStatus(status.getStatus());
-        if (isActived != null) probe.setIsActived(isActived);
-        if (pmName != null) {
-            PaymentMethod pm = new PaymentMethod();
-            pm.setMethodName(pmName);
-            probe.setPaymentMethod(pm);
-        }
+        // nếu client không truyền sort → mặc định updatedAt DESC
+        Pageable sorted = pageable.getSort().isSorted()
+                ? pageable
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        return repository.findAll(example, sorted).map(mapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    protected PaymentMethod findActivePaymentMethod(String methodName, String provider) {
+        PaymentMethod probe = new PaymentMethod();
+        probe.setMethodName(methodName);
+        probe.setProvider(provider);
+        probe.setIsActived(IsActived.ACTIVE);
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
-                .withIgnorePaths(
-                        "transactionId","totalPrice","updatedAt","createdAt",
-                        "paymentMethodId","orderId","orderCode","order"
-                )
-                // String matcher: contains + ignore-case CHO nested paymentMethod.methodName
-                .withMatcher("paymentMethod.methodName", m -> m.contains().ignoreCase())
-                .withIgnoreNullValues();
+                .withIgnoreNullValues()
+                .withIgnorePaths("paymentMethodId", "createdAt", "updatedAt", "decription")
+                .withMatcher("methodName", m -> m.ignoreCase())
+                .withMatcher("provider", m -> m.ignoreCase());
 
-        Example<Transaction> example = Example.of(probe, matcher);
-
-        return repository.findAll(example, pageable)
-                .map(mapper::toResponse);
+        return paymentMethodRepository.findOne(Example.of(probe, matcher))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "PaymentMethod không tồn tại hoặc không ACTIVE: methodName=" + methodName + ", provider=" + provider));
     }
 
-    private String normalize(String s) {
-        if (s == null) return null;
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
-    }
 }

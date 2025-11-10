@@ -18,5 +18,6 @@ public class UserResponse {
     private String roleId;
     private Instant updatedAt;
     private IsActived isActived;
+    private double royalty = 0.0;
 }
 

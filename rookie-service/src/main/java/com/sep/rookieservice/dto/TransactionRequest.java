@@ -1,5 +1,6 @@
 package com.sep.rookieservice.dto;
 
+import com.sep.rookieservice.enums.TransactionType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -17,6 +18,10 @@ public class TransactionRequest {
     private String orderId;
 
     private String paymentMethodId;
+
+    private String walletId;
+
+    private TransactionType transType;
 
     private com.sep.rookieservice.enums.IsActived isActived;
 }

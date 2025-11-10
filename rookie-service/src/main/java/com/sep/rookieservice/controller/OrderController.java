@@ -82,10 +82,10 @@ public class OrderController {
     // SEARCH
     @GetMapping("/search")
     public Page<OrderResponse> search(
+            @RequestParam String userId,
             @RequestParam(required = false) OrderEnum status,
-            @ParameterObject
-            @PageableDefault(size = 20) Pageable pageable
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
     ) {
-        return orderService.search(status, pageable);
+        return orderService.search(userId, status, pageable);
     }
 }

@@ -22,6 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +54,9 @@ public class BookServiceImpl implements BookService {
         Book entity = mapper.toEntity(dto, null);
         entity.setCreatedAt(Instant.now());
         entity.setUpdatedAt(Instant.now());
+        if (dto.getQuantity() != null && dto.getQuantity() < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
         Book saved = repo.save(entity);
         return mapper.toDto(saved);
     }
@@ -70,6 +74,9 @@ public class BookServiceImpl implements BookService {
         Book existing = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
         Book updated = mapper.toEntity(dto, existing);
+        if (dto.getQuantity() != null && dto.getQuantity() < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
         updated.setUpdatedAt(Instant.now());
         Book saved = repo.save(updated);
         return mapper.toDto(saved);
@@ -89,6 +96,9 @@ public class BookServiceImpl implements BookService {
     public Page<BookResponseDTO> search(
             String q,
             String authorId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Integer minQuantity,
             Byte publicationStatus,
             Byte progressStatus,
             IsActived isActived,
@@ -96,7 +106,7 @@ public class BookServiceImpl implements BookService {
             String bookshelfId,
             Pageable pageable
     ) {
-        Specification<Book> spec = BookSpecification.buildSpecification(q, authorId, publicationStatus, progressStatus, isActived);
+        Specification<Book> spec = BookSpecification.buildSpecification(q, authorId, publicationStatus, progressStatus, isActived, minPrice, maxPrice, minQuantity);
 
         if (genreId != null && !genreId.isEmpty()) {
             // check membership in collection 'genres'
@@ -116,13 +126,26 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDTO addGenresToBook(String bookId, List<String> genreIds) {
-        Book book = repo.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        Book book = repo.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+
         List<Genre> genres = genreRepo.findAllById(genreIds);
-        if (book.getGenres() == null) book.setGenres(new ArrayList<>());
-        book.getGenres().addAll(genres);
+
+        if (book.getGenres() == null) {
+            book.setGenres(new ArrayList<>());
+        }
+
+        for (Genre g : genres) {
+            if (!book.getGenres().contains(g)) {
+                book.getGenres().add(g);
+            }
+        }
+
+        book.setUpdatedAt(Instant.now());
         Book saved = repo.save(book);
         return mapper.toDto(saved);
     }
+
 
     @Override
     public BookResponseDTO removeGenreFromBook(String bookId, String genreId) {
@@ -136,13 +159,26 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDTO addBookToBookshelves(String bookId, List<String> shelfIds) {
-        Book book = repo.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        Book book = repo.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+
         List<Bookshelve> shelves = shelfRepo.findAllById(shelfIds);
-        if (book.getBookshelves() == null) book.setBookshelves(new ArrayList<>());
-        book.getBookshelves().addAll(shelves);
+
+        if (book.getBookshelves() == null) {
+            book.setBookshelves(new ArrayList<>());
+        }
+
+        for (Bookshelve s : shelves) {
+            if (!book.getBookshelves().contains(s)) {
+                book.getBookshelves().add(s);
+            }
+        }
+
+        book.setUpdatedAt(Instant.now());
         Book saved = repo.save(book);
         return mapper.toDto(saved);
     }
+
 
     @Override
     public BookResponseDTO removeBookFromBookshelf(String bookId, String shelfId) {
@@ -220,4 +256,35 @@ public class BookServiceImpl implements BookService {
 
         return resp;
     }
+
+    @Override
+    public BookResponseDTO updateProgressStatus(String id, Byte progressStatus) {
+        Book book = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        book.setProgressStatus(progressStatus);
+        book.setUpdatedAt(Instant.now());
+        Book saved = repo.save(book);
+        return mapper.toDto(saved);
+    }
+
+    @Override
+    public BookResponseDTO updatePublicationStatus(String id, Byte publicationStatus) {
+        Book book = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        book.setPublicationStatus(publicationStatus);
+        book.setUpdatedAt(Instant.now());
+        Book saved = repo.save(book);
+        return mapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BookResponseDTO> getBooksByBookshelfId(String bookshelfId, Pageable pageable) {
+        Page<Book> page = repo.findAllByBookshelfIdAndIsActived(bookshelfId, IsActived.ACTIVE, pageable);
+        return page.map(mapper::toDto);
+    }
+
+
 }

@@ -17,5 +17,5 @@ public interface OrderService {
     OrderResponse update(String id, OrderRequest request);
     void delete(String id);
     OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints);
-    Page<OrderResponse> search(OrderEnum status, Pageable pageable);
+    Page<OrderResponse> search(String userId, OrderEnum status, Pageable pageable);
 }

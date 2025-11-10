@@ -63,6 +63,7 @@ public class WalletServiceImpl implements WalletService {
             if (w.getCreatedAt() == null) w.setCreatedAt(Instant.now());
             w.setUpdatedAt(Instant.now());
             if (w.getCoin() < 0) throw new IllegalArgumentException("coin must be >= 0");
+            if (w.getBalance() < 0) throw new IllegalArgumentException("balance must be >= 0");
             return w;
         }).toList();
 
@@ -77,6 +78,7 @@ public class WalletServiceImpl implements WalletService {
 
         mapper.copyForUpdate(request, wallet);
         if (wallet.getCoin() < 0) throw new IllegalArgumentException("coin must be >= 0");
+        if (wallet.getBalance() < 0) throw new IllegalArgumentException("balance must be >= 0");
         wallet.setUpdatedAt(Instant.now());
 
         return mapper.toResponse(walletRepository.save(wallet));

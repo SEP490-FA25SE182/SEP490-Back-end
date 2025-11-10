@@ -33,4 +33,6 @@ public class AudioRequest {
     private String title;
 
     private IsActived isActived;
+
+    private String userId;
 }

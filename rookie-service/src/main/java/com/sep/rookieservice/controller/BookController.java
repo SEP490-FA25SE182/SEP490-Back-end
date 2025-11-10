@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -55,6 +56,9 @@ public class BookController {
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String authorId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer minQuantity,
             @RequestParam(required = false) Byte publicationStatus,
             @RequestParam(required = false) Byte progressStatus,
             @RequestParam(required = false) IsActived isActived,
@@ -62,21 +66,33 @@ public class BookController {
             @RequestParam(required = false) String bookshelfId
     ) {
         Sort sortObj = Sort.unsorted();
+
         if (sort != null && !sort.isEmpty()) {
             for (String s : sort) {
                 if (s == null || s.trim().isEmpty()) continue;
-                String[] parts = s.split(",");
+
+                String[] parts = s.split("-");
                 String prop = parts[0].trim();
-                Sort.Direction dir = parts.length > 1
-                        ? Sort.Direction.fromOptionalString(parts[1].trim()).orElse(Sort.Direction.ASC)
-                        : Sort.Direction.ASC;
+                Sort.Direction dir = Sort.Direction.ASC;
+
+                if (parts.length > 1) {
+                    try {
+                        dir = Sort.Direction.valueOf(parts[1].trim().toUpperCase());
+                    } catch (IllegalArgumentException ignored) {
+                        String dirStr = parts[1].trim().toUpperCase();
+                        if (dirStr.equals("DESC")) {
+                        dir = Sort.Direction.DESC;
+                        }
+                    }
+                }
                 sortObj = sortObj.and(Sort.by(dir, prop));
             }
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return svc.search(q, authorId, publicationStatus, progressStatus, isActived, genreId, bookshelfId, pageable);
+        return svc.search(q, authorId, minPrice, maxPrice, minQuantity, publicationStatus, progressStatus, isActived, genreId, bookshelfId, pageable);
     }
+
 
     @PostMapping("/{bookId}/genres")
     public BookResponseDTO addGenresToBook(
@@ -118,4 +134,45 @@ public class BookController {
     public BookAnalyticsResponse getBookAnalytics(@RequestParam(required = false) Integer monthsBack) {
         return svc.getAnalytics(monthsBack);
     }
+
+    @PatchMapping("/{id}/progress-status")
+    public BookResponseDTO updateProgressStatus(
+            @PathVariable String id,
+            @RequestParam Byte progressStatus
+    ) {
+        return svc.updateProgressStatus(id, progressStatus);
+    }
+
+    @PatchMapping("/{id}/publication-status")
+    public BookResponseDTO updatePublicationStatus(
+            @PathVariable String id,
+            @RequestParam Byte publicationStatus
+    ) {
+        return svc.updatePublicationStatus(id, publicationStatus);
+    }
+
+    @GetMapping("/bookshelves/{bookshelfId}")
+    public Page<BookResponseDTO> getBooksByBookshelfId(
+            @PathVariable String bookshelfId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) List<String> sort
+    ) {
+        Sort sortObj = Sort.unsorted();
+
+        if (sort != null && !sort.isEmpty()) {
+            for (String s : sort) {
+                if (s == null || s.trim().isEmpty()) continue;
+                String[] parts = s.split("-");
+                String prop = parts[0].trim();
+                Sort.Direction dir = (parts.length > 1 && parts[1].equalsIgnoreCase("desc"))
+                        ? Sort.Direction.DESC : Sort.Direction.ASC;
+                sortObj = sortObj.and(Sort.by(dir, prop));
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+        return svc.getBooksByBookshelfId(bookshelfId, pageable);
+    }
+
 }

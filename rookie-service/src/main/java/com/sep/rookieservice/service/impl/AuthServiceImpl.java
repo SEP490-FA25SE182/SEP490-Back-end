@@ -17,10 +17,13 @@ import com.sep.rookieservice.security.JwtProvider;
 import com.sep.rookieservice.service.AuthService;
 import com.sep.rookieservice.service.JwtBlacklistService;
 import com.sep.rookieservice.service.MailService;
+import com.sep.rookieservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sep.rookieservice.dto.NotificationRequestDTO;
+
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -39,6 +42,8 @@ public class AuthServiceImpl implements AuthService {
     private final MailService mailService;
     private final JwtBlacklistService blacklistService;
     private final UserMapper userMapper;
+    private final NotificationService notificationService;
+
 
     private static final String DEFAULT_ROLE_NAME = "customer";
     private static final Set<String> ALLOWED_SIGNUP_ROLES = Set.of("customer", "author");
@@ -71,6 +76,13 @@ public class AuthServiceImpl implements AuthService {
             user.setRoleId(resolveActiveRoleIdByName(DEFAULT_ROLE_NAME));
             user.setIsActived(IsActived.ACTIVE);
             userRepository.save(user);
+
+            //Notify registration via Google
+            notificationService.create(NotificationRequestDTO.builder()
+                    .userId(user.getUserId())
+                    .title("Welcome!")
+                    .message("Your account was created successfully via Google.")
+                    .build());
         } else {
             if (user.getIsActived() != null && user.getIsActived() != IsActived.ACTIVE) {
                 throw new IllegalStateException("Tài khoản đang bị khoá/không hoạt động.");
@@ -81,6 +93,12 @@ public class AuthServiceImpl implements AuthService {
             if (decoded.getPicture() != null && !decoded.getPicture().equals(user.getAvatarUrl())) {
                 user.setAvatarUrl(decoded.getPicture());
             }
+
+            notificationService.create(NotificationRequestDTO.builder()
+                    .userId(user.getUserId())
+                    .title("Login Successful")
+                    .message("You have logged in successfully with Google.")
+                    .build());
         }
 
         String jwt = issueJwt(user);
@@ -107,6 +125,12 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
+        notificationService.create(NotificationRequestDTO.builder()
+                .userId(user.getUserId())
+                .title("Account Created")
+                .message("Welcome, " + user.getFullName() + "! Your account has been created successfully.")
+                .build());
+
         String jwt = issueJwt(user);
         return new AuthResponse(userMapper.toResponse(user), jwt);
     }
@@ -125,6 +149,14 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
         }
+
+        notificationService.create(NotificationRequestDTO.builder()
+                .userId(user.getUserId())
+                .title("Login Successful")
+                .message("Welcome back, " + user.getFullName() + "!")
+                .build());
+
+
         String jwt = issueJwt(user);
         roleRepository.findByRoleIdAndIsActived(user.getRoleId(), IsActived.ACTIVE)
                 .orElseThrow(() -> new IllegalStateException("Role của tài khoản không ACTIVE"));
@@ -147,6 +179,13 @@ public class AuthServiceImpl implements AuthService {
 
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(user);
+
+
+        notificationService.create(NotificationRequestDTO.builder()
+                .userId(user.getUserId())
+                .title("Password Updated")
+                .message("Your password has been changed successfully.")
+                .build());
     }
 
     /* FORGOT PASSWORD */
@@ -163,6 +202,12 @@ public class AuthServiceImpl implements AuthService {
         tokenRepository.save(token);
 
         mailService.sendResetPasswordEmail(user.getEmail(), token.getToken());
+
+        notificationService.create(NotificationRequestDTO.builder()
+                .userId(user.getUserId())
+                .title("Password Reset Requested")
+                .message("A password reset link has been sent to your email.")
+                .build());
     }
 
     /* RESET PASSWORD */
@@ -183,6 +228,12 @@ public class AuthServiceImpl implements AuthService {
 
         t.setUsed(true);
         tokenRepository.save(t);
+
+        notificationService.create(NotificationRequestDTO.builder()
+                .userId(user.getUserId())
+                .title("Password Reset Successful")
+                .message("Your password has been successfully reset.")
+                .build());
     }
 
     /* LOGOUT */

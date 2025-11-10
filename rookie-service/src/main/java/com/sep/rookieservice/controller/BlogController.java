@@ -3,6 +3,7 @@ package com.sep.rookieservice.controller;
 import com.sep.rookieservice.dto.BlogRequest;
 import com.sep.rookieservice.dto.BlogResponse;
 import com.sep.rookieservice.enums.IsActived;
+import com.sep.rookieservice.enums.UpdatedOrder;
 import com.sep.rookieservice.service.BlogService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -67,11 +68,26 @@ public class BlogController {
             @RequestParam(required = false) @Size(max = 50) String authorId,
             @RequestParam(required = false) @Size(max = 50) String bookId,
             @RequestParam(required = false) IsActived isActived,
-            @RequestParam(required = false) Set<String> tagIds,
-            @RequestParam(required = false) Set<String> tagNames,
-            @ParameterObject
-            @PageableDefault(size = 20) Pageable pageable
+            @RequestParam(required = false) Set<@Size(max = 50) String> tagIds,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
     ) {
-        return service.search(title, content, authorId, bookId, isActived, tagIds, tagNames, pageable);
+        return service.search(title, content, authorId, bookId, isActived, tagIds, pageable);
     }
+
+    @GetMapping("/filter")
+    public Page<BlogResponse> filterByUpdated(
+            @RequestParam(defaultValue = "LATEST") UpdatedOrder order,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return service.filterByUpdated(order, pageable);
+    }
+
+    @GetMapping("/search/user")
+    public Page<BlogResponse> searchForUser(
+            @RequestParam(required = false) @Size(max = 300) String q,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return service.searchForUser(q, pageable);
+    }
+
 }

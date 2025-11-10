@@ -7,6 +7,7 @@ import com.sep.rookieservice.enums.IsActived;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface BookService {
@@ -18,6 +19,9 @@ public interface BookService {
     Page<BookResponseDTO> search(
             String q,
             String authorId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Integer minQuantity,
             Byte publicationStatus,
             Byte progressStatus,
             IsActived isActived,
@@ -33,4 +37,9 @@ public interface BookService {
     BookResponseDTO removeBookFromBookshelf(String bookId, String shelfId);
 
     BookAnalyticsResponse getAnalytics(Integer monthsBack);
+
+    BookResponseDTO updateProgressStatus(String id, Byte progressStatus);
+    BookResponseDTO updatePublicationStatus(String id, Byte publicationStatus);
+
+    Page<BookResponseDTO> getBooksByBookshelfId(String bookshelfId, Pageable pageable);
 }

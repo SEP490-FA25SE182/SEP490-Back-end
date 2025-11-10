@@ -21,6 +21,7 @@ public interface BlogMapper {
     @Mappings({
             @Mapping(target = "title", source = "title"),
             @Mapping(target = "content", source = "content"),
+            @Mapping(target = "coverUrl", source = "coverUrl"),
             @Mapping(target = "authorId", source = "authorId"),
             @Mapping(target = "bookId", source = "bookId"),
             @Mapping(target = "isActived", source = "isActived")
@@ -31,6 +32,7 @@ public interface BlogMapper {
     @Mappings({
             @Mapping(target = "title", source = "title"),
             @Mapping(target = "content", source = "content"),
+            @Mapping(target = "coverUrl", source = "coverUrl"),
             @Mapping(target = "bookId", source = "bookId"),
             @Mapping(target = "isActived", source = "isActived")
     })

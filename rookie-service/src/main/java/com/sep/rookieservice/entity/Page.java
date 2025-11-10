@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.UniqueElements;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -33,7 +32,8 @@ public class Page implements Serializable {
     @Column(name = "page_number")
     private int pageNumber;
 
-    @Column(name = "content")
+    @Lob
+    @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
     private String content;
 
     @Column(name = "updated_at")
@@ -51,11 +51,8 @@ public class Page implements Serializable {
     @Column(name = "chapter_id", length = 50)
     private String chapterId;
 
-    //ManyToOne
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id", referencedColumnName = "chapter_id", insertable = false, updatable = false)
     private Chapter chapter;
-
-
 }

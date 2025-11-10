@@ -30,7 +30,7 @@ public class UserRequest {
     @Size(min = 8, max = 100, message = "Password length must be 8-100")
     private String password;
 
-    @Size(max = 20)
+    @Size(max = 10)
     @Pattern(regexp = "^[0-9+\\-()\\s]*$", message = "Invalid phone format")
     private String phoneNumber;
 
@@ -41,4 +41,6 @@ public class UserRequest {
     private String roleId;
 
     private IsActived isActived;
+
+    private double royalty = 0.0;
 }

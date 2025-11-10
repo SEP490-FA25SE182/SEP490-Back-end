@@ -89,14 +89,27 @@ public class TextToSpeechServiceImpl implements TextToSpeechService {
             byte[] pcm = Base64.getDecoder().decode(b64);
 
             // PCM -> WAV mono 16-bit 24kHz
+
             int sampleRate = 24000;
             byte[] wav = PcmToWavConverter.toWavMono16LE(pcm, sampleRate);
 
             int bytesPerSample = 2;
             double durationMs = (pcm.length / (double) bytesPerSample) / sampleRate * 1000.0;
 
-            String fileName = "audios/" + gen.getAiGenerationId() + ".wav";
-            String publicUrl = storageService.upload(fileName, new ByteArrayInputStream(wav), "audio/wav", wav.length);
+            String ext = "wav";
+            String baseTitle = Optional.ofNullable(req.getTitle())
+                    .filter(org.springframework.util.StringUtils::hasText)
+                    .orElse("tts");
+            String safe = slugify(baseTitle);
+            String shortId = gen.getAiGenerationId().substring(0, 8);
+            String fileName = String.format("audios/%s-%s.%s", safe, shortId, ext);
+
+            String publicUrl = storageService.upload(
+                    fileName,
+                    new ByteArrayInputStream(wav),
+                    "audio/wav",
+                    wav.length
+            );
 
             Audio audio = new Audio();
             audio.setAudioUrl(publicUrl);
@@ -106,6 +119,7 @@ public class TextToSpeechServiceImpl implements TextToSpeechService {
             audio.setTitle(Optional.ofNullable(req.getTitle()).orElse("tts-" + gen.getAiGenerationId()));
             audio.setDurationMs(durationMs);
             audio.setIsActived(IsActived.ACTIVE);
+            audio.setUserId(userId);
             audio = audioRepo.save(audio);
 
             genLog.linkTarget(gen, "AUDIO", audio.getAudioId());
@@ -119,5 +133,18 @@ public class TextToSpeechServiceImpl implements TextToSpeechService {
             throw new RuntimeException("TTS generation failed: " + e.getMessage(), e);
         }
     }
-}
 
+    private static String slugify(String input) {
+        String noDiacritics = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String cleaned = noDiacritics
+                .replaceAll("[^A-Za-z0-9\\-_. ]", " ") // loại ký tự lạ
+                .trim()
+                .replaceAll("\\s+", "-")               // space -> '-'
+                .replaceAll("-{2,}", "-")              // gộp nhiều '-' liên tiếp
+                .toLowerCase();
+        if (cleaned.length() > 80) cleaned = cleaned.substring(0, 80);
+        return cleaned.isEmpty() ? "tts" : cleaned;
+    }
+
+}

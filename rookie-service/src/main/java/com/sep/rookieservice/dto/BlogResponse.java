@@ -9,6 +9,7 @@ import java.util.Set;
 @Data
 public class BlogResponse {
     private String blogId;
+    private String coverUrl;
     private String title;
     private String content;
     private String authorId;
