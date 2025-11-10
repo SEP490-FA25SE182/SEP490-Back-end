@@ -47,9 +47,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final PayOSClient payOSClient;
     private final PayOSProperties props;
 
-    @Qualifier("payOSPayoutWebClient")
-    private final WebClient payOSPayoutWebClient;
-
     private static final String PAYOS_METHOD_NAME = "PayOS";
     private static final String PAYOS_PROVIDER   = "PayOS";
 
@@ -282,79 +279,6 @@ public class PaymentServiceImpl implements PaymentService {
         return maxLen("DEP WAL=" + shortWid + " OC=" + lastOc, 25);
     }
 
-    @Override
-    public CreateCheckoutResponse withdraw(
-            int amount, String walletId, String accountName,
-            String bankName, String accountNumber,
-            String returnUrl, String cancelUrl
-    ) {
-
-        Wallet wallet = walletRepo.findById(walletId)
-                .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
-        if (wallet.getBalance() < amount) {
-            throw new IllegalStateException("Insufficient balance");
-        }
-
-        String toBin = BankBin.resolveBin(bankName);
-        if (toBin.isBlank()) {
-            throw new IllegalArgumentException("Unsupported bankName; please provide BIN");
-        }
-
-        String referenceId = "WDR-" + walletId + "-" + System.currentTimeMillis();
-        String description = "WITHDRAW " + walletId;
-
-        // 1) Tạo body payout
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("referenceId", referenceId);
-        body.put("amount", amount);
-        body.put("description", description);
-        body.put("toBin", toBin);
-        body.put("toAccountNumber", accountNumber);
-        body.put("category", List.of("withdraw"));
-
-        // --- ký đúng chuẩn: sort alpha + URL-encode value ---
-        final String dataToSign = PayOSSignature.buildSignatureFromMap(body);
-        final String signature   = PayOSSignature.hmacSha256(props.getPayoutChecksumKey(), dataToSign);
-
-        // --- call API payouts bằng credential payout ---
-        PayOSPayoutResponse res = payOSPayoutWebClient.post()
-                .uri(props.getCreatePayoutPath()) // /v1/payouts
-                .header("x-idempotency-key", UUID.randomUUID().toString())
-                .header("x-signature", signature)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(body)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
-                        .map(msg -> new IllegalStateException("PayOS error " + r.statusCode() + ": " + msg)))
-                .bodyToMono(PayOSPayoutResponse.class)
-                .block();
-
-        if (res == null || !"00".equals(res.getCode())) {
-            throw new IllegalStateException("Create payout failed: " + (res != null ? res.getDesc() : "null response"));
-        }
-
-        // lưu transaction intent
-        String pmId = pmEnsurePayOS();
-        long orderCode = generateOrderCodeFromOrderId(referenceId);
-
-        Transaction tx = new Transaction();
-        tx.setPaymentMethodId(pmId);
-        tx.setTotalPrice(amount);
-        tx.setStatus(TransactionEnum.PROCESSING.getStatus());
-        tx.setOrderCode(orderCode);
-        tx.setUpdatedAt(Instant.now());
-        tx.setTransType(TransactionType.WITHDRAW);
-        tx.setWalletId(walletId);
-        txRepo.save(tx);
-
-        return CreateCheckoutResponse.builder()
-                .checkoutUrl(res.getData() != null ? res.getData().getApprovalUrl() : null)
-                .qrCode(null)
-                .paymentLinkId(res.getData() != null ? res.getData().getPayoutId() : null)
-                .orderCode(orderCode)
-                .amount(amount)
-                .build();
-    }
 
     private String pmEnsurePayOS() {
         return pmRepo.findByMethodNameIgnoreCase(PAYOS_METHOD_NAME)
