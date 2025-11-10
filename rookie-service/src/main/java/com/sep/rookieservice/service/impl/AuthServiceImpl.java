@@ -75,6 +75,7 @@ public class AuthServiceImpl implements AuthService {
             user.setPassword(hashed);
             user.setRoleId(resolveActiveRoleIdByName(DEFAULT_ROLE_NAME));
             user.setIsActived(IsActived.ACTIVE);
+            user.setRoyalty(0.0);
             userRepository.save(user);
 
             //Notify registration via Google
@@ -121,6 +122,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPhoneNumber(req.getPhoneNumber());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setRoleId(resolvedRoleId);
+        user.setRoyalty(req.getRoyalty());
         user.setIsActived(IsActived.ACTIVE);
 
         userRepository.save(user);

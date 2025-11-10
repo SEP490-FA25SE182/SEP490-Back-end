@@ -30,6 +30,8 @@ public class AuthDtos {
         private String phoneNumber;  // optional
 
         private String roleId;
+
+        private double royalty;
     }
 
     @Data
