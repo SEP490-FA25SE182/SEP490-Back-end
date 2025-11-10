@@ -1,8 +1,7 @@
 server {
-    listen 443 ssl;
+    listen 80;
     server_name backend.arbookrookie.xyz www.backend.arbookrookie.xyz;
 
-    # --- API Gateway ---
     location /api/ {
         proxy_pass http://localhost:8080/api/;
         proxy_set_header Host $host;
@@ -11,7 +10,6 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # --- Rookie Service API Docs ---
     location /rookie-service/ {
         proxy_pass http://localhost:8081/;
         proxy_set_header Host $host;
@@ -20,7 +18,6 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # --- AR Service API Docs ---
     location /ar-service/ {
         proxy_pass http://localhost:8083/;
         proxy_set_header Host $host;
@@ -29,16 +26,22 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # --- AI Service API Docs ---
-    location /ai-service/ {
-        proxy_pass http://localhost:8082/;
+    location /rookie-service/v3/api-docs {
+        proxy_pass http://localhost:8081/v3/api-docs;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # --- API Docs (OpenAPI JSON/YAML specs) ---
+    location /ar-service/v3/api-docs {
+        proxy_pass http://localhost:8083/v3/api-docs;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     location /v3/api-docs {
         proxy_pass http://localhost:8080/v3/api-docs;
         proxy_set_header Host $host;
@@ -47,7 +50,6 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # --- Swagger UI và webjars từ API Gateway ---
     location /swagger-ui/ {
         proxy_pass http://localhost:8080/swagger-ui/;
         proxy_set_header Host $host;
@@ -63,17 +65,4 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-
-    # SSL Config
-    ssl_certificate /etc/letsencrypt/live/backend.arbookrookie.xyz/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/backend.arbookrookie.xyz/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-       ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-}
-
-# HTTP -> HTTPS redirect
-server {
-    listen 80;
-    server_name backend.arbookrookie.xyz www.backend.arbookrookie.xyz;
-    return 301 https://$host$request_uri;
 }

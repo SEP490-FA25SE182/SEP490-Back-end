@@ -21,13 +21,10 @@ public class SwaggerConfig {
         String ctx = (contextPath == null || contextPath.isBlank()) ? "" :
                 (contextPath.startsWith("/") ? contextPath : "/" + contextPath);
 
-        // Localhost servers
-        String localhostDirect = "http://localhost:" + port + ctx;              // http://localhost:8083
-        String localhostGateway = "http://localhost:8080/api/ar";               // route qua Gateway
-
-        // Production servers  
-        String productionDirect = "https://backend.arbookrookie.xyz:" + port + ctx;    // Direct production
-        String productionGateway = "https://backend.arbookrookie.xyz/api/ar";          // Production via Gateway
+        String localhostDirect = "http://localhost:" + port + ctx;
+        String localhostGateway = "http://localhost:8080/api/ar";
+        String productionDirect = "http://backend.arbookrookie.xyz:" + port + ctx;
+        String productionGateway = "http://backend.arbookrookie.xyz/api/ar";
 
         return new OpenAPI()
                 .info(new Info()
