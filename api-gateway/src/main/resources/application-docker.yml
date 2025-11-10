@@ -55,16 +55,12 @@ eureka:
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
     urls:
-      - name: API Gateway
-        url: /v3/api-docs
       - name: Rookie Service
         url: /rookie-service/v3/api-docs
       - name: AR Service
         url: /ar-service/v3/api-docs
-    operations-sorter: alpha
-    tags-sorter: alpha
-    try-it-out-enabled: true
