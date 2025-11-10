@@ -1,6 +1,12 @@
 # src/main/resources/application.yml
 server:
   port: 8083
+  servlet:
+    context-path: /ar-service
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
 
 spring:
   application:
@@ -47,4 +53,3 @@ eureka:
     appname: ar-service
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
-
