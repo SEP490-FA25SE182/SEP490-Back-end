@@ -2,9 +2,13 @@ package com.sep.rookieservice.service;
 
 import com.sep.rookieservice.dto.ChapterRequestDTO;
 import com.sep.rookieservice.dto.ChapterResponseDTO;
+import com.sep.rookieservice.dto.PageResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
 
 public interface ChapterService {
     ChapterResponseDTO create(ChapterRequestDTO dto);
@@ -20,4 +24,6 @@ public interface ChapterService {
             IsActived isActived,
             Pageable pageable
     );
+
+    List<PageResponseDTO> getPagesByChapterId(String chapterId);
 }

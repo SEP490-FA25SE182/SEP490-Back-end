@@ -1,17 +1,21 @@
 package com.sep.rookieservice.service.impl;
 
+import com.sep.rookieservice.dto.BookResponseDTO;
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
 import com.sep.rookieservice.entity.*;
 import com.sep.rookieservice.enums.OrderEnum;
+import com.sep.rookieservice.mapper.BookMapper;
 import com.sep.rookieservice.mapper.OrderMapper;
 import com.sep.rookieservice.repository.*;
 import com.sep.rookieservice.service.OrderService;
+import com.sep.rookieservice.specification.PurchasedBookSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +36,10 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepository;
     private final WalletRepository walletRepository;
     private final OrderMapper mapper;
+    private final BookMapper bookMapper;
+    private final GenreRepository genreRepo;
+    private final BookshelveRepository shelfRepo;
+    private final BookRepository bookRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -221,4 +229,36 @@ public class OrderServiceImpl implements OrderService {
                 .map(mapper::toResponse);
     }
 
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BookResponseDTO> getPurchasedBooks(
+            String userId,
+            String q,
+            OrderEnum status,
+            String genreId,
+            String bookshelfId,
+            Pageable pageable
+    ) {
+        List<Byte> allowedStatuses = (status != null)
+                ? List.of(status.getStatus())
+                : List.of(OrderEnum.DELIVERED.getStatus());
+
+        Specification<Book> spec = PurchasedBookSpecification.forUserAndStatus(userId, allowedStatuses, q);
+
+        if (genreId != null && !genreId.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.isMember(genreRepo.getReferenceById(genreId), root.get("genres"))
+            );
+        }
+
+        if (bookshelfId != null && !bookshelfId.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.isMember(shelfRepo.getReferenceById(bookshelfId), root.get("bookshelves"))
+            );
+        }
+
+        return bookRepository.findAll(spec, pageable).map(bookMapper::toDto);
+    }
 }
