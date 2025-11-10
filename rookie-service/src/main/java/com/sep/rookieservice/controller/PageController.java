@@ -38,7 +38,6 @@ public class PageController {
         service.softDelete(id);
     }
 
-    // ✅ Pagination + Search + Sort
     @GetMapping
     public Page<PageResponseDTO> list(
             @RequestParam(defaultValue = "0") int page,

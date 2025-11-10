@@ -1,5 +1,6 @@
 package com.sep.rookieservice.service;
 
+import com.sep.rookieservice.dto.BookResponseDTO;
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
 import com.sep.rookieservice.enums.OrderEnum;
@@ -18,4 +19,12 @@ public interface OrderService {
     void delete(String id);
     OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints);
     Page<OrderResponse> search(String userId, OrderEnum status, Pageable pageable);
+    Page<BookResponseDTO> getPurchasedBooks(
+            String userId,
+            String q,
+            OrderEnum status,
+            String genreId,
+            String bookshelfId,
+            Pageable pageable
+    );
 }
