@@ -48,3 +48,17 @@ eureka:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
+meshy:
+  api-key: ${MESHY_API_KEY}
+  base-url: https://api.meshy.ai
+  poll-interval: 3s
+  timeout: 5m
+
+storage:
+  provider: firebase
+  bucket: sep490-fa25se182.firebasestorage.app
+  public-base-url: https://firebasestorage.googleapis.com
+  model3d-prefix: models
+
+firebase:
+  service-account-file: ${FIREBASE_CREDENTIALS_PATH}

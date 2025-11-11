@@ -23,23 +23,35 @@ public class Asset3D implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String asset3DId;
 
-    @Column(name = "asset_url", length = 100)
+    @Column(name="asset_url", length=1000)
     private String assetUrl;
 
-    @Column(name = "source", length = 50)
+    @Column(name="thumb_url", length=1000)  // ảnh preview
+    private String thumbUrl;
+
+    @Column(name="source", length=50) // MESHY / UPLOAD / OTHER
     private String source;
 
     @Column(name = "prompt", length = 500)
     private String prompt;
 
-    @Column(name = "negative_prompt", length = 500)
-    private String negativePrompt;
+    @Column(name="file_name", length=200)
+    private String fileName;
 
-    @Column(name = "format", length = 10)
+    @Column(name = "format", length = 10) // GLB/FBX/OBJ
     private String format;
 
     @Column(name = "polycount")
     private int polycount;
+
+    @Column(name="file_size")
+    private long fileSize;
+
+    @Column(name="scale")
+    private Float scale; // scale mặc định khi render
+
+    @Column(name="user_id", length=50)
+    private String userId;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
@@ -48,7 +60,7 @@ public class Asset3D implements Serializable {
     private Instant updatedAt = Instant.now();
 
     @NotNull
-    @Column(name = "marker_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "marker_id", length = 50)
     private String markerId;
 
     //ManyToOne
