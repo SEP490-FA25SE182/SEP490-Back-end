@@ -25,7 +25,7 @@ public class Marker implements Serializable {
     @Column(name = "image_url", length = 100)
     private String imageUrl;
 
-    @Column(name = "marker_code", length = 50)
+    @Column(name="marker_code", length=50, unique = true)
     private String markerCode;
 
     @Column(name = "marker_type", length = 50)
