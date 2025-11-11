@@ -1,5 +1,6 @@
 package com.sep.rookieservice.controller;
 
+import com.sep.rookieservice.dto.BookResponseDTO;
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
 import com.sep.rookieservice.entity.Order;
@@ -11,7 +12,9 @@ import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -87,5 +90,44 @@ public class OrderController {
             @ParameterObject @PageableDefault(size = 20) Pageable pageable
     ) {
         return orderService.search(userId, status, pageable);
+    }
+
+    @GetMapping("/purchased-books")
+    public Page<BookResponseDTO> getPurchasedBooks(
+            @RequestParam String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) List<String> sort,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) OrderEnum status,
+            @RequestParam(required = false) String genreId,
+            @RequestParam(required = false) String bookshelfId
+    ) {
+        Sort sortObj = Sort.unsorted();
+
+        if (sort != null && !sort.isEmpty()) {
+            for (String s : sort) {
+                if (s == null || s.trim().isEmpty()) continue;
+                String[] parts = s.split("-");
+                String prop = parts[0].trim();
+                Sort.Direction dir = Sort.Direction.ASC;
+                if (parts.length > 1) {
+                    try {
+                        dir = Sort.Direction.valueOf(parts[1].trim().toUpperCase());
+                    } catch (IllegalArgumentException ignored) {
+                        if ("DESC".equalsIgnoreCase(parts[1].trim())) {
+                            dir = Sort.Direction.DESC;
+                        }
+                    }
+                }
+                sortObj = sortObj.and(Sort.by(dir, prop));
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+
+        return orderService.getPurchasedBooks(
+                userId, q, status, genreId, bookshelfId, pageable
+        );
     }
 }
