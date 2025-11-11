@@ -8,21 +8,31 @@ import lombok.Data;
 public class Asset3DGenerateRequest {
     @NotBlank
     @Size(max=50)
-    private String markerId;
+    String markerId;
 
     @NotBlank
     @Size(max=50)
-    private String userId;
+    String userId;
 
     @Size(max=500)
-    private String prompt;
-
-    @Size(max = 200)
-    private String fileName;
+    String prompt;
 
     @Size(max=10)
-    private String format; // GLB (khuyến nghị cho Web/Unity)
+    String format;   // GLB/FBX/OBJ
 
     @Size(max=30)
-    private String quality; // balanced/high…
+    String quality;  // balanced/high…
+
+    @Size(max=200)
+    String fileName; // bạn đã có
+
+    // Dành cho refine/texturing
+    Boolean refine;
+    Boolean enablePbr;              // default true
+    @Size(max=600)
+    String texturePrompt;   // optional, gợi ý texturing
+
+    @Size(max=1000)
+    String textureImageUrl; // optional, nếu muốn texture theo ảnh
 }
+
