@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,7 +28,6 @@ public class MeshyServiceImpl {
     public MeshyStatusRes generateBlocking(Asset3DGenerateRequest req) {
         final Instant start = Instant.now();
 
-        // ===== 0) Log cấu hình & input =====
         log.info("[Meshy] generateBlocking called: fmt={}, quality={}, timeout={}, pollInterval={}",
                 req.getFormat(), req.getQuality(), props.getTimeout(), props.getPollInterval());
         log.debug("[Meshy] prompt='{}'", trim(req.getPrompt(), 200));
@@ -62,21 +62,74 @@ public class MeshyServiceImpl {
 
         log.info("[Meshy] Created taskId={}", taskId);
 
-        // ===== 2) Poll GET /openapi/v2/text-to-3d/{id} =====
+        // ===== 2) Poll PREVIEW =====
+        MeshyStatusRes preview = pollTask(taskId, start);
+        if (!"SUCCEEDED".equalsIgnoreCase(preview.getStatus())) {
+            log.warn("[Meshy] Preview task failed: id={}, status={}, err={}", taskId, preview.getStatus(), preview.getError());
+            return preview; // giữ nguyên hành vi fail
+        }
+
+        // ===== 3) REFINE (optional, để có texture/màu) =====
+        boolean doRefine = req.getRefine() == null || Boolean.TRUE.equals(req.getRefine());
+        if (!doRefine) {
+            log.info("[Meshy] Refine disabled by request → return preview result");
+            return preview;
+        }
+
+        Map<String, Object> refineBody = new HashMap<>();
+        refineBody.put("mode", "refine");
+        refineBody.put("preview_task_id", taskId);
+        refineBody.put("enable_pbr", req.getEnablePbr() == null ? Boolean.TRUE : req.getEnablePbr());
+        if (req.getTexturePrompt() != null && !req.getTexturePrompt().isBlank()) {
+            refineBody.put("texture_prompt", req.getTexturePrompt());
+        }
+        if (req.getTextureImageUrl() != null && !req.getTextureImageUrl().isBlank()) {
+            refineBody.put("texture_image_url", req.getTextureImageUrl());
+        }
+
+        log.debug("[Meshy] POST refine /openapi/v2/text-to-3d body={}", refineBody);
+        MeshyCreateRes refineCreated = meshyWebClient.post()
+                .uri("/openapi/v2/text-to-3d")
+                .bodyValue(refineBody)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
+                        .map(msg -> {
+                            log.warn("[Meshy] REFINE create error status={} body={}", r.statusCode(), msg);
+                            return new RuntimeException("Meshy refine create error: " + msg);
+                        }))
+                .bodyToMono(MeshyCreateRes.class)
+                .block();
+
+        String refineTaskId = Optional.ofNullable(refineCreated)
+                .map(MeshyCreateRes::getResult)
+                .filter(s -> !s.isBlank())
+                .orElseThrow(() -> new RuntimeException("Meshy refine returned empty task id"));
+
+        log.info("[Meshy] Refine task created: {}", refineTaskId);
+
+        MeshyStatusRes refined = pollTask(refineTaskId, start);
+        if ("SUCCEEDED".equalsIgnoreCase(refined.getStatus())) {
+            log.info("[Meshy] Refine SUCCEEDED id={}", refineTaskId);
+        } else {
+            log.warn("[Meshy] Refine FAILED id={} status={} err={}", refineTaskId, refined.getStatus(), refined.getError());
+        }
+        return refined;
+    }
+
+    // ===== poll helper  =====
+    private MeshyStatusRes pollTask(String taskId, Instant start) {
         Instant deadline = Instant.now().plus(props.getTimeout());
         int tries = 0;
         MeshyStatusRes status;
-
         do {
             tries++;
-            final int attemptNo = tries; // <— TẠO BIẾN FINAL CHO LẦN NÀY
+            final int attemptNo = tries;
 
             status = meshyWebClient.get()
                     .uri(uriBuilder -> uriBuilder.path("/openapi/v2/text-to-3d/{id}").build(taskId))
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
                             .map(msg -> {
-                                // Dùng attemptNo (final), KHÔNG dùng tries
                                 log.warn("[Meshy] GET task error (try #{}) status={} body={}", attemptNo, r.statusCode(), msg);
                                 return new RuntimeException("Meshy get error: " + msg);
                             }))
@@ -94,30 +147,16 @@ public class MeshyServiceImpl {
             log.info("[Meshy] Poll #{}, taskId={}, status={}, elapsed={}s, remaining={}s",
                     tries, taskId, status.getStatus(), elapsed.toSeconds(), Math.max(remaining.toSeconds(), 0));
 
-            // Log thêm các trường
             Map<String, String> urls = status.getModel_urls();
-            if (urls != null && !urls.isEmpty()) {
-                log.debug("[Meshy] model_urls keys={}", urls.keySet());
-            }
-            if (status.getPreview_image() != null) {
-                log.debug("[Meshy] preview_image={}", status.getPreview_image());
-            }
-            if (status.getError() != null) {
-                log.debug("[Meshy] error={}", status.getError());
-            }
+            if (urls != null && !urls.isEmpty()) log.debug("[Meshy] model_urls keys={}", urls.keySet());
+            if (status.getPreview_image() != null) log.debug("[Meshy] preview_image={}", status.getPreview_image());
+            if (status.getError() != null) log.debug("[Meshy] error={}", status.getError());
 
-            if ("SUCCEEDED".equalsIgnoreCase(status.getStatus())) {
-                log.info("[Meshy] Task SUCCEEDED taskId={} after {}s", taskId, elapsed.toSeconds());
-                return status;
-            }
-            if ("FAILED".equalsIgnoreCase(status.getStatus())) {
-                log.warn("[Meshy] Task FAILED taskId={} error={}", taskId, status.getError());
-                return status;
-            }
+            if ("SUCCEEDED".equalsIgnoreCase(status.getStatus())) return status;
+            if ("FAILED".equalsIgnoreCase(status.getStatus()))   return status;
 
-            try {
-                Thread.sleep(props.getPollInterval().toMillis());
-            } catch (InterruptedException ie) {
+            try { Thread.sleep(props.getPollInterval().toMillis()); }
+            catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
                 log.warn("[Meshy] Poll interrupted for taskId={}", taskId, ie);
                 throw new RuntimeException("Meshy polling interrupted", ie);
@@ -127,20 +166,20 @@ public class MeshyServiceImpl {
         MeshyStatusRes timeout = new MeshyStatusRes();
         timeout.setStatus("FAILED");
         timeout.setError("Timeout waiting for Meshy");
-        log.warn("[Meshy] Task TIMEOUT taskId={} after {}s", taskId, Duration.between(start, Instant.now()).toSeconds());
+        log.warn("[Meshy] Task TIMEOUT taskId={}", taskId);
         return timeout;
     }
 
-    // ===== Helpers =====
+    // helpers
     private static String trim(String s, int max) {
         if (s == null) return null;
         return s.length() <= max ? s : (s.substring(0, max) + "...");
     }
-
     private static String safeBody(MeshyCreateReq b) {
         return String.format("{mode=%s, format=%s, quality=%s, topology=%s, prompt=%s, negative_prompt=%s}",
                 b.getMode(), b.getFormat(), b.getQuality(), b.getTopology(),
                 trim(b.getPrompt(), 120), trim(b.getNegative_prompt(), 120));
     }
 }
+
 
