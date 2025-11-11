@@ -2,6 +2,7 @@ package com.sep.rookieservice.controller;
 
 import com.sep.rookieservice.dto.ChapterRequestDTO;
 import com.sep.rookieservice.dto.ChapterResponseDTO;
+import com.sep.rookieservice.dto.PageResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.service.ChapterService;
 import lombok.RequiredArgsConstructor;
@@ -71,5 +72,10 @@ public class ChapterController {
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
         return service.search(q, bookId, progressStatus, publicationStatus, isActived, pageable);
+    }
+
+    @GetMapping("/{chapterId}/pages")
+    public List<PageResponseDTO> getPagesByChapterId(@PathVariable String chapterId) {
+        return service.getPagesByChapterId(chapterId);
     }
 }
