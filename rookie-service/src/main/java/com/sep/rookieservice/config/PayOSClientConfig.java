@@ -22,7 +22,7 @@ public class PayOSClientConfig {
                 .build();
     }
 
-    @Bean(name = "payOSPayoutWebClient")
+    /*@Bean(name = "payOSPayoutWebClient")
     WebClient payOSPayoutWebClient(PayOSProperties props) {
         String proxyHost = props.getProxyHost();
         int    proxyPort = props.getProxyPort();
@@ -67,5 +67,5 @@ public class PayOSClientConfig {
         if (s == null) return "null";
         if (s.length() <= 6) return "****";
         return s.substring(0, 3) + "****" + s.substring(s.length() - 3);
-    }
+    }*/
 }
