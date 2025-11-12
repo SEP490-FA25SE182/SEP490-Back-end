@@ -4,9 +4,11 @@ import com.sep.arservice.dto.Asset3DGenerateRequest;
 import com.sep.arservice.dto.Asset3DResponse;
 import com.sep.arservice.dto.Asset3DUploadRequest;
 import com.sep.arservice.dto.MeshyStatusRes;
+import com.sep.arservice.enums.IsActived;
 import com.sep.arservice.mapper.Asset3DMapper;
 import com.sep.arservice.model.Asset3D;
 import com.sep.arservice.model.Asset3DJob;
+import com.sep.arservice.model.Marker;
 import com.sep.arservice.repository.Asset3DJobRepository;
 import com.sep.arservice.repository.Asset3DRepository;
 import com.sep.arservice.service.Asset3DService;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -194,8 +197,13 @@ public class Asset3DServiceImpl implements Asset3DService {
     }
 
 
-    @Override public void deleteHard(String id) {
-        repo.delete(repo.findById(id).orElseThrow(() -> new RuntimeException("Asset3D not found: " + id)));
+    @Override
+    public void softDelete(String id) {
+        Asset3D e = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Asset3D not found: " + id));
+        e.setIsActived(IsActived.INACTIVE);
+        e.setUpdatedAt(Instant.now());
+        repo.save(e);
     }
 
     @Override @Transactional(readOnly = true)
@@ -204,6 +212,7 @@ public class Asset3DServiceImpl implements Asset3DService {
         if (markerId!=null && !markerId.isBlank()) probe.setMarkerId(markerId.trim());
         if (userId!=null && !userId.isBlank()) probe.setUserId(userId.trim());
         if (format!=null && !format.isBlank()) probe.setFormat(format.trim().toUpperCase());
+        probe.setIsActived(IsActived.ACTIVE);
 
         ExampleMatcher m = ExampleMatcher.matchingAll()
                 .withMatcher("markerId", mm -> mm.ignoreCase())
@@ -216,12 +225,12 @@ public class Asset3DServiceImpl implements Asset3DService {
 
     @Override @Transactional(readOnly = true)
     public Page<Asset3DResponse> searchByMarkerCode(String markerCode, Pageable pageable) {
-        return repo.findByMarker_MarkerCodeIgnoreCase(markerCode, pageable).map(mapper::toResponse);
+        return repo.findByMarker_MarkerCodeIgnoreCase(markerCode, IsActived.ACTIVE, pageable).map(mapper::toResponse);
     }
 
     @Override @Transactional(readOnly = true)
     public List<Asset3DResponse> latestByMarker(String markerId, int limit) {
-        return repo.findByMarkerIdOrderByCreatedAtDesc(markerId).stream()
+        return repo.findByMarkerIdOrderByCreatedAtDesc(markerId, IsActived.ACTIVE).stream()
                 .limit(limit)
                 .map(mapper::toResponse)
                 .toList();

@@ -1,6 +1,7 @@
 package com.sep.arservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sep.arservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -62,6 +63,11 @@ public class Asset3D implements Serializable {
     @NotNull
     @Column(name = "marker_id", length = 50)
     private String markerId;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
+    private IsActived isActived = IsActived.ACTIVE;
 
     //ManyToOne
     @JsonIgnore

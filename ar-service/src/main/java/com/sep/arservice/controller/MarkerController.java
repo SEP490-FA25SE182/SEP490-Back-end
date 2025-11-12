@@ -39,7 +39,7 @@ public class MarkerController {
                                  @RequestBody @Valid MarkerRequest req){ return service.update(id, req); }
 
     @DeleteMapping("/{id}")
-    public void deleteHard(@PathVariable @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String id){ service.deleteHard(id); }
+    public void softDelete(@PathVariable @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String id){ service.softDelete(id); }
 
     @GetMapping("/search")
     public Page<MarkerResponse> search(

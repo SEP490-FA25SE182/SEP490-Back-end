@@ -1,7 +1,9 @@
 package com.sep.arservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sep.arservice.enums.IsActived;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,11 +33,22 @@ public class Marker implements Serializable {
     @Column(name = "marker_type", length = 50)
     private String markerType;
 
+    @Column(name="physical_width_m") //bề ngang thực tế của marker khi in (ví dụ 0.10 = 10cm)
+    private double physicalWidthM = 1;
+
+    @Column(name="printable_pdf_url", length=500) //đường dẫn file PDF marker để tải/in.
+    private String printablePdfUrl;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
+    private IsActived isActived = IsActived.ACTIVE;
 
     //OneToMany
     @JsonIgnore
@@ -45,4 +58,8 @@ public class Marker implements Serializable {
     @JsonIgnore
     @OneToMany(mappedBy = "marker", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Asset3D> asset3Ds;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "marker", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ARScene> arScenes;
 }

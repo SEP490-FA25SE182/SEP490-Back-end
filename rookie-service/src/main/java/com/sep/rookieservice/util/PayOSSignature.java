@@ -66,54 +66,50 @@ public final class PayOSSignature {
         return String.join("&", parts);
     }
 
-    private static String nullSafe(String s) {
-        if (s == null || "null".equals(s) || "undefined".equals(s)) return "";
-        return s;
-    }
-
-    /** Tạo JSONObject mới với key đã sort alpha */
     private static JSONObject sortJsonObjectKeys(Map<String, Object> map) {
         JSONObject sorted = new JSONObject();
         map.keySet().stream().sorted().forEach(k -> sorted.put(k, map.get(k)));
         return sorted;
     }
 
-    // PayOSSignature.java
-    public static String buildSignatureFromMap(Map<String, Object> data) {
-        // sort keys alpha
-        List<String> keys = new ArrayList<>(data.keySet());
-        Collections.sort(keys);
+    /// PayOut
 
-        List<String> parts = new ArrayList<>();
-        for (String k : keys) {
-            Object v = data.get(k);
-            String val;
-            if (v == null || "null".equals(v) || "undefined".equals(v)) {
-                val = "";
-            } else if (v instanceof Map<?, ?> m) {
-                // object -> sort keys trước khi stringify
-                JSONObject sortedObj = sortJsonObjectKeys((Map<String, Object>) m);
-                val = sortedObj.toJSONString();
-            } else if (v instanceof List<?> list) {
-                // array -> stringify giữ nguyên thứ tự phần tử
-                JSONArray arr = new JSONArray();
-                for (Object ele : list) {
-                    if (ele instanceof Map<?, ?> mm) {
-                        arr.add(sortJsonObjectKeys((Map<String, Object>) mm));
-                    } else {
-                        arr.add(ele);
-                    }
-                }
-                val = arr.toJSONString();
-            } else {
-                val = String.valueOf(v);
-            }
-            try {
-                val = URLEncoder.encode(val, StandardCharsets.UTF_8);
-            } catch (Exception ignore) {  }
-
-            parts.add(k + "=" + val);
-        }
-        return String.join("&", parts);
+    private static String nullSafe(String s) {
+        return (s == null || "null".equals(s) || "undefined".equals(s)) ? "" : s;
     }
+
+    private static String urlEncRFC3986(String s) {
+        if (s == null) return "";
+        String e = java.net.URLEncoder.encode(s, java.nio.charset.StandardCharsets.UTF_8);
+        // Chuyển từ application/x-www-form-urlencoded sang RFC-3986
+        e = e.replace("+", "%20").replace("%7E", "~").replace("*", "%2A");
+        return e;
+    }
+
+    /** Ký theo quy ước 5 field: amount, description, referenceId, toAccountNumber, toBin.
+     *  encodeValues=false => RAW (không encode)
+     *  encodeValues=true  => RFC-3986 (space=%20, v.v.)
+     */
+    public static String canonical5(long amount, String description, String referenceId,
+                                    String toAccountNumber, String toBin, boolean encodeValues) {
+        String a   = String.valueOf(amount);
+        String d   = description == null ? "" : description;
+        String r   = referenceId == null ? "" : referenceId;
+        String acc = toAccountNumber == null ? "" : toAccountNumber;
+        String bin = toBin == null ? "" : toBin;
+
+        if (encodeValues) {
+            a   = urlEncRFC3986(a);
+            d   = urlEncRFC3986(d);
+            r   = urlEncRFC3986(r);
+            acc = urlEncRFC3986(acc);
+            bin = urlEncRFC3986(bin);
+        }
+        return "amount=" + a
+                + "&description=" + d
+                + "&referenceId=" + r
+                + "&toAccountNumber=" + acc
+                + "&toBin=" + bin;
+    }
+
 }
