@@ -15,18 +15,23 @@ public interface MarkerMapper {
 
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
-            @Mapping(target="markerCode", source="markerCode"),
-            @Mapping(target="markerType", source="markerType"),
-            @Mapping(target="imageUrl",  source="imageUrl")
+            @Mapping(target="markerCode",       source="markerCode"),
+            @Mapping(target="markerType",       source="markerType"),
+            @Mapping(target="imageUrl",         source="imageUrl"),
+            @Mapping(target="physicalWidthM",   source="physicalWidthM"),
+            @Mapping(target="printablePdfUrl",  source="printablePdfUrl")
     })
     void copyForCreate(MarkerRequest req, @MappingTarget Marker e);
 
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
-            @Mapping(target="markerType", source="markerType"),
-            @Mapping(target="imageUrl",  source="imageUrl")
+            @Mapping(target="markerType",       source="markerType"),
+            @Mapping(target="imageUrl",         source="imageUrl"),
+            @Mapping(target="physicalWidthM",   source="physicalWidthM"),
+            @Mapping(target="printablePdfUrl",  source="printablePdfUrl")
     })
     void copyForUpdate(MarkerRequest req, @MappingTarget Marker e);
 }
+
 
 

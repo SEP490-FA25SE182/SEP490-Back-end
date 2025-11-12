@@ -24,4 +24,6 @@ public class OrderRequest {
     private String userAddressId;
 
     private String reason;
+
+    private String imageUrl;
 }

@@ -16,4 +16,5 @@ public class OrderResponse {
     private Instant updatedAt;
     private String userAddressId;
     private String reason;
+    private String imageUrl;
 }

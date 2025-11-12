@@ -50,8 +50,8 @@ public class Asset3DController {
         return service.generate(req);
     }
 
-    @DeleteMapping("/{id}") public void deleteHard(@PathVariable @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String id){
-        service.deleteHard(id);
+    @DeleteMapping("/{id}") public void softDelete(@PathVariable @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String id){
+        service.softDelete(id);
     }
 
     // Search chung

@@ -12,7 +12,7 @@ public interface MarkerService {
     MarkerResponse getById(String id);
     MarkerResponse create(MarkerRequest req);
     MarkerResponse update(String id, MarkerRequest req);
-    void deleteHard(String id);
+    void softDelete(String id);
     Page<MarkerResponse> search(String markerCode, String markerType, Pageable pageable);
 }
 

@@ -2,6 +2,7 @@ package com.sep.arservice.service.impl;
 
 import com.sep.arservice.dto.MarkerRequest;
 import com.sep.arservice.dto.MarkerResponse;
+import com.sep.arservice.enums.IsActived;
 import com.sep.arservice.mapper.MarkerMapper;
 import com.sep.arservice.model.Marker;
 import com.sep.arservice.repository.MarkerRepository;
@@ -27,41 +28,60 @@ public class MarkerServiceImpl implements MarkerService {
 
     @Override @Transactional(readOnly = true)
     public List<MarkerResponse> getAll() {
-        return repo.findAll().stream().map(mapper::toResponse).toList();
+        return repo.findAllByIsActived(IsActived.ACTIVE)
+                .stream().map(mapper::toResponse).toList();
     }
 
     @Override @Transactional(readOnly = true)
     public MarkerResponse getById(String id) {
-        return repo.findById(id).map(mapper::toResponse)
+        Marker e = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Marker not found: " + id));
+        if (e.getIsActived() != IsActived.ACTIVE) {
+            throw new RuntimeException("Marker is inactive: " + id);
+        }
+        return mapper.toResponse(e);
     }
 
     @Override
     public MarkerResponse create(MarkerRequest req) {
-        if (repo.existsByMarkerCodeIgnoreCase(req.getMarkerCode()))
+        if (repo.existsByMarkerCodeIgnoreCaseAndIsActived(req.getMarkerCode(), IsActived.ACTIVE)) {
             throw new IllegalArgumentException("markerCode duplicated");
+        }
         Marker e = new Marker();
         mapper.copyForCreate(req, e);
+        e.setIsActived(IsActived.ACTIVE);
+        e.setCreatedAt(Instant.now());
+        e.setUpdatedAt(Instant.now());
         return mapper.toResponse(repo.save(e));
     }
 
     @Override
     public MarkerResponse update(String id, MarkerRequest req) {
-        Marker e = repo.findById(id).orElseThrow(() -> new RuntimeException("Marker not found: " + id));
+        Marker e = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Marker not found: " + id));
+        if (e.getIsActived() != IsActived.ACTIVE) {
+            throw new RuntimeException("Marker is inactive: " + id);
+        }
         mapper.copyForUpdate(req, e);
         e.setUpdatedAt(Instant.now());
         return mapper.toResponse(repo.save(e));
     }
 
-    @Override public void deleteHard(String id) { repo.delete(
-            repo.findById(id).orElseThrow(() -> new RuntimeException("Marker not found: " + id))
-    ); }
+    @Override
+    public void softDelete(String id) {
+        Marker e = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Marker not found: " + id));
+        e.setIsActived(IsActived.INACTIVE);
+        e.setUpdatedAt(Instant.now());
+        repo.save(e);
+    }
 
     @Override @Transactional(readOnly = true)
     public Page<MarkerResponse> search(String markerCode, String markerType, Pageable pageable) {
         Marker probe = new Marker();
         if (markerCode!=null && !markerCode.isBlank()) probe.setMarkerCode(markerCode.trim());
         if (markerType!=null && !markerType.isBlank()) probe.setMarkerType(markerType.trim());
+        probe.setIsActived(IsActived.ACTIVE);
 
         ExampleMatcher m = ExampleMatcher.matchingAll()
                 .withMatcher("markerCode", mm -> mm.ignoreCase().contains())
@@ -71,3 +91,4 @@ public class MarkerServiceImpl implements MarkerService {
         return repo.findAll(Example.of(probe, m), pageable).map(mapper::toResponse);
     }
 }
+

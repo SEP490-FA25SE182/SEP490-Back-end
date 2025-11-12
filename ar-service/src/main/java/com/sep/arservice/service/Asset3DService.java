@@ -15,7 +15,7 @@ public interface Asset3DService {
     Asset3DResponse getById(String id);
     Asset3DResponse upload(MultipartFile file, Asset3DUploadRequest meta) throws IOException;
     Asset3DResponse generate(Asset3DGenerateRequest req); // Meshy → Firebase → Asset3D
-    void deleteHard(String id);
+    void softDelete(String id);
 
     Page<Asset3DResponse> search(String markerId, String userId, String format, Pageable pageable);
     Page<Asset3DResponse> searchByMarkerCode(String markerCode, Pageable pageable);

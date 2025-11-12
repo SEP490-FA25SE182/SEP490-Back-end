@@ -1,5 +1,6 @@
 package com.sep.arservice.dto;
 
+import com.sep.arservice.enums.IsActived;
 import lombok.Data;
 
 import java.time.Instant;
@@ -19,4 +20,5 @@ public class Asset3DResponse {
     private long fileSize;
     private Float scale;
     private Instant createdAt;
+    private IsActived isActived;
 }

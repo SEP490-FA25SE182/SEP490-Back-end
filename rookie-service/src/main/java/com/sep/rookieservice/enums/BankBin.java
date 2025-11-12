@@ -3,15 +3,15 @@ package com.sep.rookieservice.enums;
 import java.util.Arrays;
 
 public enum BankBin {
-    TPBANK("tpbank", "tp bank", "tien phong", "tienphong", "tpb", "970423"),
-    VIETINBANK("vietinbank", "vietin", "ctg", "970415"),
-    VIETCOMBANK("vietcombank", "vcb", "970436"),
+    TPBANK("TPbank", "tp bank", "tien phong", "tienphong", "tpb", "970423"),
+    VIETINBANK("Vietinbank", "vietin", "ctg", "970415"),
+    VIETCOMBANK("Vietcombank", "vcb", "970436"),
     BIDV("bidv", "970418"),
     ACB("acb", "asia commercial bank", "970416"),
-    MBBANK("mbbank", "mb bank", "mb", "970422"),
-    SACOMBANK("sacombank", "stk sacom", "970403"),
-    TECHCOMBANK("techcombank", "tcb", "970407"),
-    AGRIBANK("agribank", "vbard", "970405");
+    MBBANK("MBbank", "mb bank", "mb", "970422"),
+    SACOMBANK("Sacombank", "stk sacom", "970403"),
+    TECHCOMBANK("Techcombank", "tcb", "970407"),
+    AGRIBANK("Agribank", "vbard", "970405");
 
     private final String[] aliases;
     private final String bin;
