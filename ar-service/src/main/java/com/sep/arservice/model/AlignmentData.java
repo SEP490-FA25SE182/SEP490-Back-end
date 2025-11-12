@@ -45,7 +45,7 @@ public class AlignmentData implements Serializable {
     private Instant updatedAt = Instant.now();
 
     @NotNull
-    @Column(name = "marker_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "marker_id", length = 50)
     private String markerId;
 
     //ManyToOne

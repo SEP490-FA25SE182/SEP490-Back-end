@@ -1,21 +1,18 @@
 package com.sep.arservice.service;
 
-import com.sep.arservice.model.Marker;
-import com.sep.arservice.repository.MarkerRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
+import com.sep.arservice.dto.MarkerRequest;
+import com.sep.arservice.dto.MarkerResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class MarkerService {
-    private final MarkerRepository markerRepository;
-
-    @Cacheable(value = "allMarkers", key = "'all'")
-    public List<Marker> getAllMarkers() {
-        System.out.println("⏳ Querying DB...");
-        return markerRepository.findAll();
-    }
+public interface MarkerService {
+    List<MarkerResponse> getAll();
+    MarkerResponse getById(String id);
+    MarkerResponse create(MarkerRequest req);
+    MarkerResponse update(String id, MarkerRequest req);
+    void softDelete(String id);
+    Page<MarkerResponse> search(String markerCode, String markerType, Pageable pageable);
 }
+
