@@ -15,20 +15,22 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI openAPI(
-            @Value("${server.port:8082}") int port,
+            @Value("${API_URL:http://localhost}") String apiUrl,
+            @Value("${GATEWAY_PORT:8080}") String gatewayPort,
+            @Value("${AI_PORT:8082}") String aiPort,
             @Value("${server.servlet.context-path:}") String contextPath
     ) {
         String ctx = (contextPath == null || contextPath.isBlank()) ? "" :
                 (contextPath.startsWith("/") ? contextPath : "/" + contextPath);
 
-        String direct = "http://localhost:" + port + ctx;              // http://localhost:8082
-        String viaGateway = "http://localhost:8080/api/ai";        // route qua Gateway
+        String direct = apiUrl + ":" + aiPort + ctx;
+        String viaGateway = apiUrl + ":" + gatewayPort + "/api/ai";
 
         return new OpenAPI()
                 .info(new Info()
                         .title("AI Service API")
                         .version("1.0.0")
-                        .description("API documentation for Rookie microservice")
+                        .description("API documentation for AI microservice")
                         .license(new License().name("Apache 2.0").url("http://springdoc.org")))
                 .servers(List.of(
                         new Server().url(viaGateway).description("Through API Gateway"),
