@@ -6,7 +6,7 @@ import lombok.Data;
 public class ARSceneItemResponse {
     String itemId;
     String sceneId;
-    String asset3dId;
+    String asset3DId;
     Integer orderIndex;
     float posX; float posY; float posZ;
     float rotX; float rotY; float rotZ;

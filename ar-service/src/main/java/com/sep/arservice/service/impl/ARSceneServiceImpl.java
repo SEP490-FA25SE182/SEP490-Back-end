@@ -1,6 +1,7 @@
 package com.sep.arservice.service.impl;
 
 import com.sep.arservice.dto.*;
+import com.sep.arservice.enums.IsActived;
 import com.sep.arservice.mapper.ARSceneItemMapper;
 import com.sep.arservice.mapper.ARSceneMapper;
 import com.sep.arservice.mapper.Asset3DMapper;
@@ -39,9 +40,14 @@ public class ARSceneServiceImpl implements ARSceneService {
     private final MarkerRepository markerRepo;
     private final Asset3DRepository assetRepo;
 
+    @Qualifier("ARSceneMapper")
     private final ARSceneMapper mapper;
+
+    @Qualifier("ARSceneItemMapper")
     private final ARSceneItemMapper itemMapper;
+
     private final MarkerMapper markerMapper;
+
     @Qualifier("asset3DMapper")
     private final Asset3DMapper assetMapper;
 
@@ -98,7 +104,7 @@ public class ARSceneServiceImpl implements ARSceneService {
     @Override
     @Transactional(readOnly = true)
     public ARSceneWithItemsResponse getPublishedByMarkerCode(String markerCode) {
-        Marker marker = markerRepo.findByMarkerCodeIgnoreCase(markerCode)
+        Marker marker = markerRepo.findByMarkerCodeIgnoreCaseAndIsActived(markerCode, IsActived.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("Marker not found by code: " + markerCode));
 
         Optional<ARScene> latest = repo
