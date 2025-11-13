@@ -11,7 +11,7 @@ public class ARSceneItemRequest {
     String sceneId;
 
     @Size(max=50)
-    String asset3dId;
+    String asset3DId;
 
     Integer orderIndex;
 

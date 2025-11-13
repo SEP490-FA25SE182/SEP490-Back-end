@@ -225,12 +225,12 @@ public class Asset3DServiceImpl implements Asset3DService {
 
     @Override @Transactional(readOnly = true)
     public Page<Asset3DResponse> searchByMarkerCode(String markerCode, Pageable pageable) {
-        return repo.findByMarker_MarkerCodeIgnoreCase(markerCode, IsActived.ACTIVE, pageable).map(mapper::toResponse);
+        return repo.findByMarker_MarkerCodeIgnoreCaseAndMarker_IsActived(markerCode, IsActived.ACTIVE, pageable).map(mapper::toResponse);
     }
 
     @Override @Transactional(readOnly = true)
     public List<Asset3DResponse> latestByMarker(String markerId, int limit) {
-        return repo.findByMarkerIdOrderByCreatedAtDesc(markerId, IsActived.ACTIVE).stream()
+        return repo.findByMarkerIdAndMarker_IsActivedOrderByCreatedAtDesc(markerId, IsActived.ACTIVE).stream()
                 .limit(limit)
                 .map(mapper::toResponse)
                 .toList();

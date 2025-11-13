@@ -9,6 +9,7 @@ import com.sep.arservice.repository.ARSceneRepository;
 import com.sep.arservice.repository.Asset3DRepository;
 import com.sep.arservice.service.ARSceneItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,8 @@ public class ARSceneItemServiceImpl implements ARSceneItemService {
     private final ARSceneItemRepository repo;
     private final ARSceneRepository sceneRepo;
     private final Asset3DRepository assetRepo;
+    
+    @Qualifier("ARSceneItemMapper")
     private final ARSceneItemMapper mapper;
 
     @Override
@@ -35,8 +38,8 @@ public class ARSceneItemServiceImpl implements ARSceneItemService {
         for (ARSceneItemRequest r : reqs) {
             sceneRepo.findById(r.getSceneId())
                     .orElseThrow(() -> new RuntimeException("ARScene not found: " + r.getSceneId()));
-            assetRepo.findById(r.getAsset3dId())
-                    .orElseThrow(() -> new RuntimeException("Asset3D not found: " + r.getAsset3dId()));
+            assetRepo.findById(r.getAsset3DId())
+                    .orElseThrow(() -> new RuntimeException("Asset3D not found: " + r.getAsset3DId()));
         }
         List<ARSceneItem> entities = reqs.stream().map(r -> {
             ARSceneItem e = new ARSceneItem();
