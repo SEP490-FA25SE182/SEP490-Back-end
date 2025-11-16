@@ -69,10 +69,4 @@ public class ARSceneItem implements Serializable {
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
-
-    //ManyToOne
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "marker_id", referencedColumnName = "marker_id", insertable = false, updatable = false)
-    private Marker marker;
 }

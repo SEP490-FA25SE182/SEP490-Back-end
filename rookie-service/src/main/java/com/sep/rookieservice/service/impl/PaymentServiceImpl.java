@@ -52,6 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final WebClient payOSPayoutWebClient;
 
     @Override
+    @Transactional
     public CreateCheckoutResponse createCheckout(String orderId, String returnUrl, String cancelUrl) {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -118,6 +119,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public void handleWebhook(WebhookPayload payload) {
         String dataString = PayOSSignature.buildWebhookDataString(payload.getData());
         String expected = PayOSSignature.hmacSha256(props.getChecksumKey(), dataString);
@@ -217,6 +219,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public CreateCheckoutResponse deposit(int amount, String walletId, String returnUrl, String cancelUrl) {
         if (amount <= 0) throw new IllegalArgumentException("Amount must be > 0");
 
@@ -310,6 +313,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public CreateCheckoutResponse withdraw(
             int amount, String walletId, String accountName,
             String bankName, String accountNumber,
@@ -412,6 +416,5 @@ public class PaymentServiceImpl implements PaymentService {
                 .amount(amount)
                 .build();
     }
-
 }
 

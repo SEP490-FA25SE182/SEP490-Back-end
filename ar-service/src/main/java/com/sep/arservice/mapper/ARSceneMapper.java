@@ -18,6 +18,7 @@ public interface ARSceneMapper {
     @Mapping(target = "description", source = "description")
     @Mapping(target = "version",   source = "version")
     @Mapping(target = "status",    source = "status")
+    @Mapping(target = "isActived",   source = "isActived")
     void copyForCreate(ARSceneRequest req, @MappingTarget ARScene e);
 
     @BeanMapping(ignoreByDefault = true)
@@ -25,6 +26,7 @@ public interface ARSceneMapper {
     @Mapping(target = "description", source = "description")
     @Mapping(target = "version",   source = "version")
     @Mapping(target = "status",    source = "status")
+    @Mapping(target = "isActived",   source = "isActived")
     void copyForUpdate(ARSceneRequest req, @MappingTarget ARScene e);
 
     default ARSceneWithItemsResponse compose(ARSceneResponse scene,

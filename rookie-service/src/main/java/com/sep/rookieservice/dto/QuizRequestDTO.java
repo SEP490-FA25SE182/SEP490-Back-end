@@ -8,6 +8,8 @@ import java.time.Instant;
 public class QuizRequestDTO {
     private String title;
     private int totalScore;
+    private int number;
     private String chapterId;
     private IsActived isActived;
 }
+

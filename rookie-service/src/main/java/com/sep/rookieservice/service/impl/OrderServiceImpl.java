@@ -117,7 +117,10 @@ public class OrderServiceImpl implements OrderService {
     // Move CartItems -> Order + OrderDetails
     @Override
     @Transactional
-    @CacheEvict(value = {"allOrders", "Order", "allCartItems", "CartItem", "allCarts", "Cart"}, allEntries = true)
+    @CacheEvict(
+            value = {"allOrders", "Order", "allCartItems", "CartItem", "allCarts", "Cart"},
+            allEntries = true
+    )
     public OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found with id: " + cartId));
@@ -150,6 +153,7 @@ public class OrderServiceImpl implements OrderService {
 
         double finalTotal = Math.max(0.0, cartTotal - discount);
 
+        // Tạo Order
         Order order = Order.builder()
                 .amount(cart.getAmount())
                 .totalPrice(finalTotal)
@@ -162,7 +166,26 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
+        // Duyệt từng CartItem -> tạo OrderDetail + trừ tồn kho Book
         for (CartItem item : items) {
+
+            // 1. Lấy Book theo bookId trong CartItem
+            Book book = bookRepository.findById(item.getBookId())
+                    .orElseThrow(() ->
+                            new RuntimeException("Book not found with id: " + item.getBookId()));
+
+            // 2. Kiểm tra tồn kho
+            Integer currentQty = book.getQuantity() == null ? 0 : book.getQuantity();
+            if (currentQty < item.getQuantity()) {
+                throw new RuntimeException("Not enough quantity for book: " + book.getBookName());
+            }
+
+            // 3. Trừ quantity và lưu lại Book
+            book.setQuantity(currentQty - item.getQuantity());
+            book.setUpdatedAt(Instant.now());
+            bookRepository.save(book);
+
+            // 4. Tạo OrderDetail
             OrderDetail detail = OrderDetail.builder()
                     .quantity(item.getQuantity())
                     .price(item.getPrice())
@@ -180,11 +203,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // clear cart
-         cartItemRepository.deleteAll(items);
-         cart.setAmount(0);
-         cart.setTotalPrice(0);
-         cart.setUpdatedAt(Instant.now());
-         cartRepository.save(cart);
+        cartItemRepository.deleteAll(items);
+        cart.setAmount(0);
+        cart.setTotalPrice(0);
+        cart.setUpdatedAt(Instant.now());
+        cartRepository.save(cart);
 
         return mapper.toResponse(savedOrder);
     }
