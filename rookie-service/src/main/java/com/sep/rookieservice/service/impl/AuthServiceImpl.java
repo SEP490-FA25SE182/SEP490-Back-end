@@ -78,12 +78,6 @@ public class AuthServiceImpl implements AuthService {
             user.setRoyalty(0.0);
             userRepository.save(user);
 
-            //Notify registration via Google
-            notificationService.create(NotificationRequestDTO.builder()
-                    .userId(user.getUserId())
-                    .title("Welcome!")
-                    .message("Your account was created successfully via Google.")
-                    .build());
         } else {
             if (user.getIsActived() != null && user.getIsActived() != IsActived.ACTIVE) {
                 throw new IllegalStateException("Tài khoản đang bị khoá/không hoạt động.");

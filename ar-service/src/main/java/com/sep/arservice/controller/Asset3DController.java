@@ -1,5 +1,6 @@
 package com.sep.arservice.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep.arservice.dto.Asset3DGenerateRequest;
 import com.sep.arservice.dto.Asset3DResponse;
 import com.sep.arservice.dto.Asset3DUploadRequest;
@@ -40,7 +41,9 @@ public class Asset3DController {
     // Upload trực tiếp 1 file 3D → Firebase → Asset3D
     @PostMapping(value="/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Asset3DResponse upload(@RequestPart("file") MultipartFile file,
-                                  @Valid @RequestPart("meta") Asset3DUploadRequest meta) throws IOException {
+                                  @RequestPart("meta") String metaJson) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Asset3DUploadRequest meta = mapper.readValue(metaJson, Asset3DUploadRequest.class);
         return service.upload(file, meta);
     }
 

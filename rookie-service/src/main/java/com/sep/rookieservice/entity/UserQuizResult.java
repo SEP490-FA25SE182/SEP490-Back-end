@@ -52,11 +52,11 @@ public class UserQuizResult implements Serializable {
     private IsActived isActived = IsActived.ACTIVE;
 
     @NotNull
-    @Column(name = "quiz_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "quiz_id", length = 50)
     private String quizId;
 
     @NotNull
-    @Column(name = "user_id", length = 50, insertable = false, updatable = false)
+    @Column(name = "user_id", length = 50)
     private String userId;
 
     //ManyToOne

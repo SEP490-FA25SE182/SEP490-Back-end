@@ -1,5 +1,6 @@
 package com.sep.arservice.dto;
 
+import com.sep.arservice.enums.IsActived;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -18,4 +19,6 @@ public class ARSceneRequest {
 
     Integer version;           // optional
     String status;             // DRAFT/PUBLISHED
+
+    private IsActived isActived;
 }

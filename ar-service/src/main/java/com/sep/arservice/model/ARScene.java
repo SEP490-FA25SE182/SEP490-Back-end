@@ -1,6 +1,7 @@
 package com.sep.arservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sep.arservice.enums.IsActived;
 import com.sep.arservice.enums.PublicationEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -45,6 +46,11 @@ public class ARScene implements Serializable {
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_actived", nullable = false, length = 10)
+    private IsActived isActived = IsActived.ACTIVE;
 
     //ManyToOne
     @JsonIgnore
