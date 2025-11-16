@@ -9,10 +9,8 @@ import org.mapstruct.*;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserAddressMapper {
 
-    // Entity -> Response
     UserAddressResponse toResponse(UserAddress entity);
 
-    // Request -> Entity (CREATE)
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "addressInfor", source = "addressInfor"),
@@ -21,18 +19,23 @@ public interface UserAddressMapper {
             @Mapping(target = "fullName", source = "fullName"),
             @Mapping(target = "type", source = "type"),
             @Mapping(target = "default", source = "default"),
-            @Mapping(target = "isActived", source = "isActived")
+            @Mapping(target = "isActived", source = "isActived"),
+            @Mapping(target = "provinceId", source = "provinceId"),
+            @Mapping(target = "districtId", source = "districtId"),
+            @Mapping(target = "wardCode", source = "wardCode")
     })
     void copyForCreate(UserAddressRequest req, @MappingTarget UserAddress entity);
 
-    // Request -> Entity (UPDATE)
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "addressInfor", source = "addressInfor"),
             @Mapping(target = "phoneNumber", source = "phoneNumber"),
             @Mapping(target = "fullName", source = "fullName"),
             @Mapping(target = "type", source = "type"),
-            @Mapping(target = "isActived", source = "isActived")
+            @Mapping(target = "isActived", source = "isActived"),
+            @Mapping(target = "provinceId", source = "provinceId"),
+            @Mapping(target = "districtId", source = "districtId"),
+            @Mapping(target = "wardCode", source = "wardCode")
     })
     void copyForUpdate(UserAddressRequest req, @MappingTarget UserAddress entity);
 }
