@@ -7,6 +7,7 @@ import java.time.Instant;
 
 @Data
 public class UserAddressResponse {
+
     private String userAddressId;
     private String addressInfor;
     private String phoneNumber;
@@ -14,7 +15,11 @@ public class UserAddressResponse {
     private String type;
     private boolean isDefault;
     private String userId;
+
     private Instant createdAt;
     private Instant updatedAt;
     private IsActived isActived;
+    private String provinceId;
+    private String districtId;
+    private String wardCode;
 }
