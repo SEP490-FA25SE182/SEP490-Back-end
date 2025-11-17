@@ -102,9 +102,10 @@ public class FeedbackServiceImpl implements FeedbackService {
             String bookId,
             String userId,
             IsActived isActived,
+            FeedbackStatus status,
             Pageable pageable
     ) {
-        Specification<Feedback> spec = FeedbackSpecification.buildSpecification(q, bookId, userId, isActived);
+        Specification<Feedback> spec = FeedbackSpecification.buildSpecification(q, bookId, userId, isActived, status);
         Page<Feedback> page = repo.findAll(spec, pageable);
         return page.map(mapper::toDto);
     }
