@@ -13,6 +13,7 @@ public interface FeedbackMapper {
     @Mapping(target = "feedbackId", ignore = true)
     @Mapping(target = "createdAt", expression = "java(java.time.Instant.now())")
     @Mapping(target = "updatedAt", expression = "java(java.time.Instant.now())")
+    @Mapping(target = "isActived", ignore = true)
     Feedback toNewEntity(FeedbackRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
