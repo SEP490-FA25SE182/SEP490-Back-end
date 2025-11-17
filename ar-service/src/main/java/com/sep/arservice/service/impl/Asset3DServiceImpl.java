@@ -102,6 +102,7 @@ public class Asset3DServiceImpl implements Asset3DService {
         e.setSource("UPLOAD");
         e.setFileSize(file.getSize());
         e.setScale(meta.getScale());
+        e.setIsActived(IsActived.ACTIVE);
         return mapper.toResponse(repo.save(e));
     }
 
@@ -193,6 +194,7 @@ public class Asset3DServiceImpl implements Asset3DService {
         e.setAssetUrl(publicUrl);
         if (status.getFace_count() != null) e.setPolycount(status.getFace_count());
         if (contentLength > 0) e.setFileSize(contentLength);
+        e.setIsActived(IsActived.ACTIVE);
         return mapper.toResponse(repo.save(e));
     }
 
@@ -206,21 +208,37 @@ public class Asset3DServiceImpl implements Asset3DService {
         repo.save(e);
     }
 
-    @Override @Transactional(readOnly = true)
+    @Override
+    @Transactional(readOnly = true)
     public Page<Asset3DResponse> search(String markerId, String userId, String format, Pageable pageable) {
         Asset3D probe = new Asset3D();
-        if (markerId!=null && !markerId.isBlank()) probe.setMarkerId(markerId.trim());
-        if (userId!=null && !userId.isBlank()) probe.setUserId(userId.trim());
-        if (format!=null && !format.isBlank()) probe.setFormat(format.trim().toUpperCase());
+
+        if (markerId != null && !markerId.isBlank()) {
+            probe.setMarkerId(markerId.trim());
+        }
+        if (userId != null && !userId.isBlank()) {
+            probe.setUserId(userId.trim());
+        }
+        if (format != null && !format.isBlank()) {
+            probe.setFormat(format.trim().toUpperCase());
+        }
         probe.setIsActived(IsActived.ACTIVE);
 
         ExampleMatcher m = ExampleMatcher.matchingAll()
                 .withMatcher("markerId", mm -> mm.ignoreCase())
                 .withMatcher("userId",   mm -> mm.ignoreCase())
                 .withMatcher("format",   mm -> mm.ignoreCase())
-                .withIgnoreNullValues();
+                .withIgnoreNullValues()
+                // RẤT QUAN TRỌNG: ignore các field có default / không lọc
+                .withIgnorePaths("polycount",
+                        "fileSize",
+                        "scale",
+                        "createdAt",
+                        "updatedAt"
+                );
 
-        return repo.findAll(Example.of(probe, m), pageable).map(mapper::toResponse);
+        return repo.findAll(Example.of(probe, m), pageable)
+                .map(mapper::toResponse);
     }
 
     @Override @Transactional(readOnly = true)

@@ -24,7 +24,7 @@ public class Marker implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String markerId;
 
-    @Column(name = "image_url", length = 100)
+    @Column(name = "image_url", length = 500)
     private String imageUrl;
 
     @Column(name="marker_code", length=50, unique = true)
