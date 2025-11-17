@@ -12,6 +12,6 @@ public interface FeedbackService {
     FeedbackResponseDTO update(String id, FeedbackRequestDTO dto);
     FeedbackResponseDTO getById(String id);
     void delete(String id);
-    Page<FeedbackResponseDTO> search(String keyword, String bookId, String userId, IsActived isActived, Pageable pageable);
+    Page<FeedbackResponseDTO> search(String keyword, String bookId, String userId, IsActived isActived, FeedbackStatus status, Pageable pageable);
     FeedbackResponseDTO updateStatus(String id, FeedbackStatus status);
 }
