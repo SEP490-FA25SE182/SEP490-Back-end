@@ -1,5 +1,6 @@
 package com.sep.arservice.dto;
 
+import com.sep.arservice.enums.IsActived;
 import lombok.Data;
 
 import java.time.Instant;
@@ -13,4 +14,5 @@ public class ARSceneResponse {
     Integer version;
     String status;
     Instant createdAt;
+    IsActived isActived;
 }

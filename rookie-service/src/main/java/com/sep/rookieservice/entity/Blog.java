@@ -36,7 +36,7 @@ public class Blog implements Serializable {
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Column(name = "content")
+    @Column(name = "content", length = 10000)
     private String content;
 
     @Column(name = "created_at", updatable = false)

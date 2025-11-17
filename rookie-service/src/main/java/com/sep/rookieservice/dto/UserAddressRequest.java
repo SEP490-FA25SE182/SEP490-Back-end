@@ -4,17 +4,15 @@ import com.sep.rookieservice.enums.IsActived;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 @Data
 public class UserAddressRequest {
+
     @NotBlank
     @Size(max = 100)
     private String addressInfor;
+
     private String userId;
     private IsActived isActived;
 
@@ -29,4 +27,7 @@ public class UserAddressRequest {
     private String type;
 
     private boolean isDefault;
+    private String provinceId;
+    private String districtId;
+    private String wardCode;
 }

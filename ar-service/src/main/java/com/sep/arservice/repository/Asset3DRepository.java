@@ -12,8 +12,13 @@ import java.util.List;
 
 @Repository
 public interface Asset3DRepository extends JpaRepository<Asset3D, String> {
-
-    Page<Asset3D> findByMarker_MarkerCodeIgnoreCase(String markerCode, IsActived isActived, Pageable pageable);
-
-    List<Asset3D> findByMarkerIdOrderByCreatedAtDesc(String markerId, IsActived isActived);
+    Page<Asset3D> findByMarker_MarkerCodeIgnoreCaseAndMarker_IsActived(
+            String markerCode,
+            IsActived isActived,
+            Pageable pageable
+    );
+    List<Asset3D> findByMarkerIdAndMarker_IsActivedOrderByCreatedAtDesc(
+            String markerId,
+            IsActived isActived
+    );
 }

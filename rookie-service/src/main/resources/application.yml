@@ -1,0 +1,98 @@
+server:
+  port: ${ROOKIE_PORT:8081}
+
+spring:
+  application:
+    name: rookie-service
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+    show-sql: true
+
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    timeout: 2000ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      cache-null-values: false
+      use-key-prefix: true
+
+  cloud:
+    discovery:
+      enabled: true
+    service-registry:
+      auto-registration:
+        enabled: true
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+app:
+  mail:
+    from: ${APP_MAIL_FROM:Rookies <no-reply@rookies.com>}
+  frontend:
+    reset-password-url: ${APP_FRONTEND_RESET_PASSWORD_URL:http://localhost:5173/reset}
+
+rookie:
+  payos:
+    base-url: https://api-merchant.payos.vn
+    client-id: ${PAYOS_CLIENT_ID}
+    api-key: ${PAYOS_API_KEY}
+    checksum-key: ${PAYOS_CHECKSUM_KEY}
+    return-url: http://localhost:5173/checkout/success
+    cancel-url: http://localhost:5173/checkout/cancel
+
+    payout-base-url: https://api-merchant.payos.vn
+    payout-client-id: ${PAYOS_PAYOUT_CLIENT_ID}
+    payout-api-key: ${PAYOS_PAYOUT_API_KEY}
+    payout-checksum-key: ${PAYOS_PAYOUT_CHECKSUM_KEY}
+    payout-partner-code: ${PAYOS_PAYOUT_PARTNER_CODE}
+    createPayoutPath: /v1/payouts
+    payout-sign-mode: CANON5_URLENC
+
+    # ... các cấu hình proxy ...
+    proxy-host: ${PAYOS_HOST}
+    proxy-port: ${PAYOS_PORT}
+    proxy-user: ${PAYOS_USER}
+    proxy-pass: ${PAYOS_PASS}
+
+
+ghn:
+  base-url: https://dev-online-gateway.ghn.vn/shiip/public-api
+  token: ${YOUR_GHN_TOKEN}
+  shop-id: ${YOUR_SHOP_ID}
+
+#OK

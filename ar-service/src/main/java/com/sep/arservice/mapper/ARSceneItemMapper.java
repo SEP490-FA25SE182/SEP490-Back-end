@@ -15,7 +15,7 @@ public interface ARSceneItemMapper {
 
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "sceneId",   source = "sceneId")
-    @Mapping(target = "asset3DId", source = "asset3dId")
+    @Mapping(target = "asset3DId", source = "asset3DId")
     @Mapping(target = "orderIndex",source = "orderIndex")
     @Mapping(target = "posX",      source = "posX")
     @Mapping(target = "posY",      source = "posY")
