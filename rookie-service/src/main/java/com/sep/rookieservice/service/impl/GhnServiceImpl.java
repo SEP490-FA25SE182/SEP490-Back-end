@@ -92,7 +92,7 @@ public class GhnServiceImpl implements GhnService {
             dataDto.setOrderCode((String) data.get("order_code"));
             dataDto.setSortCode((String) data.get("sort_code"));
             dataDto.setTransType((String) data.get("trans_type"));
-            dataDto.setTotalFee((String) data.get("total_fee"));
+            dataDto.setTotalFee((Integer) data.get("total_fee"));
             dataDto.setExpectedDeliveryTime((String) data.get("expected_delivery_time"));
 
             dto.setData(dataDto);
