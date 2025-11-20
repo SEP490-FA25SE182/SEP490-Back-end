@@ -1,8 +1,11 @@
 package com.sep.rookieservice.dto;
 
+import com.sep.rookieservice.enums.FeedbackStatus;
 import com.sep.rookieservice.enums.IsActived;
 import lombok.Data;
+
 import java.time.Instant;
+import java.util.List;
 
 @Data
 public class FeedbackResponseDTO {
@@ -15,4 +18,6 @@ public class FeedbackResponseDTO {
     private String userId;
     private String bookId;
     private String orderDetailId;
+    private List<String> imageUrls;
+    private FeedbackStatus status;
 }

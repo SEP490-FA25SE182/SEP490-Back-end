@@ -35,7 +35,7 @@ public class GhnCreateOrderResponseDTO {
         private Fee fee;
 
         @JsonProperty("total_fee")
-        private String totalFee;
+        private Integer totalFee;
 
         @JsonProperty("expected_delivery_time")
         private String expectedDeliveryTime;

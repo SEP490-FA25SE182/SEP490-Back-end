@@ -2,6 +2,8 @@ package com.sep.rookieservice.controller;
 
 import com.sep.rookieservice.dto.FeedbackRequestDTO;
 import com.sep.rookieservice.dto.FeedbackResponseDTO;
+import com.sep.rookieservice.dto.UpdateFeedbackStatusRequest;
+import com.sep.rookieservice.enums.FeedbackStatus;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +62,8 @@ public class FeedbackController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String bookId,
             @RequestParam(required = false) String userId,
-            @RequestParam(required = false) IsActived isActived
+            @RequestParam(required = false) IsActived isActived,
+            @RequestParam(required = false) FeedbackStatus status
     ) {
 
         Sort sortObj = Sort.unsorted();
@@ -80,7 +83,16 @@ public class FeedbackController {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return service.search(q, bookId, userId, isActived, pageable);
+        return service.search(q, bookId, userId, isActived, status, pageable);
+    }
+
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<FeedbackResponseDTO> updateStatus(
+            @PathVariable String id,
+            @RequestBody UpdateFeedbackStatusRequest request
+    ) {
+        return ResponseEntity.ok(service.updateStatus(id, request.getStatus()));
     }
 
 }
