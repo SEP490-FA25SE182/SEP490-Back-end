@@ -1,10 +1,20 @@
 # src/main/resources/application.yml
 server:
   port: 8083
+  tomcat:
+    max-swallow-size: 520MB         # để Tomcat nuốt được request lớn
+    max-http-form-post-size: 520MB
 
 spring:
   application:
     name: ar-service
+  servlet:
+    multipart:
+      max-file-size: 500MB      # giới hạn cho 1 file
+      max-request-size: 520MB   # tổng dung lượng request (có thể rộng ra chút)
+      file-size-threshold: 0B
+  codec:
+    max-in-memory-size: 500MB
 
   datasource:
     url: ${DB_URL}

@@ -28,6 +28,9 @@ public class Question implements Serializable {
     @Column(name = "score")
     private int score;
 
+    @Column(name = "answer_count")
+    private int answerCount;
+
     @Column(name = "content", length = 250)
     private String content;
 

@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserQuizResultRepository extends JpaRepository<UserQuizResult, String> {
+    long countByQuizIdAndUserId(String quizId, String userId);
 }
 
