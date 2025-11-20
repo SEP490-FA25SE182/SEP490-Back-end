@@ -14,5 +14,6 @@ public class QuestionRequestDTO {
     private String quizId;
     private String content;
     private int score;
+    private int answerCount;
     private IsActived isActived;
 }

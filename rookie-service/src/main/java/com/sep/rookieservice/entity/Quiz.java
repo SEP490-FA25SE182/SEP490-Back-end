@@ -31,8 +31,11 @@ public class Quiz implements Serializable {
     @Column(name = "title", length = 50)
     private String title;
 
-    @Column(name = "number")
-    private int number;
+    @Column(name = "attempt_count")
+    private int attemptCount;
+
+    @Column(name = "question_count")
+    private int questionCount;
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
