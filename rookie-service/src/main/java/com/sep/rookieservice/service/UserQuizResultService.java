@@ -24,8 +24,5 @@ public interface UserQuizResultService {
     );
 
     UserQuizResultResponse createForUser(QuizSubmitRequest request);
-
-    @Transactional
-    UserQuizResultResponse createForUser(QuizSubmitRequest request);
 }
 
