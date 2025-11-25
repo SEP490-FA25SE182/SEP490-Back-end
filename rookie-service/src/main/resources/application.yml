@@ -1,6 +1,12 @@
 server:
   port: ${ROOKIE_PORT:8081}
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+
 spring:
   application:
     name: rookie-service
