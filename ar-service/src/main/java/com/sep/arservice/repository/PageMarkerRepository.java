@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface PageMarkerRepository extends JpaRepository<PageMarker, String> {
     List<PageMarker> findAllByPageId(String pageId);
+
+    boolean existsByPageIdAndMarkerId(String pageId, String markerId);
 }

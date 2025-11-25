@@ -1,7 +1,6 @@
 package com.sep.rookieservice.service.impl;
 
-import com.sep.rookieservice.dto.QuizRequestDTO;
-import com.sep.rookieservice.dto.QuizResponseDTO;
+import com.sep.rookieservice.dto.*;
 import com.sep.rookieservice.entity.Quiz;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.exception.ResourceNotFoundException;
@@ -14,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,4 +63,47 @@ public class QuizServiceImpl implements QuizService {
         var spec = QuizSpecification.buildSpecification(q, chapterId, isActived);
         return repo.findAll(spec, pageable).map(mapper::toDto);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public QuizPlayDTO getPlayData(String id) {
+        Quiz quiz = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + id));
+
+        QuizPlayDTO dto = new QuizPlayDTO();
+        dto.setQuizId(quiz.getQuizId());
+        dto.setTitle(quiz.getTitle());
+        dto.setTotalScore(quiz.getTotalScore());
+        dto.setQuestionCount(quiz.getQuestionCount());
+
+        var questionList = quiz.getQuestions(); // dựa vào @OneToMany
+        if (questionList != null) {
+            dto.setQuestions(
+                    questionList.stream().map(q -> {
+                        QuestionPlayDTO qdto = new QuestionPlayDTO();
+                        qdto.setQuestionId(q.getQuestionId());
+                        qdto.setContent(q.getContent());
+                        qdto.setScore(q.getScore());
+                        qdto.setAnswerCount(q.getAnswerCount());
+
+                        var answers = q.getAnswers();
+                        if (answers != null) {
+                            qdto.setAnswers(
+                                    answers.stream().map(a -> {
+                                        AnswerPlayDTO adto = new AnswerPlayDTO();
+                                        adto.setAnswerId(a.getAnswerId());
+                                        adto.setContent(a.getContent());
+                                        adto.setIsCorrect(a.getIsCorrect());
+                                        return adto;
+                                    }).collect(Collectors.toList())
+                            );
+                        }
+                        return qdto;
+                    }).collect(Collectors.toList())
+            );
+        }
+
+        return dto;
+    }
+
 }

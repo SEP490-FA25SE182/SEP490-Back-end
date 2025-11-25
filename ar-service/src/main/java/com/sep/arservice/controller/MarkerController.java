@@ -43,12 +43,34 @@ public class MarkerController {
 
     @GetMapping("/search")
     public Page<MarkerResponse> search(
-            @RequestParam(required=false)
-            @Size(max=50) String markerCode,
-            @RequestParam(required=false)
-            @Size(max=50) String markerType,
+            @RequestParam(required = false)
+            @Size(max = 50) String markerCode,
+            @RequestParam(required = false)
+            @Size(max = 50) String markerType,
+            @RequestParam(required = false)
+            @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String pageId,
             @ParameterObject
-            @PageableDefault(size=20) Pageable pageable){
-        return service.search(markerCode, markerType, pageable);
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return service.search(markerCode, markerType, pageId, pageable);
+    }
+
+    @PostMapping("/pages/{pageId}")
+    public MarkerResponse createForPage(
+            @PathVariable
+            @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String pageId,
+            @Valid @RequestBody MarkerRequest req
+    ) {
+        return service.createWithPage(pageId, req);
+    }
+
+    @PostMapping("/{markerId}/pages/{pageId}")
+    public MarkerResponse attachPage(
+            @PathVariable
+            @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String markerId,
+            @PathVariable
+            @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String pageId
+    ) {
+        return service.attachPage(markerId, pageId);
     }
 }

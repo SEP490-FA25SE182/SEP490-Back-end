@@ -10,10 +10,7 @@ import com.sep.arservice.repository.Asset3DRepository;
 import com.sep.arservice.service.ARSceneItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,16 +73,19 @@ public class ARSceneItemServiceImpl implements ARSceneItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ARSceneItemResponse> search(String sceneId, String asset3dId, Pageable pageable) {
-        ARSceneItem probe = new ARSceneItem();
-        if (sceneId != null && !sceneId.isBlank()) probe.setSceneId(sceneId.trim());
-        if (asset3dId != null && !asset3dId.isBlank()) probe.setAsset3DId(asset3dId.trim());
-
-        ExampleMatcher m = ExampleMatcher.matchingAll()
-                .withMatcher("sceneId",   mm -> mm.ignoreCase())
-                .withMatcher("asset3dId", mm -> mm.ignoreCase())
-                .withIgnoreNullValues();
-
-        return repo.findAll(Example.of(probe, m), pageable).map(mapper::toResponse);
+    public Page<ARSceneItemResponse> search(String sceneId, String asset3DId, Pageable pageable) {
+        Page<ARSceneItem> page;
+        if (sceneId != null && !sceneId.isBlank() &&
+                asset3DId != null && !asset3DId.isBlank()) {
+            page = repo.findBySceneIdAndAsset3DIdOrderByOrderIndexAsc(
+                    sceneId.trim(), asset3DId.trim(), pageable);
+        } else if (sceneId != null && !sceneId.isBlank()) {
+            List<ARSceneItem> list = repo.findBySceneIdOrderByOrderIndexAsc(sceneId.trim());
+            page = new PageImpl<>(list, pageable, list.size());
+        } else {
+            page = repo.findAll(pageable);
+        }
+        return page.map(mapper::toResponse);
     }
+
 }

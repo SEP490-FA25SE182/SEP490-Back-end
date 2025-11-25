@@ -1,5 +1,6 @@
 package com.sep.rookieservice.service;
 
+import com.sep.rookieservice.dto.QuizPlayDTO;
 import com.sep.rookieservice.dto.QuizRequestDTO;
 import com.sep.rookieservice.dto.QuizResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
@@ -12,4 +13,5 @@ public interface QuizService {
     QuizResponseDTO getById(String id);
     void delete(String id);
     Page<QuizResponseDTO> search(String q, String chapterId, IsActived isActived, Pageable pageable);
+    QuizPlayDTO getPlayData(String id);
 }
