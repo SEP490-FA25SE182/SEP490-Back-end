@@ -53,6 +53,9 @@ public class Order implements Serializable {
     @Column(name = "reason", length = 250)
     private String reason;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     //ManyToOne
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

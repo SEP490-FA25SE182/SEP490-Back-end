@@ -17,6 +17,7 @@ public class QuestionResponseDTO {
     private String quizId;
     private String content;
     private int score;
+    private int answerCount;
     private Instant createdAt;
     private Instant updatedAt;
     private IsActived isActived;

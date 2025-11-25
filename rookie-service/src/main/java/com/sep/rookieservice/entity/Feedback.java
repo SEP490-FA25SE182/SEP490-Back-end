@@ -1,16 +1,15 @@
 package com.sep.rookieservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sep.rookieservice.enums.FeedbackStatus;
 import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +18,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "feedbacks")
 public class Feedback implements Serializable {
+
     @Id
     @Column(name = "feedback_id", length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -53,19 +53,38 @@ public class Feedback implements Serializable {
     @Column(name = "order_detail_id", length = 50)
     private String orderDetailId;
 
-    // ManytoOne
+
+    @ElementCollection
+    @CollectionTable(
+            name = "feedback_images",
+            joinColumns = @JoinColumn(name = "feedback_id")
+    )
+    @Column(name = "image_url")
+    private List<String> imageUrls;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20)
+    private FeedbackStatus status = FeedbackStatus.PENDING;
+
+
+    // Relations
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id",
+            insertable = false, updatable = false)
     private User user;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", referencedColumnName = "book_id", insertable = false, updatable = false)
+    @JoinColumn(name = "book_id", referencedColumnName = "book_id",
+            insertable = false, updatable = false)
     private Book book;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_detail_id", referencedColumnName = "order_detail_id", insertable = false, updatable = false)
+    @JoinColumn(name = "order_detail_id", referencedColumnName = "order_detail_id",
+            insertable = false, updatable = false)
     private OrderDetail orderDetail;
+
 }

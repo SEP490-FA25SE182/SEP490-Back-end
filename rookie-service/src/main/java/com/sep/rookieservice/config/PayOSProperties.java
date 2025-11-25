@@ -17,11 +17,18 @@ public class PayOSProperties {
     private String cancelUrl;
 
     // ====== Payout (chi hộ) ======
-    private String payoutBaseUrl;      // ví dụ: https://api-merchant.payos.vn
-    private String payoutClientId;     // KHÁC clientId thu tiền
-    private String payoutApiKey;       // KHÁC apiKey thu tiền
+    private String payoutBaseUrl;
+    private String payoutClientId;
+    private String payoutApiKey;
     private String payoutChecksumKey;
-    private String payoutPartnerCode;  // nếu PayOS yêu cầu
+    private String payoutPartnerCode;
     private String createPayoutPath;
+
+    private String payoutSignMode = "CANON5_RAW";
+
+    private String proxyHost;
+    private int proxyPort;
+    private String proxyUser;
+    private String proxyPass;
 }
 

@@ -25,12 +25,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.CRC32;
 
 import static org.apache.http.util.TextUtils.isBlank;
@@ -50,7 +48,11 @@ public class PaymentServiceImpl implements PaymentService {
     private static final String PAYOS_METHOD_NAME = "PayOS";
     private static final String PAYOS_PROVIDER   = "PayOS";
 
+    @Qualifier("payOSPayoutWebClient")
+    private final WebClient payOSPayoutWebClient;
+
     @Override
+    @Transactional
     public CreateCheckoutResponse createCheckout(String orderId, String returnUrl, String cancelUrl) {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -117,6 +119,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public void handleWebhook(WebhookPayload payload) {
         String dataString = PayOSSignature.buildWebhookDataString(payload.getData());
         String expected = PayOSSignature.hmacSha256(props.getChecksumKey(), dataString);
@@ -216,6 +219,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public CreateCheckoutResponse deposit(int amount, String walletId, String returnUrl, String cancelUrl) {
         if (amount <= 0) throw new IllegalArgumentException("Amount must be > 0");
 
@@ -290,6 +294,127 @@ public class PaymentServiceImpl implements PaymentService {
                     pm.setDecription("Thanh toán qua PayOS VietQR");
                     return pmRepo.save(pm);
                 }).getPaymentMethodId();
+    }
+
+    // Utils: giữ ASCII, cắt đúng 25 ký tự
+    static String shortenDesc(String s, int maxLen) {
+        if (s == null) return "";
+        s = s.trim();
+        if (s.length() <= maxLen) return s;
+        return s.substring(0, maxLen);
+    }
+
+    static String buildWithdrawDesc(String walletId, String accountNumber) {
+        String w = walletId == null ? "" : walletId.replaceAll("-", "");
+        String last4 = (accountNumber != null && accountNumber.length() >= 4)
+                ? accountNumber.substring(accountNumber.length() - 4) : "";
+        String base = "WDR " + (w.length() >= 8 ? w.substring(0, 8) : w) + " " + last4;
+        return shortenDesc(base, 25);
+    }
+
+    @Override
+    @Transactional
+    public CreateCheckoutResponse withdraw(
+            int amount, String walletId, String accountName,
+            String bankName, String accountNumber,
+            String returnUrl, String cancelUrl
+    ) {
+        Wallet wallet = walletRepo.findById(walletId)
+                .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
+        if (wallet.getBalance() < amount) throw new IllegalStateException("Insufficient balance");
+
+        String toBin = BankBin.resolveBin(bankName);
+        if (toBin == null || toBin.isBlank())
+            throw new IllegalArgumentException("Unsupported bankName; please provide BIN");
+
+        if (props.getPayoutChecksumKey() == null || props.getPayoutChecksumKey().isBlank())
+            throw new IllegalStateException("Missing rookie.payos.payout-checksum-key");
+        if (props.getPayoutChecksumKey().equals(props.getChecksumKey()))
+            System.out.println("[WARN] payoutChecksumKey equals payment checksumKey – xác nhận lại trên PayOS Dashboard!");
+
+        String referenceId = "WDR-" + walletId + "-" + System.currentTimeMillis();
+
+        String description = buildWithdrawDesc(walletId, accountNumber);
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("referenceId", referenceId);
+        body.put("amount", amount);
+        body.put("description", description);
+        body.put("toBin", toBin);
+        body.put("toAccountNumber", accountNumber);
+
+        String checksum = props.getPayoutChecksumKey().trim();
+
+        String canonical = PayOSSignature.canonical5(
+                amount, description, referenceId, accountNumber, toBin, true);
+
+        String signature = PayOSSignature.hmacSha256(checksum, canonical);
+
+        System.out.println("[PAYOUT] canonical=" + canonical);
+        System.out.println("[PAYOUT] signature=" + signature);
+
+        return callPayoutAndPersist(signature, body, walletId, amount, referenceId);
+
+
+    }
+
+    private CreateCheckoutResponse callPayoutAndPersist(
+            String signature,
+            Map<String, Object> body,
+            String walletId,
+            int amount,
+            String referenceId
+    ) {
+        // Gọi PayOS
+        PayOSPayoutResponse res = payOSPayoutWebClient.post()
+                .uri(props.getCreatePayoutPath())
+                .header("x-idempotency-key", UUID.randomUUID().toString())
+                .header("x-signature", signature)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
+                        .map(msg -> new IllegalStateException("PayOS error " + r.statusCode() + ": " + msg)))
+                .bodyToMono(PayOSPayoutResponse.class)
+                .block();
+
+        if (res == null || !"00".equals(res.getCode())) {
+            throw new IllegalStateException("Create payout failed: " + (res != null ? res.getDesc() : "null response"));
+        }
+
+        // persist transaction intent
+        String pmId = pmEnsurePayOS();
+        long orderCode = generateOrderCodeFromOrderId(referenceId);
+
+        Transaction tx = new Transaction();
+        tx.setPaymentMethodId(pmId);
+        tx.setTotalPrice(amount);
+        tx.setStatus(TransactionEnum.PROCESSING.getStatus());
+        tx.setOrderCode(orderCode);
+        tx.setUpdatedAt(Instant.now());
+        tx.setTransType(TransactionType.WITHDRAW);
+        tx.setWalletId(walletId);
+        txRepo.save(tx);
+
+        Wallet w = walletRepo.findById(walletId)
+                .orElseThrow(() -> new IllegalStateException("Wallet not found"));
+
+        BigDecimal before = BigDecimal.valueOf(w.getBalance());
+        BigDecimal afterBD = before.subtract(BigDecimal.valueOf(amount));
+        if (afterBD.signum() < 0) throw new IllegalStateException("Insufficient balance");
+
+        double after = afterBD.doubleValue();
+        w.setBalance(after);
+        w.setUpdatedAt(Instant.now());
+        walletRepo.save(w);
+
+        return CreateCheckoutResponse.builder()
+                .checkoutUrl(res.getData() != null ? res.getData().getApprovalUrl() : null)
+                .qrCode(null)
+                .paymentLinkId(res.getData() != null ? res.getData().getPayoutId() : null)
+                .orderCode(orderCode)
+                .amount(amount)
+                .build();
     }
 }
 

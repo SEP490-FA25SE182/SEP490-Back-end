@@ -59,7 +59,16 @@ public class UserAddress implements Serializable {
     @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
 
-    // ManytoOne
+    @Column(name = "province_id", length = 20)
+    private String provinceId;
+
+    @Column(name = "district_id", length = 20)
+    private String districtId;
+
+    @Column(name = "ward_code", length = 20)
+    private String wardCode;
+
+    // RELATIONSHIPS
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)

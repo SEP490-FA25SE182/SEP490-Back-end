@@ -21,10 +21,10 @@ public class SwaggerConfig {
         String ctx = (contextPath == null || contextPath.isBlank()) ? "" :
                 (contextPath.startsWith("/") ? contextPath : "/" + contextPath);
 
-        String localhostDirect = "http://localhost:" + port + ctx;
         String localhostGateway = "http://localhost:8080/api/ar";
-        String productionDirect = "http://backend.arbookrookie.xyz:" + port + ctx;
-        String productionGateway = "http://backend.arbookrookie.xyz/api/ar";
+        String localhostDirect = "http://localhost:" + port + ctx;
+        String domainGateway = "https://backend.arbookrookie.xyz/api/ar";
+        String domainDirect = "https://backend.arbookrookie.xyz:" + port + ctx;
 
         return new OpenAPI()
                 .info(new Info()
@@ -35,8 +35,8 @@ public class SwaggerConfig {
                 .servers(List.of(
                         new Server().url(localhostGateway).description("Localhost - Through API Gateway"),
                         new Server().url(localhostDirect).description("Localhost - Direct Service"),
-                        new Server().url(productionGateway).description("Production - Through API Gateway"),
-                        new Server().url(productionDirect).description("Production - Direct Service")
+                        new Server().url(domainGateway).description("Domain - Through API Gateway"),
+                        new Server().url(domainDirect).description("Domain - Direct Service")
                 ));
     }
 }

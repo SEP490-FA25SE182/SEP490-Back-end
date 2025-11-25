@@ -2,12 +2,15 @@ package com.sep.rookieservice.service.impl;
 
 import com.sep.rookieservice.dto.ChapterRequestDTO;
 import com.sep.rookieservice.dto.ChapterResponseDTO;
+import com.sep.rookieservice.dto.PageResponseDTO;
 import com.sep.rookieservice.entity.Chapter;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.exception.ResourceNotFoundException;
 import com.sep.rookieservice.mapper.ChapterMapper;
+import com.sep.rookieservice.mapper.PageMapper;
 import com.sep.rookieservice.repository.BookRepository;
 import com.sep.rookieservice.repository.ChapterRepository;
+import com.sep.rookieservice.repository.PageRepository;
 import com.sep.rookieservice.service.ChapterService;
 import com.sep.rookieservice.specification.ChapterSpecification;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +18,12 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sep.rookieservice.entity.Page;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +33,8 @@ public class ChapterServiceImpl implements ChapterService {
     private final ChapterRepository repo;
     private final ChapterMapper mapper;
     private final BookRepository bookRepository;
+    private final PageRepository pageRepository;
+    private final PageMapper pageMapper;
 
     @Override
     public ChapterResponseDTO create(ChapterRequestDTO dto) {
@@ -76,7 +85,7 @@ public class ChapterServiceImpl implements ChapterService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ChapterResponseDTO> search(
+    public org.springframework.data.domain.Page<ChapterResponseDTO> search(
             String q,
             String bookId,
             Byte progressStatus,
@@ -87,7 +96,22 @@ public class ChapterServiceImpl implements ChapterService {
         Specification<Chapter> spec =
                 ChapterSpecification.buildSpecification(q, bookId, progressStatus, publicationStatus, isActived);
 
-        Page<Chapter> page = repo.findAll(spec, pageable);
+        org.springframework.data.domain.Page<Chapter> page = repo.findAll(spec, pageable);
         return page.map(mapper::toDto);
     }
+
+
+    @Override
+    public List<PageResponseDTO> getPagesByChapterId(String chapterId) {
+        repo.findById(chapterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Chapter not found: " + chapterId));
+
+        List<com.sep.rookieservice.entity.Page> pages =
+                pageRepository.findByChapterIdOrderByPageNumberAsc(chapterId);
+
+        return pages.stream()
+                .map(pageMapper::toDto)
+                .toList();
+    }
+
 }

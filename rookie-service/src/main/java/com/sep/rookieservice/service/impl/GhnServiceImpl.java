@@ -1,6 +1,8 @@
 package com.sep.rookieservice.service.impl;
 
 import com.sep.rookieservice.config.GhnProperties;
+import com.sep.rookieservice.dto.GhnCreateOrderRequestDTO;
+import com.sep.rookieservice.dto.GhnCreateOrderResponseDTO;
 import com.sep.rookieservice.dto.GhnShippingFeeRequestDTO;
 import com.sep.rookieservice.dto.GhnShippingFeeResponseDTO;
 import com.sep.rookieservice.service.GhnService;
@@ -54,6 +56,46 @@ public class GhnServiceImpl implements GhnService {
             dto.setPickRemoteAreasFee((Integer) data.get("pick_remote_areas_fee"));
             dto.setDeliverRemoteAreasFee((Integer) data.get("deliver_remote_areas_fee"));
             dto.setCodFailedFee((Integer) data.get("cod_failed_fee"));
+        }
+
+        return dto;
+    }
+
+    @Override
+    public GhnCreateOrderResponseDTO createOrder(GhnCreateOrderRequestDTO requestDTO) {
+        String url = props.getBaseUrl() + "/v2/shipping-order/create";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Token", props.getToken());
+        headers.set("ShopId", props.getShopId());
+
+        HttpEntity<GhnCreateOrderRequestDTO> entity = new HttpEntity<>(requestDTO, headers);
+
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+
+        Map<String, Object> body = response.getBody();
+        if (body == null) {
+            throw new RuntimeException("Không nhận được phản hồi từ GHN");
+        }
+
+        Map<String, Object> data = (Map<String, Object>) body.get("data");
+
+        GhnCreateOrderResponseDTO dto = new GhnCreateOrderResponseDTO();
+        dto.setMessage((String) body.get("message"));
+        dto.setCode((Integer) body.get("code"));
+
+        if (data != null) {
+            GhnCreateOrderResponseDTO.DataResponse dataDto =
+                    new GhnCreateOrderResponseDTO.DataResponse();
+
+            dataDto.setOrderCode((String) data.get("order_code"));
+            dataDto.setSortCode((String) data.get("sort_code"));
+            dataDto.setTransType((String) data.get("trans_type"));
+            dataDto.setTotalFee((Integer) data.get("total_fee"));
+            dataDto.setExpectedDeliveryTime((String) data.get("expected_delivery_time"));
+
+            dto.setData(dataDto);
         }
 
         return dto;
