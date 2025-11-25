@@ -27,8 +27,14 @@ public class UserQuizResult implements Serializable {
     @Column(name = "score")
     private int score;
 
-    @Column(name = "number")
-    private int number;
+    @Column(name = "attempt_count")
+    private int attemptCount;
+
+    @Column(name = "correct_count")
+    private int correctCount;
+
+    @Column(name = "question_count")
+    private int questionCount;
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
@@ -42,7 +48,6 @@ public class UserQuizResult implements Serializable {
     @Column(name = "is_reward")
     private Boolean isReward;
 
-    @NotNull
     @Column(name = "coin")
     private int coin;
 

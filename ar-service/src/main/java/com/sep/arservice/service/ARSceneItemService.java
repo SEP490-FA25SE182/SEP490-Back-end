@@ -12,5 +12,5 @@ public interface ARSceneItemService {
     ARSceneItemResponse update(String itemId, ARSceneItemRequest req);
     void deleteHard(String itemId);
     ARSceneItemResponse getById(String itemId);
-    Page<ARSceneItemResponse> search(String sceneId, String asset3dId, Pageable pageable);
+    Page<ARSceneItemResponse> search(String sceneId, String asset3DId, Pageable pageable);
 }

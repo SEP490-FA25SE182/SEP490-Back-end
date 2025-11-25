@@ -9,7 +9,9 @@ import java.time.Instant;
 public class UserQuizResultResponse {
     private String resultId;
     private Integer score;
-    private Integer number;
+    private int attemptCount;
+    private int correctCount;
+    private int questionCount;
     private Boolean isComplete;
     private Boolean isReward;
     private Integer coin;

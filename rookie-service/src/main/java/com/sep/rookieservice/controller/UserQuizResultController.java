@@ -1,5 +1,6 @@
 package com.sep.rookieservice.controller;
 
+import com.sep.rookieservice.dto.QuizSubmitRequest;
 import com.sep.rookieservice.dto.UserQuizResultRequest;
 import com.sep.rookieservice.dto.UserQuizResultResponse;
 import com.sep.rookieservice.enums.IsActived;
@@ -80,6 +81,11 @@ public class UserQuizResultController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         service.delete(id);
+    }
+
+    @PostMapping("/submit")
+    public UserQuizResultResponse submitQuiz(@RequestBody QuizSubmitRequest request) {
+        return service.createForUser(request);
     }
 }
 

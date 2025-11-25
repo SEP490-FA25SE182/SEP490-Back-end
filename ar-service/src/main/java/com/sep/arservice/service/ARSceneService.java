@@ -15,4 +15,7 @@ public interface ARSceneService {
 
     // Dùng cho Unity: lấy scene + items + assets theo markerCode
     ARSceneWithItemsResponse getPublishedByMarkerCode(String markerCode);
+
+    // Dùng cho Unity: lấy scene + items + assets theo markerId
+    ARSceneWithItemsResponse getPublishedByMarkerId(String markerId);
 }
