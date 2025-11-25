@@ -61,4 +61,13 @@ public class ARSceneController {
     public ARSceneWithItemsResponse byMarkerCode(@PathVariable("code") @Size(max=50) String markerCode) {
         return service.getPublishedByMarkerCode(markerCode);
     }
+
+    // Unity lấy scene theo markerId (PUBLISHED mới nhất)
+    @GetMapping("/by-marker-id/{markerId}")
+    public ARSceneWithItemsResponse byMarkerId(
+            @PathVariable("markerId")
+            @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String markerId) {
+        return service.getPublishedByMarkerId(markerId);
+    }
+
 }

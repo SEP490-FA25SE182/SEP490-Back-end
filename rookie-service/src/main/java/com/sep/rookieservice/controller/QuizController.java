@@ -1,5 +1,6 @@
 package com.sep.rookieservice.controller;
 
+import com.sep.rookieservice.dto.QuizPlayDTO;
 import com.sep.rookieservice.dto.QuizRequestDTO;
 import com.sep.rookieservice.dto.QuizResponseDTO;
 import com.sep.rookieservice.enums.IsActived;
@@ -73,5 +74,10 @@ public class QuizController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         service.delete(id);
+    }
+
+    @GetMapping("/{id}/play")
+    public QuizPlayDTO getPlayData(@PathVariable String id) {
+        return service.getPlayData(id);
     }
 }

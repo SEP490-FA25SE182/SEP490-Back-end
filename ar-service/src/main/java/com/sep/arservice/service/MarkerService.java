@@ -13,6 +13,8 @@ public interface MarkerService {
     MarkerResponse create(MarkerRequest req);
     MarkerResponse update(String id, MarkerRequest req);
     void softDelete(String id);
-    Page<MarkerResponse> search(String markerCode, String markerType, Pageable pageable);
+    Page<MarkerResponse> search(String markerCode, String markerType, String pageId, Pageable pageable);
+    MarkerResponse createWithPage(String pageId, MarkerRequest req);
+    MarkerResponse attachPage(String markerId, String pageId);
 }
 

@@ -127,4 +127,41 @@ public class ARSceneServiceImpl implements ARSceneService {
 
         return mapper.compose(sceneDto, markerDto, assetDtos, itemDtos);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ARSceneWithItemsResponse getPublishedByMarkerId(String markerId) {
+        // đảm bảo marker tồn tại
+        Marker marker = markerRepo.findById(markerId)
+                .orElseThrow(() -> new RuntimeException("Marker not found: " + markerId));
+
+        // Lấy scene PUBLISHED mới nhất theo markerId
+        Optional<ARScene> latest = repo
+                .findTopByMarkerIdAndStatusOrderByCreatedAtDesc(markerId, "PUBLISHED");
+
+        ARScene scene = latest
+                .orElseThrow(() -> new RuntimeException("No PUBLISHED scene for markerId: " + markerId));
+
+        // Items
+        List<ARSceneItem> items = itemRepo.findBySceneIdOrderByOrderIndexAsc(scene.getSceneId());
+
+        // Asset ids
+        Set<String> assetIds = items.stream()
+                .map(ARSceneItem::getAsset3DId)
+                .collect(Collectors.toSet());
+        List<Asset3D> assets = assetRepo.findAllById(assetIds);
+
+        // Map to DTO
+        ARSceneResponse sceneDto           = mapper.toResponse(scene);
+        MarkerResponse markerDto           = markerMapper.toResponse(marker);
+        List<ARSceneItemResponse> itemDtos = items.stream()
+                .map(itemMapper::toResponse)
+                .toList();
+        List<Asset3DResponse> assetDtos    = assets.stream()
+                .map(assetMapper::toResponse)
+                .toList();
+
+        return mapper.compose(sceneDto, markerDto, assetDtos, itemDtos);
+    }
+
 }
