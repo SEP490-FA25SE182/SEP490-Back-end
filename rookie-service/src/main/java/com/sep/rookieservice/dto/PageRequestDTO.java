@@ -17,5 +17,7 @@ public class PageRequestDTO {
     @NotBlank
     private String chapterId;
 
+    private String pageType;
+
     private IsActived isActived;
 }

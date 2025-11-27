@@ -31,7 +31,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "allRoles", key = "'all'")
+    //@Cacheable(value = "allRoles", key = "'all'")
     public List<RoleResponse> getAll() {
         return roleRepository.findAll().stream().map(mapper::toResponse).toList();
     }

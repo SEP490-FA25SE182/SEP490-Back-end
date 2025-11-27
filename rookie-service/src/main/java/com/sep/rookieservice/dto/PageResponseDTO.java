@@ -12,6 +12,7 @@ public class PageResponseDTO {
     private String chapterId;
     private Integer pageNumber;
     private String content;
+    private String pageType;
     private IsActived isActived;
     private Instant createdAt;
     private Instant updatedAt;

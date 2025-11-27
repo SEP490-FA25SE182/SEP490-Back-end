@@ -42,6 +42,9 @@ public class Page implements Serializable {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "page_type", length = 10)
+    private String pageType;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "is_actived", nullable = false, length = 10)

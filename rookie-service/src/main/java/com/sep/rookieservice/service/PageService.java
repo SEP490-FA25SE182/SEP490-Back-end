@@ -16,5 +16,11 @@ public interface PageService {
 
     void softDelete(String id);
 
-    Page<PageResponseDTO> search(String q, String chapterId, IsActived isActived, Pageable pageable);
+    Page<PageResponseDTO> search(
+            String q,
+            String chapterId,
+            String pageType,
+            IsActived isActived,
+            Pageable pageable
+    );
 }
