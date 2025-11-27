@@ -77,9 +77,10 @@ public class OrderController {
             @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId,
             @PathVariable
             @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId,
-            @RequestParam(name = "usePoints", defaultValue = "false") boolean usePoints) {
+            @RequestParam(name = "usePoints", defaultValue = "false") boolean usePoints,
+            @RequestBody List<String> cartItemIds) {
 
-        return orderService.moveCartToOrder(cartId, walletId, usePoints);
+        return orderService.moveCartToOrder(cartId, walletId, usePoints, cartItemIds);
     }
 
     // SEARCH
