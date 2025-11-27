@@ -1,12 +1,13 @@
 package com.sep.aiservice.service.impl;
 
+import com.sep.aiservice.dto.AudioUploadRequest;
 import com.sep.aiservice.dto.GeminiResponse;
 import com.sep.aiservice.dto.TtsGenerateRequest;
 import com.sep.aiservice.dto.AudioResponse;
 import com.sep.aiservice.entity.AIGeneration;
-import com.sep.aiservice.entity.AIGenerationTarget;
+import jakarta.persistence.*;
 import com.sep.aiservice.entity.Audio;
-import com.sep.aiservice.enums.AIGenerationEnum;
+import java.util.UUID;
 import com.sep.aiservice.enums.GenerationMode;
 import com.sep.aiservice.enums.IsActived;
 import com.sep.aiservice.mapper.AudioMapper;
@@ -24,9 +25,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
@@ -131,6 +135,86 @@ public class TextToSpeechServiceImpl implements TextToSpeechService {
             log.error("TTS generation failed", e);
             genLog.fail(gen, (System.nanoTime() - t0) / 1_000_000.0, e);
             throw new RuntimeException("TTS generation failed: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public AudioResponse uploadAudio(MultipartFile file, AudioUploadRequest meta, String userId) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File audio is empty");
+        }
+
+        try {
+            // 1. Lấy tên file gốc & đuôi file (format)
+            String originalName = file.getOriginalFilename();
+            if (!StringUtils.hasText(originalName)) {
+                originalName = "audio";
+            }
+
+            String ext = "";
+            int dot = originalName.lastIndexOf('.');
+            if (dot >= 0 && dot < originalName.length() - 1) {
+                ext = originalName.substring(dot + 1).toLowerCase();
+            }
+
+            // Nếu không có extension thì default thành "wav"
+            if (!StringUtils.hasText(ext)) {
+                ext = "wav";
+            }
+
+            // Validate format theo list cho phép
+            if (!ext.matches("(?i)mp3|wav|ogg|m4a|flac")) {
+                throw new IllegalArgumentException("Unsupported audio format: " + ext);
+            }
+
+            // 2. Title để lưu DB & đặt tên file
+            String finalTitle = (meta != null && StringUtils.hasText(meta.getTitle()))
+                    ? meta.getTitle()
+                    : originalName;
+
+            // 3. Language (optional)
+            String language = (meta != null) ? meta.getLanguage() : null;
+
+            // 4. Tạo tên file an toàn cho Firebase
+            String safe = slugify(finalTitle);
+            String shortId = UUID.randomUUID().toString().substring(0, 8);
+            String fileName = String.format("audios/%s-%s.%s", safe, shortId, ext);
+
+            // 5. ContentType
+            String contentType = file.getContentType();
+            if (!StringUtils.hasText(contentType)) {
+                // đoán đơn giản cho audio
+                contentType = "audio/" + ext;
+            }
+
+            // 6. Upload Firebase
+            String publicUrl = storageService.upload(
+                    fileName,
+                    file.getInputStream(),
+                    contentType,
+                    file.getSize()
+            );
+
+            // 7. Lưu Audio vào DB
+            Audio audio = new Audio();
+            audio.setAudioUrl(publicUrl);
+            audio.setVoice(null);      // upload file có sẵn nên không có voiceName
+            audio.setFormat(ext);
+            audio.setLanguage(language);
+            audio.setTitle(finalTitle);
+            audio.setDurationMs(0);    // nếu cần tính duration thì thêm lib sau
+            audio.setIsActived(IsActived.ACTIVE);
+            audio.setUserId(userId);
+
+            audio = audioRepo.save(audio);
+
+            // 8. Trả về response
+            return audioMapper.toResponse(audio);
+
+        } catch (IOException e) {
+            log.error("Upload audio failed", e);
+            throw new RuntimeException("Upload audio failed: " + e.getMessage(), e);
         }
     }
 

@@ -43,7 +43,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "allOrders", key = "'all'")
+    //@Cacheable(value = "allOrders", key = "'all'")
     public List<OrderResponse> getAll() {
         return orderRepository.findAll().stream().map(mapper::toResponse).toList();
     }
