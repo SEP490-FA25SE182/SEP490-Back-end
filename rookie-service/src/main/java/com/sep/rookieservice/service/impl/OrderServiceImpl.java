@@ -121,17 +121,32 @@ public class OrderServiceImpl implements OrderService {
             value = {"allOrders", "Order", "allCartItems", "CartItem", "allCarts", "Cart"},
             allEntries = true
     )
-    public OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints) {
+    public OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints, List<String> cartItemIds) {
+        if (cartItemIds == null || cartItemIds.isEmpty()) {
+            throw new RuntimeException("No cart items selected to move to order");
+        }
+
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found with id: " + cartId));
-        List<CartItem> items = cartItemRepository.findByCartId(cartId);
-        if (items.isEmpty()) throw new RuntimeException("Cart is empty, cannot create order");
+
+        // Lấy đúng các CartItem được chọn
+        List<CartItem> items = cartItemRepository.findByCartIdAndCartItemIdIn(cartId, cartItemIds);
+        if (items.isEmpty()) {
+            throw new RuntimeException("Selected cart items not found in cart: " + cartId);
+        }
 
         // Lấy ví để trừ coin (nếu có dùng điểm)
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found with id: " + walletId));
 
-        double cartTotal = cart.getTotalPrice();
+        // Tổng tiền & amount chỉ của items được chọn
+        int itemsAmount = items.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+
+        double cartTotal = items.stream()
+                .mapToDouble(i -> i.getQuantity() * i.getPrice())
+                .sum();
 
         // Tính giảm giá từ coin
         int coinsToUse = 0;
@@ -141,10 +156,8 @@ public class OrderServiceImpl implements OrderService {
             double maxDiscountByRate = cartTotal * MAX_DISCOUNT_RATE;
             double maxDiscountByCoins = wallet.getCoin() * COIN_VALUE;
 
-            // số tiền có thể giảm là min
             double allowedDiscount = Math.min(maxDiscountByRate, maxDiscountByCoins);
 
-            // quy ra số coin nguyên sẽ dùng
             coinsToUse = (int) Math.floor(allowedDiscount / COIN_VALUE);
             if (coinsToUse > 0) {
                 discount = coinsToUse * COIN_VALUE;
@@ -153,9 +166,9 @@ public class OrderServiceImpl implements OrderService {
 
         double finalTotal = Math.max(0.0, cartTotal - discount);
 
-        // Tạo Order
+        // Tạo Order từ các item được chọn
         Order order = Order.builder()
-                .amount(cart.getAmount())
+                .amount(itemsAmount)
                 .totalPrice(finalTotal)
                 .walletId(walletId)
                 .cartId(cartId)
@@ -169,23 +182,19 @@ public class OrderServiceImpl implements OrderService {
         // Duyệt từng CartItem -> tạo OrderDetail + trừ tồn kho Book
         for (CartItem item : items) {
 
-            // 1. Lấy Book theo bookId trong CartItem
             Book book = bookRepository.findById(item.getBookId())
                     .orElseThrow(() ->
                             new RuntimeException("Book not found with id: " + item.getBookId()));
 
-            // 2. Kiểm tra tồn kho
             Integer currentQty = book.getQuantity() == null ? 0 : book.getQuantity();
             if (currentQty < item.getQuantity()) {
                 throw new RuntimeException("Not enough quantity for book: " + book.getBookName());
             }
 
-            // 3. Trừ quantity và lưu lại Book
             book.setQuantity(currentQty - item.getQuantity());
             book.setUpdatedAt(Instant.now());
             bookRepository.save(book);
 
-            // 4. Tạo OrderDetail
             OrderDetail detail = OrderDetail.builder()
                     .quantity(item.getQuantity())
                     .price(item.getPrice())
@@ -202,10 +211,20 @@ public class OrderServiceImpl implements OrderService {
             walletRepository.save(wallet);
         }
 
-        // clear cart
+        // Xóa các CartItem đã move (clear các item được chọn)
         cartItemRepository.deleteAll(items);
-        cart.setAmount(0);
-        cart.setTotalPrice(0);
+
+        // Recalc lại cart từ các item còn lại
+        List<CartItem> remainingItems = cartItemRepository.findByCartId(cartId);
+        int totalAmount = remainingItems.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+        double totalPrice = remainingItems.stream()
+                .mapToDouble(i -> i.getQuantity() * i.getPrice())
+                .sum();
+
+        cart.setAmount(totalAmount);
+        cart.setTotalPrice(totalPrice);
         cart.setUpdatedAt(Instant.now());
         cartRepository.save(cart);
 
@@ -213,7 +232,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void validateStatus(Byte status) {
-        // ném lỗi nếu status không hợp lệ
         OrderEnum.getByStatus(status);
     }
 
