@@ -45,9 +45,9 @@ public class PageController {
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String chapterId,
+            @RequestParam(required = false) String pageType,
             @RequestParam(required = false) IsActived isActived
     ) {
-
         Sort sortObj = Sort.unsorted();
         if (sort != null && !sort.isEmpty()) {
             for (String s : sort) {
@@ -65,6 +65,6 @@ public class PageController {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return service.search(q, chapterId, isActived, pageable);
+        return service.search(q, chapterId, pageType, isActived, pageable);
     }
 }

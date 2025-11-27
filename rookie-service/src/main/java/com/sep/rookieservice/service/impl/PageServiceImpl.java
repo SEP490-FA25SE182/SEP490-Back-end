@@ -13,7 +13,6 @@ import com.sep.rookieservice.specification.PageSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,10 +59,9 @@ public class PageServiceImpl implements PageService {
                     .orElseThrow(() -> new ResourceNotFoundException("Chapter not found with id: " + dto.getChapterId()));
         }
 
-        Page updated = mapper.toEntity(dto, existing);
-        updated.setUpdatedAt(Instant.now());
-
-        return mapper.toDto(repo.save(updated));
+        mapper.toEntity(dto, existing);
+        existing.setUpdatedAt(Instant.now());
+        return mapper.toDto(repo.save(existing));
     }
 
     @Override
@@ -82,10 +80,11 @@ public class PageServiceImpl implements PageService {
     public org.springframework.data.domain.Page<PageResponseDTO> search(
             String q,
             String chapterId,
+            String pageType,
             IsActived isActived,
             Pageable pageable
     ) {
-        Specification<Page> spec = PageSpecification.buildSpecification(q, chapterId, isActived);
+        Specification<Page> spec = PageSpecification.buildSpecification(q, chapterId, pageType, isActived);
         org.springframework.data.domain.Page<Page> page = repo.findAll(spec, pageable);
         return page.map(mapper::toDto);
     }
