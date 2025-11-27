@@ -14,12 +14,12 @@ public class MarkerRequest {
     @Size(max=50)
     private String markerType;
 
-    @Size(max=300)
     private String imageUrl;
 
     @DecimalMin(value = "0.001", message = "physicalWidthM must be > 0")
     private Double physicalWidthM; // optional
 
-    @Size(max=500)
     private String printablePdfUrl;
+
+    private String userId;
 }

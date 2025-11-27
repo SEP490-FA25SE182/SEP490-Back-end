@@ -19,6 +19,7 @@ public interface MarkerMapper {
             @Mapping(target="markerType",       source="markerType"),
             @Mapping(target="imageUrl",         source="imageUrl"),
             @Mapping(target="physicalWidthM",   source="physicalWidthM"),
+            @Mapping(target="userId",         source="userId"),
             @Mapping(target="printablePdfUrl",  source="printablePdfUrl")
     })
     void copyForCreate(MarkerRequest req, @MappingTarget Marker e);
@@ -28,6 +29,7 @@ public interface MarkerMapper {
             @Mapping(target="markerType",       source="markerType"),
             @Mapping(target="imageUrl",         source="imageUrl"),
             @Mapping(target="physicalWidthM",   source="physicalWidthM"),
+            @Mapping(target="userId",         source="userId"),
             @Mapping(target="printablePdfUrl",  source="printablePdfUrl")
     })
     void copyForUpdate(MarkerRequest req, @MappingTarget Marker e);

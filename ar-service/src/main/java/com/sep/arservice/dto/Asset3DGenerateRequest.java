@@ -32,7 +32,6 @@ public class Asset3DGenerateRequest {
     @Size(max=600)
     String texturePrompt;   // optional, gợi ý texturing
 
-    @Size(max=1000)
     String textureImageUrl; // optional, nếu muốn texture theo ảnh
 }
 

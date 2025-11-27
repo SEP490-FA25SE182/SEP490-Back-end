@@ -39,6 +39,9 @@ public class Marker implements Serializable {
     @Column(name="printable_pdf_url", length=500) //đường dẫn file PDF marker để tải/in.
     private String printablePdfUrl;
 
+    @Column(name="user_id", length=50)
+    private String userId;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 

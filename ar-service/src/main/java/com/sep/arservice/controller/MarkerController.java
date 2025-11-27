@@ -49,10 +49,12 @@ public class MarkerController {
             @Size(max = 50) String markerType,
             @RequestParam(required = false)
             @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String pageId,
+            @RequestParam(required=false)
+            @Size(max=50) String userId,
             @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return service.search(markerCode, markerType, pageId, pageable);
+        return service.search(markerCode, markerType, pageId, userId, pageable);
     }
 
     @PostMapping("/pages/{pageId}")
