@@ -43,7 +43,8 @@ public class Book implements Serializable {
     private String coverUrl;
 
     @Nationalized
-    @Column(name = "decription", length = 250)
+    @Lob
+    @Column(name = "decription")
     private String decription;
 
     @Column(name = "price", precision = 10, scale = 2)
