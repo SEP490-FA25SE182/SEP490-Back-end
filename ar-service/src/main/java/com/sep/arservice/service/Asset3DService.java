@@ -1,6 +1,7 @@
 package com.sep.arservice.service;
 
 import com.sep.arservice.dto.Asset3DGenerateRequest;
+import com.sep.arservice.dto.Asset3DRequest;
 import com.sep.arservice.dto.Asset3DResponse;
 import com.sep.arservice.dto.Asset3DUploadRequest;
 import org.springframework.data.domain.Page;
@@ -20,5 +21,6 @@ public interface Asset3DService {
     Page<Asset3DResponse> search(String markerId, String userId, String format, Pageable pageable);
     Page<Asset3DResponse> searchByMarkerCode(String markerCode, Pageable pageable);
     List<Asset3DResponse> latestByMarker(String markerId, int limit);
+    Asset3DResponse create(Asset3DRequest req);
 }
 

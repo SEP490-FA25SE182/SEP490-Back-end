@@ -2,6 +2,7 @@ package com.sep.arservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep.arservice.dto.Asset3DGenerateRequest;
+import com.sep.arservice.dto.Asset3DRequest;
 import com.sep.arservice.dto.Asset3DResponse;
 import com.sep.arservice.dto.Asset3DUploadRequest;
 import com.sep.arservice.service.Asset3DService;
@@ -85,6 +86,11 @@ public class Asset3DController {
     public List<Asset3DResponse> latest(@RequestParam @Size(max=50) String markerId,
                                         @RequestParam(defaultValue="3") @Min(1) @Max(20) int limit){
         return service.latestByMarker(markerId, limit);
+    }
+
+    @PostMapping
+    public Asset3DResponse create(@Valid @RequestBody Asset3DRequest req) {
+        return service.create(req);
     }
 }
 

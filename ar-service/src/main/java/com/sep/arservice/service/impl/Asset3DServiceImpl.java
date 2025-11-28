@@ -1,9 +1,6 @@
 package com.sep.arservice.service.impl;
 
-import com.sep.arservice.dto.Asset3DGenerateRequest;
-import com.sep.arservice.dto.Asset3DResponse;
-import com.sep.arservice.dto.Asset3DUploadRequest;
-import com.sep.arservice.dto.MeshyStatusRes;
+import com.sep.arservice.dto.*;
 import com.sep.arservice.enums.IsActived;
 import com.sep.arservice.mapper.Asset3DMapper;
 import com.sep.arservice.model.Asset3D;
@@ -276,6 +273,33 @@ public class Asset3DServiceImpl implements Asset3DService {
         if (name.isBlank()) return null;
         if (name.length() > 120) name = name.substring(0, 120);
         return name;
+    }
+
+    @Override
+    public Asset3DResponse create(Asset3DRequest req) {
+        Asset3D entity = new Asset3D();
+
+        entity.setAssetUrl(req.getAssetUrl());
+        entity.setFileName(req.getFileName());
+        entity.setMarkerId(req.getMarkerId());
+
+        // nếu dùng thêm các field khác:
+        entity.setThumbUrl(req.getThumbUrl());
+        entity.setPrompt(req.getPrompt());
+        entity.setScale(req.getScale());
+        entity.setUserId(req.getUserId());
+
+        // theo yêu cầu: source = CREATE, format = GLB
+        entity.setSource("CREATE");
+        entity.setFormat("GLB");
+
+        // mặc định
+        entity.setIsActived(IsActived.ACTIVE);
+        entity.setCreatedAt(Instant.now());
+        entity.setUpdatedAt(Instant.now());
+
+        Asset3D saved = repo.save(entity);
+        return mapper.toResponse(saved);
     }
 }
 
