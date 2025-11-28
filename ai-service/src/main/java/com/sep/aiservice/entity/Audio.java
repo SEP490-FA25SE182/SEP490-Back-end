@@ -27,7 +27,8 @@ public class Audio implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String audioId;
 
-    @Column(name = "audio_url", length = 500)
+    @Lob
+    @Column(name = "audio_url")
     private String audioUrl;
 
     @Column(name = "voice", length = 50)
@@ -42,7 +43,7 @@ public class Audio implements Serializable {
     @Column(name = "duration_ms")
     private double durationMs;
 
-    @Column(name = "title", length = 50)
+    @Column(name = "title")
     private String title;
 
     @Column(name = "user_id", length = 50)
