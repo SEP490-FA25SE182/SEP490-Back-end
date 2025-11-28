@@ -40,6 +40,12 @@ spring:
           filters:
             - StripPrefix=2
 
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.sep.apigateway: DEBUG
+    reactor.netty: DEBUG
+
 management:
   endpoints:
     web:
