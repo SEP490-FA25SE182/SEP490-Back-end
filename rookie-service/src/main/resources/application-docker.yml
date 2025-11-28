@@ -7,6 +7,18 @@ spring:
   redis:
     host: ${REDIS_HOST:redis}
     port: ${REDIS_PORT:6379}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 management:
   endpoints:
@@ -28,3 +40,9 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+
+app:
+  mail:
+    from: ${APP_MAIL_FROM:noreply@arbookrookie.xyz}
+  frontend:
+    reset-password-url: ${APP_FRONTEND_RESET_PASSWORD_URL:http://localhost:3000/reset}
