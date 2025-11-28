@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -33,10 +34,13 @@ public class Blog implements Serializable {
 
     @NotNull
     @Size(max = 200)
+    @Nationalized
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Column(name = "content", length = 10000)
+    @Nationalized
+    @Lob
+    @Column(name = "content")
     private String content;
 
     @Column(name = "created_at", updatable = false)

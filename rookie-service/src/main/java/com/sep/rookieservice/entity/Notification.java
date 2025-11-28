@@ -6,6 +6,7 @@ import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -23,9 +24,11 @@ public class Notification implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String notificationId;
 
+    @Nationalized
     @Column(name = "message", length = 500)
     private String message;
 
+    @Nationalized
     @Column(name = "title", length = 500)
     private String title;
 

@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -31,6 +32,7 @@ public class Book implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String bookId;
 
+    @Nationalized
     @Column(name= "book_name", length = 50)
     private String bookName;
 
@@ -40,6 +42,7 @@ public class Book implements Serializable {
     @Column(name = "cover_url", length = 500)
     private String coverUrl;
 
+    @Nationalized
     @Column(name = "decription", length = 250)
     private String decription;
 

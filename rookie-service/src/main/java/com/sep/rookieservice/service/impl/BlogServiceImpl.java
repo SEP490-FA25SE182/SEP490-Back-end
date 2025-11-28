@@ -37,7 +37,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "allBlogs", key = "'all'")
+    //@Cacheable(value = "allBlogs", key = "'all'")
     public List<BlogResponse> getAll() {
         return repository.findAll().stream().map(mapper::toResponse).toList();
     }

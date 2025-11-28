@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,9 +23,11 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String genreId;
 
+    @Nationalized
     @Column(name = "genre_name", length = 50)
     private String genreName;
 
+    @Nationalized
     @Column(name = "description", length = 250)
     private String description;
 

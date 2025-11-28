@@ -6,6 +6,7 @@ import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -24,6 +25,7 @@ public class Feedback implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String feedbackId;
 
+    @Nationalized
     @Column(name = "content", length = 250)
     private String content;
 

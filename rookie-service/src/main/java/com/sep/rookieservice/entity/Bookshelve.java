@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -25,9 +26,11 @@ public class Bookshelve implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String bookshelveId;
 
+    @Nationalized
     @Column(name = "bookshelve_name", length = 50)
     private String bookshelveName;
 
+    @Nationalized
     @Column(name = "decription", length = 250)
     private String decription;
 

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -24,6 +25,7 @@ public class Answer implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String answerId;
 
+    @Nationalized
     @Column(name = "content", length = 250)
     private String content;
 

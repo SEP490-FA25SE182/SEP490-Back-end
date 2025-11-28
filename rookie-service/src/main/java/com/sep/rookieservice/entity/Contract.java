@@ -4,6 +4,7 @@ import com.sep.rookieservice.enums.ContractStatus;
 import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 
@@ -23,10 +24,13 @@ public class Contract {
     @Column(name = "contract_number", length = 100, unique = true)
     private String contractNumber;
 
+    @Nationalized
     @Column(name = "title", length = 250)
     private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Lob
+    @Nationalized
+    @Column(name = "description")
     private String description;
 
     @Column(name = "document_url", length = 1000)
@@ -46,7 +50,9 @@ public class Contract {
     @Column(name = "is_actived", length = 10)
     private IsActived isActived = IsActived.ACTIVE;
 
-    @Column(name = "note", columnDefinition = "TEXT")
+    @Lob
+    @Nationalized
+    @Column(name = "note")
     private String note;
 
     @Column(name = "created_at", updatable = false)
