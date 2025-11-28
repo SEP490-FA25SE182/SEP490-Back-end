@@ -39,7 +39,7 @@ public class AudioServiceImpl implements AudioService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "Audio", key = "#id")
+    //@Cacheable(value = "Audio", key = "#id")
     public AudioResponse getById(String id) {
         Audio a = audioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Audio not found: " + id));

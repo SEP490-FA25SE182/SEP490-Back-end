@@ -21,17 +21,6 @@ public class UserQuizResultController {
 
     private final UserQuizResultService service;
 
-    /**
-     * Search & pagination endpoint.
-     * - page: 0-based page index
-     * - size: page size
-     * - sort: ví dụ: sort=createdAt-desc&sort=score-asc
-     * - quizId: filter theo quiz
-     * - userId: filter theo user
-     * - isComplete: true/false
-     * - isReward: true/false
-     * - isActived: ACTIVE/INACTIVE
-     */
     @GetMapping
     public Page<UserQuizResultResponse> list(
             @RequestParam(defaultValue = "0") int page,

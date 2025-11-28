@@ -32,14 +32,14 @@ public class IllustrationServiceImpl implements IllustrationService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "allIllustrations", key = "'all'")
+    //@Cacheable(value = "allIllustrations", key = "'all'")
     public List<IllustrationResponse> getAll() {
         return illustrationRepository.findAll().stream().map(mapper::toResponse).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "Illustration", key = "#id")
+    //@Cacheable(value = "Illustration", key = "#id")
     public IllustrationResponse getById(String id) {
         Illustration i = illustrationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Illustration not found: " + id));
