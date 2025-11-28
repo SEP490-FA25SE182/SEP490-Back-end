@@ -32,6 +32,7 @@ public class CorsGlobalConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         String gatewayUrl = apiUrl + ":" + gatewayPort;
+      
         /*
         config.setAllowedOrigins(List.of(
                 frontendUrl,
