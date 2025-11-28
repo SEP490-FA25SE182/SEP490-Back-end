@@ -19,13 +19,13 @@ spring:
           predicates:
             - Path=/rookie-service/v3/api-docs/**
           filters:
-            - RewritePath=/rookie-service/(?<remaining>.*), /$\{remaining}
+            - RewritePath=/rookie-service(?<segment>/?.*), $\{segment}
         - id: ar-service-docs
           uri: lb://ar-service
           predicates:
             - Path=/ar-service/v3/api-docs/**
           filters:
-            - RewritePath=/ar-service/(?<remaining>.*), /$\{remaining}
+            - RewritePath=/ar-service(?<segment>/?.*), $\{segment}
         
         - id: rookie-service
           uri: lb://rookie-service
@@ -43,8 +43,8 @@ spring:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
-    com.sep.apigateway: DEBUG
-    reactor.netty: DEBUG
+    com.sep.apigateway: INFO
+    reactor.netty: INFO
 
 management:
   endpoints:
