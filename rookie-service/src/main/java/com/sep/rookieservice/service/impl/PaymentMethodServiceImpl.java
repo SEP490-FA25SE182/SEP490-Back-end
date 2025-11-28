@@ -26,7 +26,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     private final PaymentMethodMapper mapper;
 
     @Override
-    @CacheEvict(value = {"allPaymentMethods","PaymentMethod"}, allEntries = true)
+    //@CacheEvict(value = {"allPaymentMethods","PaymentMethod"}, allEntries = true)
     public PaymentMethodResponse create(PaymentMethodRequest req) {
         if (req.getMethodName() != null &&
                 repository.existsByMethodNameIgnoreCase(req.getMethodName().trim())) {

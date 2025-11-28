@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "allUsers", key = "'all'")
+    //@Cacheable(value = "allUsers", key = "'all'")
     public List<UserResponse> getAll() {
         return userRepository.findAll().stream().map(mapper::toResponse).toList();
     }
@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
                         "password", "avatarUrl",
                         "createdAt", "updateAt",
                         "addresses", "books", "feedbacks", "userQuizResults",
-                        "bookshelve", "cart", "wallet", "role"
+                        "bookshelve", "cart", "wallet", "role", "royalty"
                 )
                 .withIgnoreNullValues();
 

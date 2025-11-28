@@ -13,6 +13,7 @@ public class MarkerResponse {
     private String imageUrl;
     private Double physicalWidthM;
     private String printablePdfUrl;
+    private String userId;
     private IsActived isActived;
     private Instant createdAt;
     private Instant updatedAt;

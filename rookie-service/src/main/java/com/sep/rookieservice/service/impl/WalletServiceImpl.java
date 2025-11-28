@@ -31,7 +31,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "allWallets", key = "'all'")
+    //@Cacheable(value = "allWallets", key = "'all'")
     public List<WalletResponse> getAll() {
         return walletRepository.findAll().stream().map(mapper::toResponse).toList();
     }

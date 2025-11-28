@@ -2,6 +2,8 @@ package com.sep.aiservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
+
 import java.time.Instant;
 
 @Entity
@@ -19,10 +21,12 @@ public class ChatMessage {
     @Column(nullable = false)
     private String sessionId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Nationalized
+    @Column(nullable = false)
     private String userMessage;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Nationalized
+    @Column(nullable = false)
     private String aiResponse;
 
     private Instant createdAt = Instant.now();

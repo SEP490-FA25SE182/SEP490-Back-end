@@ -1,7 +1,9 @@
 package com.sep.aiservice.service;
 
 import com.sep.aiservice.dto.AudioResponse;
+import com.sep.aiservice.dto.AudioUploadRequest;
 import com.sep.aiservice.dto.TtsGenerateRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface TextToSpeechService {
     /**
@@ -13,4 +15,5 @@ public interface TextToSpeechService {
      * @param userId id người dùng gọi (để ghi AIGeneration.userId)
      */
     AudioResponse synthesize(TtsGenerateRequest req, String userId);
+    AudioResponse uploadAudio(MultipartFile file, AudioUploadRequest meta, String userId);
 }

@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.io.Serializable;
@@ -33,15 +34,19 @@ public class Chapter implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String chapterId;
 
+    @Nationalized
     @Column(name = "chapter_name", length = 50)
     private String chapterName;
 
     @Column(name = "chapter_number")
     private int chapterNumber;
 
-    @Column(name = "decription", length = 250)
+    @Nationalized
+    @Lob
+    @Column(name = "decription")
     private String decription;
 
+    @Nationalized
     @Column(name = "review", length = 250)
     private String review;
 

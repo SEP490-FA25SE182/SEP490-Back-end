@@ -81,7 +81,7 @@ public class MarkerServiceImpl implements MarkerService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MarkerResponse> search(String markerCode, String markerType, String pageId, Pageable pageable) {
+    public Page<MarkerResponse> search(String markerCode, String markerType, String pageId, String userId, Pageable pageable) {
         // ==== Build Example cho trường hợp KHÔNG có pageId ====
         Marker probe = new Marker();
         if (markerCode != null && !markerCode.isBlank()) {
@@ -90,12 +90,21 @@ public class MarkerServiceImpl implements MarkerService {
         if (markerType != null && !markerType.isBlank()) {
             probe.setMarkerType(markerType.trim());
         }
+        if (userId != null && !userId.isBlank()) {
+            probe.setUserId(userId.trim());
+        }
         probe.setIsActived(IsActived.ACTIVE);
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
                 .withMatcher("markerCode", mm -> mm.ignoreCase().contains())
                 .withMatcher("markerType", mm -> mm.ignoreCase())
-                .withIgnoreNullValues();
+                .withMatcher("userId",   mm -> mm.ignoreCase())
+                .withIgnoreNullValues()
+                .withIgnorePaths("printablePdfUrl",
+                "physicalWidthM",
+                "createdAt",
+                "updatedAt"
+        );
 
         Example<Marker> example = Example.of(probe, matcher);
 

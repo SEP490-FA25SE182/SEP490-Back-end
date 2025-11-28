@@ -24,7 +24,8 @@ public class Marker implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String markerId;
 
-    @Column(name = "image_url", length = 500)
+    @Lob
+    @Column(name = "image_url")
     private String imageUrl;
 
     @Column(name="marker_code", length=50, unique = true)
@@ -36,8 +37,12 @@ public class Marker implements Serializable {
     @Column(name="physical_width_m") //bề ngang thực tế của marker khi in (ví dụ 0.10 = 10cm)
     private double physicalWidthM = 1;
 
-    @Column(name="printable_pdf_url", length=500) //đường dẫn file PDF marker để tải/in.
+    @Lob
+    @Column(name="printable_pdf_url") //đường dẫn file PDF marker để tải/in.
     private String printablePdfUrl;
+
+    @Column(name="user_id", length=50)
+    private String userId;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();

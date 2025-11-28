@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -26,6 +27,7 @@ public class UserAddress implements Serializable {
 
     @NotNull
     @Size(max = 100)
+    @Nationalized
     @Column(name = "address_infor", length = 100, nullable = false)
     private String addressInfor;
 
@@ -34,10 +36,12 @@ public class UserAddress implements Serializable {
     private String phoneNumber;
 
     @Size(max = 50)
+    @Nationalized
     @Column(name = "full_name", length = 50)
     private String fullName;
 
     @Size(max = 10)
+    @Nationalized
     @Column(name = "type", length = 10)
     private String type;
 

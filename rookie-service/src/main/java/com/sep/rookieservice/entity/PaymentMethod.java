@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -23,12 +24,15 @@ public class PaymentMethod implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String paymentMethodId;
 
+    @Nationalized
     @Column(name = "method_name", length = 50)
     private String methodName;
 
+    @Nationalized
     @Column(name = "provider", length = 50)
     private String provider;
 
+    @Nationalized
     @Column(name = "decription", length = 250)
     private String decription;
 

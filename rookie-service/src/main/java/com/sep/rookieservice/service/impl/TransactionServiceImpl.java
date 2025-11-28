@@ -31,7 +31,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper mapper;
 
     @Override
-    @CacheEvict(value = {"allTransactions","Transaction"}, allEntries = true)
+    //@CacheEvict(value = {"allTransactions","Transaction"}, allEntries = true)
     public TransactionResponse create(TransactionRequest req) {
         TransactionEnum.getByStatus(req.getStatus());
 

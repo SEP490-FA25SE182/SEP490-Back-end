@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -33,7 +34,8 @@ public class Page implements Serializable {
     private int pageNumber;
 
     @Lob
-    @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
+    @Nationalized
+    @Column(name = "content")
     private String content;
 
     @Column(name = "updated_at")
@@ -41,6 +43,9 @@ public class Page implements Serializable {
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
+
+    @Column(name = "page_type", length = 10)
+    private String pageType;
 
     @NotNull
     @Enumerated(EnumType.STRING)

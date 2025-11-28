@@ -12,6 +12,7 @@ public class PaymentMethodRequest {
     private String provider;
     @Size(max = 250)
     private String decription;
+
     private IsActived isActived;
 }
 

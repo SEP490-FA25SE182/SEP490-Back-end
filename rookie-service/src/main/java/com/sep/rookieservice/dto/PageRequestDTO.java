@@ -11,11 +11,12 @@ public class PageRequestDTO {
     @NotNull
     private Integer pageNumber;
 
-    @NotBlank
     private String content;
 
     @NotBlank
     private String chapterId;
+
+    private String pageType;
 
     private IsActived isActived;
 }
