@@ -14,18 +14,6 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
-        - id: rookie-service
-          uri: lb://rookie-service
-          predicates:
-            - Path=/api/rookie/**
-          filters:
-            - StripPrefix=2
-        - id: ar-service
-          uri: lb://ar-service
-          predicates:
-            - Path=/api/ar/**
-          filters:
-            - StripPrefix=2
         - id: rookie-service-docs
           uri: lb://rookie-service
           predicates:
@@ -38,6 +26,19 @@ spring:
             - Path=/ar-service/v3/api-docs/**
           filters:
             - RewritePath=/ar-service/(?<remaining>.*), /$\{remaining}
+        
+        - id: rookie-service
+          uri: lb://rookie-service
+          predicates:
+            - Path=/api/rookie/**
+          filters:
+            - StripPrefix=2
+        - id: ar-service
+          uri: lb://ar-service
+          predicates:
+            - Path=/api/ar/**
+          filters:
+            - StripPrefix=2
 
 management:
   endpoints:
