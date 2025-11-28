@@ -27,7 +27,8 @@ public class Illustration implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String illustrationId;
 
-    @Column(name = "image_url", length = 500)
+    @Lob
+    @Column(name = "image_url")
     private String imageUrl;
 
     @Column(name = "style", length = 50)
@@ -42,7 +43,7 @@ public class Illustration implements Serializable {
     @Column(name = "height")
     private int height;
 
-    @Column(name = "title", length = 50)
+    @Column(name = "title")
     private String title;
 
     @Column(name = "user_id", length = 50)

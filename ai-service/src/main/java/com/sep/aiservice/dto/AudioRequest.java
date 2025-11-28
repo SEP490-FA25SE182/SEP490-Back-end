@@ -9,7 +9,6 @@ import lombok.Data;
 @Data
 public class AudioRequest {
 
-    @Size(max = 100)
     private String audioUrl;
 
     @Size(max = 50)
@@ -29,7 +28,6 @@ public class AudioRequest {
     @Positive(message = "durationMs must be > 0")
     private Double durationMs;
 
-    @Size(max = 50)
     private String title;
 
     private IsActived isActived;

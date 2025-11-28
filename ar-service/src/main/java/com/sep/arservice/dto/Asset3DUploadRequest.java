@@ -13,7 +13,6 @@ public class Asset3DUploadRequest {
     @Size(max=50)
     private String userId;
 
-    @Size(max=500)
     private String prompt;
 
     @Size(max = 200)

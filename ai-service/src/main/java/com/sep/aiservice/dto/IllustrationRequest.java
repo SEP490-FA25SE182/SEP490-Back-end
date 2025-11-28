@@ -11,7 +11,6 @@ import java.time.Instant;
 @Data
 public class IllustrationRequest {
 
-    @Size(max = 100)
     private String imageUrl;
 
     @Size(max = 50)
@@ -28,7 +27,6 @@ public class IllustrationRequest {
     @Min(value = 1, message = "Height must be >= 1")
     private Integer height;
 
-    @Size(max = 50)
     private String title;
 
     private IsActived isActived;

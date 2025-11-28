@@ -24,16 +24,19 @@ public class Asset3D implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String asset3DId;
 
-    @Column(name="asset_url", length=1000)
+    @Lob
+    @Column(name="asset_url")
     private String assetUrl;
 
-    @Column(name="thumb_url", length=1000)  // ảnh preview
+    @Lob
+    @Column(name="thumb_url")  // ảnh preview
     private String thumbUrl;
 
     @Column(name="source", length=50) // MESHY / UPLOAD / OTHER
     private String source;
 
-    @Column(name = "prompt", length = 500)
+    @Lob
+    @Column(name = "prompt")
     private String prompt;
 
     @Column(name="file_name", length=200)
