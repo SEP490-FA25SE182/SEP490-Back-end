@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -28,6 +29,7 @@ public class Quiz implements Serializable {
     @Column(name = "total_score")
     private int totalScore;
 
+    @Nationalized
     @Column(name = "title", length = 50)
     private String title;
 

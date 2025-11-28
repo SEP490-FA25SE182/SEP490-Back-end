@@ -5,6 +5,7 @@ import com.sep.rookieservice.enums.IsActived;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -22,9 +23,11 @@ public class Comment implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String commentId;
 
+    @Nationalized
     @Column(name = "content", length = 500)
     private String content;
 
+    @Nationalized
     @Column(name = "name", length = 50)
     private String name;
 

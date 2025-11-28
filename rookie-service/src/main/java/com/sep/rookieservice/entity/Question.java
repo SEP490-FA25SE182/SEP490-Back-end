@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -31,6 +32,7 @@ public class Question implements Serializable {
     @Column(name = "answer_count")
     private int answerCount;
 
+    @Nationalized
     @Column(name = "content", length = 250)
     private String content;
 

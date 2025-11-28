@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ public class Tag implements Serializable {
 
     @NotNull
     @Size(max = 100)
+    @Nationalized
     @Column(name = "name", length = 100, nullable = false)
     private String name;
 
