@@ -35,9 +35,9 @@ spring:
         - id: ar-service-docs
           uri: lb://ar-service
           predicates:
-            - Path=/ar-service/v3/api-docs
+            - Path=/ar-service/v3/api-docs/**
           filters:
-            - RewritePath=/ar-service/v3/api-docs, /v3/api-docs
+            - RewritePath=/ar-service/(?<remaining>.*), /$\{remaining}
 
 management:
   endpoints:
