@@ -42,7 +42,8 @@ public class Chapter implements Serializable {
     private int chapterNumber;
 
     @Nationalized
-    @Column(name = "decription", length = 250)
+    @Lob
+    @Column(name = "decription")
     private String decription;
 
     @Nationalized

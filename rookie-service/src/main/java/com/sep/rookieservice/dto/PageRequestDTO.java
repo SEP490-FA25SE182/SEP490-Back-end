@@ -11,7 +11,6 @@ public class PageRequestDTO {
     @NotNull
     private Integer pageNumber;
 
-    @NotBlank
     private String content;
 
     @NotBlank
