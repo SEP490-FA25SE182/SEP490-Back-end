@@ -15,12 +15,6 @@ public class QuestionController {
 
     private final QuestionService svc;
 
-    /**
-     * Search & pagination endpoint.
-     * - page: 0-based index
-     * - size: page size
-     * - sort: e.g. sort=createdAt,desc
-     */
     @GetMapping
     public Page<QuestionResponseDTO> list(
             @RequestParam(defaultValue = "0") int page,
