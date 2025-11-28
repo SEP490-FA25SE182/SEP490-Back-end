@@ -32,11 +32,14 @@ public class CorsGlobalConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         String gatewayUrl = apiUrl + ":" + gatewayPort;
-
-        config.setAllowedOrigins(List.of(gatewayUrl));
-        config.setAllowedOrigins(List.of(frontendUrl));
-        config.setAllowedOrigins(List.of(frontendUrlProduct));
-        config.setAllowedOrigins(List.of(frontendUrlProduct2));
+        config.setAllowedOrigins(List.of(
+                frontendUrl,
+                frontendUrlProduct,
+                gatewayUrl,
+                "https://arbookrookie.xyz",
+                frontendUrlProduct2,
+                "https://*.vercel.app"
+        ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
