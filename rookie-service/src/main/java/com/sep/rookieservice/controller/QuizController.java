@@ -18,15 +18,6 @@ public class QuizController {
 
     private final QuizService service;
 
-    /**
-     * Search & pagination endpoint.
-     * - page: 0-based page index
-     * - size: page size
-     * - sort: e.g. sort=title,asc&sort=createdAt,desc
-     * - q: search keyword
-     * - chapterId: filter by chapter
-     * - isActived: ACTIVE/INACTIVE
-     */
     @GetMapping
     public Page<QuizResponseDTO> list(
             @RequestParam(defaultValue = "0") int page,
