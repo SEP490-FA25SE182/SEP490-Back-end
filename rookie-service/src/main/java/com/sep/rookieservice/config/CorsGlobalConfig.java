@@ -18,13 +18,38 @@ public class CorsGlobalConfig {
     @Value("${GATEWAY_PORT:8080}")
     private String gatewayPort;
 
+    @Value("${FRONTEND_URL:http://localhost:5173")
+    private String frontendUrl;
+
+    @Value("${PROD_FRONTEND_URL:https://www.arbookrookie.xyz")
+    private String frontendUrlProduct;
+
+    @Value("${FRONTEND_URL_DEPLOY:https://sep490-front-16600s0n8-quang-tn-beyonds-projects.vercel.app/")
+    private String frontendUrlProduct2;
+
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
         String gatewayUrl = apiUrl + ":" + gatewayPort;
+      
+        /*
+        config.setAllowedOrigins(List.of(
+                frontendUrl,
+                frontendUrlProduct,
+                gatewayUrl,
+                frontendUrlProduct2
+        ));*/
 
-        config.setAllowedOrigins(List.of(gatewayUrl));
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://localhost:*",
+                "https://arbookrookie.xyz",
+                "https://www.arbookrookie.xyz",
+                "https://sep490-front-16600s0n8-quang-tn-beyonds-projects.vercel.app/",
+                "https://*.vercel.app"
+        ));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

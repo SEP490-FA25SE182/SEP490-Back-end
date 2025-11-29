@@ -3,9 +3,11 @@ server:
 
 springdoc:
   api-docs:
+    enabled: true
     path: /v3/api-docs
   swagger-ui:
     enabled: true
+    disable-swagger-default-url: true
 
 spring:
   application:
@@ -101,4 +103,3 @@ ghn:
   token: ${YOUR_GHN_TOKEN}
   shop-id: ${YOUR_SHOP_ID}
 
-#OK
