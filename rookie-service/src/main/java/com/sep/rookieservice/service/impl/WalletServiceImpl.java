@@ -4,6 +4,7 @@ import com.sep.rookieservice.dto.WalletRequest;
 import com.sep.rookieservice.dto.WalletResponse;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.entity.Wallet;
+import com.sep.rookieservice.exception.ResourceNotFoundException;
 import com.sep.rookieservice.mapper.WalletMapper;
 import com.sep.rookieservice.repository.WalletRepository;
 import com.sep.rookieservice.service.WalletService;
@@ -49,7 +50,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional(readOnly = true)
     public WalletResponse getByUserId(String userId) {
         var w = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for userId: " + userId));
         return mapper.toResponse(w);
     }
 
