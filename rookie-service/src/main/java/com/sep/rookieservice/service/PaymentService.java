@@ -2,10 +2,13 @@ package com.sep.rookieservice.service;
 
 import com.sep.rookieservice.dto.CreateCheckoutResponse;
 import com.sep.rookieservice.dto.WebhookPayload;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
+import java.util.Map;
 
 public interface PaymentService {
     CreateCheckoutResponse createCheckout(String orderId, String returnUrl, String cancelUrl);
-    void handleWebhook(WebhookPayload payload);
+    void handleWebhook(@RequestBody Map<String, Object> payload);
     CreateCheckoutResponse deposit(int amount, String walletId, String returnUrl, String cancelUrl);
     CreateCheckoutResponse withdraw(
             int amount,
