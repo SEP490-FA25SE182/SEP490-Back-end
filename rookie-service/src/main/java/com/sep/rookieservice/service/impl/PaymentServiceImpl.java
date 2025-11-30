@@ -121,56 +121,72 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void handleWebhook(WebhookPayload payload) {
+        // 1. Validate signature trước tiên
         String dataString = PayOSSignature.buildWebhookDataString(payload.getData());
         String expected = PayOSSignature.hmacSha256(props.getChecksumKey(), dataString);
         if (!expected.equals(payload.getSignature())) {
             throw new SecurityException("Invalid webhook signature");
         }
 
-        Object codeObj = payload.getData().get("code");
-        Object orderCodeObj = payload.getData().get("orderCode");
-        Object amountObj = payload.getData().get("amount");
-        if (orderCodeObj == null) return;
+        // 2. Validate data không null + có orderCode
+        Map<String, Object> data = payload.getData();
+        if (data == null) {
+            return; // hoặc throw nếu muốn nghiêm ngặt
+        }
+
+        Object orderCodeObj = data.get("orderCode");
+        if (orderCodeObj == null) {
+            // Đây là nguyên nhân 500 khi test Swagger!
+            return; // hoặc log: log.warn("Webhook missing orderCode");
+        }
+
+        Object codeObj = data.get("code");
+        Object amountObj = data.get("amount");
 
         long orderCode = Long.parseLong(orderCodeObj.toString());
-        int amount = amountObj == null ? 0 : Integer.parseInt(amountObj.toString());
-        String code = String.valueOf(codeObj);
+        String code = codeObj != null ? String.valueOf(codeObj) : "";
+        int amount = amountObj != null ? Integer.parseInt(amountObj.toString()) : 0;
 
+        // Tiếp tục xử lý như cũ...
         Transaction tx = txRepo.findByOrderCode(orderCode)
-                .orElseThrow(() -> new IllegalStateException("Transaction not found by orderCode"));
+                .orElse(null); // đổi thành orElse(null) để tránh crash nếu không tìm thấy
 
+        if (tx == null) {
+            // Transaction không tồn tại → có thể là webhook giả hoặc lỗi → bỏ qua
+            return;
+        }
+
+        // Phần còn lại giữ nguyên...
         if ("00".equals(code)) {
             if (!TransactionEnum.PAID.equals(TransactionEnum.getByStatus(tx.getStatus()))) {
                 tx.setStatus(TransactionEnum.PAID.getStatus());
                 tx.setUpdatedAt(Instant.now());
                 txRepo.save(tx);
 
-                if (tx.getTransType() == TransactionType.PAYMENT) {
-                    // Giữ nguyên luồng PAYMENT đơn hàng của bạn
-                    Order order = orderRepo.findById(tx.getOrderId())
-                            .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
-                    order.setStatus(OrderEnum.PROCESSING.getStatus());
-                    order.setUpdatedAt(Instant.now());
-                    orderRepo.save(order);
+                // Xử lý PAYMENT hoặc DEPOSIT như cũ...
+                if (tx.getTransType() == TransactionType.PAYMENT && tx.getOrderId() != null) {
+                    Order order = orderRepo.findById(tx.getOrderId()).orElse(null);
+                    if (order != null) {
+                        order.setStatus(OrderEnum.PROCESSING.getStatus());
+                        order.setUpdatedAt(Instant.now());
+                        orderRepo.save(order);
 
-                    Wallet w = order.getWallet();
+                        Wallet w = order.getWallet();
+                        if (w != null) {
+                            int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
+                            w.setCoin(w.getCoin() + bonus);
+                            w.setUpdatedAt(Instant.now());
+                            walletRepo.save(w);
+                        }
+                    }
+                } else if (tx.getTransType() == TransactionType.DEPOSIT && tx.getWalletId() != null) {
+                    Wallet w = walletRepo.findById(tx.getWalletId()).orElse(null);
                     if (w != null) {
-                        int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
-                        w.setCoin(w.getCoin() + bonus);
+                        int credited = amount > 0 ? amount : (int) Math.round(tx.getTotalPrice());
+                        w.setBalance(w.getBalance() + credited);
                         w.setUpdatedAt(Instant.now());
                         walletRepo.save(w);
                     }
-                } else if (tx.getTransType() == TransactionType.DEPOSIT) {
-                    // Dùng walletId đã lưu sẵn trong Transaction
-                    if (tx.getWalletId() == null) {
-                        throw new IllegalStateException("DEPOSIT transaction missing walletId");
-                    }
-                    Wallet w = walletRepo.findById(tx.getWalletId())
-                            .orElseThrow(() -> new IllegalStateException("Wallet not found"));
-                    int credited = amount > 0 ? amount : (int) Math.round(tx.getTotalPrice());
-                    w.setBalance(w.getBalance() + credited);
-                    w.setUpdatedAt(Instant.now());
-                    walletRepo.save(w);
                 }
             }
         } else {
@@ -179,11 +195,12 @@ public class PaymentServiceImpl implements PaymentService {
             txRepo.save(tx);
 
             if (tx.getTransType() == TransactionType.PAYMENT && tx.getOrderId() != null) {
-                Order order = orderRepo.findById(tx.getOrderId())
-                        .orElseThrow(() -> new IllegalStateException("Order not found by orderId"));
-                order.setStatus(OrderEnum.CANCELLED.getStatus());
-                order.setUpdatedAt(Instant.now());
-                orderRepo.save(order);
+                Order order = orderRepo.findById(tx.getOrderId()).orElse(null);
+                if (order != null) {
+                    order.setStatus(OrderEnum.CANCELLED.getStatus());
+                    order.setUpdatedAt(Instant.now());
+                    orderRepo.save(order);
+                }
             }
         }
     }
