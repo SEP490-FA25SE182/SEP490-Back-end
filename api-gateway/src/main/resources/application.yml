@@ -89,6 +89,8 @@ springdoc:
   swagger-ui:
     enabled: true
     disable-swagger-default-url: true
+    config-url: /v3/api-docs/swagger-config
+    urlsPrimaryName: rookie-service
     # Danh sách các spec truy cập QUA GATEWAY
     urls:
       - name: rookie-service

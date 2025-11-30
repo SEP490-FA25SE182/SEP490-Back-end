@@ -4,6 +4,7 @@ import com.sep.rookieservice.dto.CartRequest;
 import com.sep.rookieservice.dto.CartResponse;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.entity.Cart;
+import com.sep.rookieservice.exception.ResourceNotFoundException;
 import com.sep.rookieservice.mapper.CartMapper;
 import com.sep.rookieservice.repository.CartRepository;
 import com.sep.rookieservice.service.CartService;
@@ -49,7 +50,7 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public CartResponse getByUserId(String userId) {
         var c = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found for userId: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for userId: " + userId));
         return mapper.toResponse(c);
     }
 
