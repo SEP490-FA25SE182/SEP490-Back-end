@@ -6,16 +6,17 @@ public enum TransactionEnum {
     CANCELED((byte) 2),
     PAID((byte) 3);
 
-    private final byte status;
+    private final Byte status;
 
-    TransactionEnum(byte status) {
+    TransactionEnum(Byte status) {
         this.status = status;
     }
 
     public byte getStatus() {
         return status;
     }
-    public static TransactionEnum getByStatus(byte status) {
+    public static TransactionEnum getByStatus(Byte status) {
+        if (status == null) return null;
         for (TransactionEnum x : TransactionEnum.values()) {
             if (x.getStatus() == status) {
                 return x;
