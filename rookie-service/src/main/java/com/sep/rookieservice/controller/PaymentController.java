@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/rookie/payments")
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class PaymentController {
 
     // Webhook: cần mở public, bỏ auth
     @PostMapping("/webhook")
-    public ResponseEntity<Void> webhook(@RequestBody WebhookPayload payload) {
+    public ResponseEntity<Void> webhook(@RequestBody Map<String, Object> payload) {
         paymentService.handleWebhook(payload);
         return ResponseEntity.ok().build();
     }
