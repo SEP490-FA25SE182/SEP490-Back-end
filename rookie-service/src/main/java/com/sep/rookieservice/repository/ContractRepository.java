@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ContractRepository extends JpaRepository<Contract, String>, JpaSpecificationExecutor<Contract> {
     boolean existsByContractNumber(String contractNumber);
+    boolean existsByUser_UserId(String userId);
 }
