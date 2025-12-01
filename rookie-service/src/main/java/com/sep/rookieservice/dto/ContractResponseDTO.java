@@ -5,6 +5,7 @@ import com.sep.rookieservice.enums.IsActived;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 public class ContractResponseDTO {
@@ -21,4 +22,5 @@ public class ContractResponseDTO {
     private String note;
     private Instant createdAt;
     private Instant updatedAt;
+    private String userId;
 }
