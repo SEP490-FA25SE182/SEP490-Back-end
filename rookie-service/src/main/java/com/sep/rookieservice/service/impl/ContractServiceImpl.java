@@ -3,11 +3,13 @@ package com.sep.rookieservice.service.impl;
 import com.sep.rookieservice.dto.ContractRequestDTO;
 import com.sep.rookieservice.dto.ContractResponseDTO;
 import com.sep.rookieservice.entity.Contract;
+import com.sep.rookieservice.entity.User;
 import com.sep.rookieservice.enums.ContractStatus;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.exception.ResourceNotFoundException;
 import com.sep.rookieservice.mapper.ContractMapper;
 import com.sep.rookieservice.repository.ContractRepository;
+import com.sep.rookieservice.repository.UserRepository;
 import com.sep.rookieservice.service.ContractService;
 import com.sep.rookieservice.specification.ContractSpecification;
 import lombok.RequiredArgsConstructor;
@@ -22,17 +24,32 @@ import java.time.Instant;
 public class ContractServiceImpl implements ContractService {
 
     private final ContractRepository repo;
+    private final UserRepository userRepo;
     private final ContractMapper mapper;
 
     @Override
     public ContractResponseDTO create(ContractRequestDTO dto) {
-        Contract entity = new Contract();
 
+        // Validate unique contract number
         if (dto.getContractNumber() != null && repo.existsByContractNumber(dto.getContractNumber())) {
             throw new IllegalArgumentException("Contract number already exists");
         }
 
+        // Validate user exists
+        User user = userRepo.findById(dto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Validate user does NOT already have a contract
+        if (repo.existsByUser_UserId(dto.getUserId())) {
+            throw new IllegalArgumentException("User already has a contract");
+        }
+
+        Contract entity = new Contract();
         mapper.copyForCreate(dto, entity);
+
+        entity.setUser(user);
+        entity.setIsActived(IsActived.ACTIVE);
+        entity.setStatus(ContractStatus.PENDING);
         entity.setCreatedAt(Instant.now());
         entity.setUpdatedAt(Instant.now());
 
