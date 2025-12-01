@@ -1,12 +1,6 @@
 # src/main/resources/application.yml
 server:
   port: 8082
-  servlet:
-    context-path: /ai-service
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
 
 spring:
   application:
