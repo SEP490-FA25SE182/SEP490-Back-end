@@ -114,4 +114,8 @@ public class User implements Serializable {
     @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     private Wallet wallet;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Contract contract;
 }
