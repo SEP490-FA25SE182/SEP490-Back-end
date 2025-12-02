@@ -4,6 +4,7 @@ import com.sep.rookieservice.enums.ContractStatus;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 public class ContractRequestDTO {
@@ -16,4 +17,5 @@ public class ContractRequestDTO {
     private Instant endDate;
     private ContractStatus status;
     private String note;
+    private String userId;
 }

@@ -60,4 +60,9 @@ public class Contract {
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
+
+    // NEW: One-to-One with User
+    @OneToOne
+    @JoinColumn(name = "user_id", unique = true)
+    private User user;
 }

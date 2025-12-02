@@ -17,6 +17,7 @@ import com.sep.rookieservice.repository.TransactionRepository;
 import com.sep.rookieservice.repository.WalletRepository;
 import com.sep.rookieservice.service.PaymentService;
 import com.sep.rookieservice.util.PayOSSignature;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
@@ -120,76 +121,60 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public void handleWebhook(WebhookPayload payload) {
-        // 1. Validate signature trước tiên
-        String dataString = PayOSSignature.buildWebhookDataString(payload.getData());
-        String expected = PayOSSignature.hmacSha256(props.getChecksumKey(), dataString);
-        if (!expected.equals(payload.getSignature())) {
-            throw new SecurityException("Invalid webhook signature");
-        }
+    public void handleWebhook(@RequestBody Map<String, Object> payload) {  // ← Đổi thành Map luôn
 
-        // 2. Validate data không null + có orderCode
-        Map<String, Object> data = payload.getData();
-        if (data == null) {
-            return; // hoặc throw nếu muốn nghiêm ngặt
-        }
+        // 1. Lấy data và signature
+        Object dataObj = payload.get("data");
+        String receivedSignature = (String) payload.get("signature");
 
-        Object orderCodeObj = data.get("orderCode");
-        if (orderCodeObj == null) {
-            // Đây là nguyên nhân 500 khi test Swagger!
-            return; // hoặc log: log.warn("Webhook missing orderCode");
-        }
-
-        Object codeObj = data.get("code");
-        Object amountObj = data.get("amount");
-
-        long orderCode = Long.parseLong(orderCodeObj.toString());
-        String code = codeObj != null ? String.valueOf(codeObj) : "";
-        int amount = amountObj != null ? Integer.parseInt(amountObj.toString()) : 0;
-
-        // Tiếp tục xử lý như cũ...
-        Transaction tx = txRepo.findByOrderCode(orderCode)
-                .orElse(null); // đổi thành orElse(null) để tránh crash nếu không tìm thấy
-
-        if (tx == null) {
-            // Transaction không tồn tại → có thể là webhook giả hoặc lỗi → bỏ qua
+        if (dataObj == null || receivedSignature == null) {
+            // Log để debug sau này
+            System.out.println("Invalid webhook format: missing data or signature");
             return;
         }
 
-        // Phần còn lại giữ nguyên...
-        if ("00".equals(code)) {
-            if (!TransactionEnum.PAID.equals(TransactionEnum.getByStatus(tx.getStatus()))) {
+        // PayOS gửi data dưới dạng Map hoặc LinkedHashMap
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) dataObj;
+
+        // 2. Tính lại signature đúng chuẩn PayOS
+        String dataString = PayOSSignature.buildWebhookDataString(data);
+        String expectedSignature = PayOSSignature.hmacSha256(props.getChecksumKey(), dataString);
+
+        if (!expectedSignature.equals(receivedSignature)) {
+            System.out.println("Invalid signature! Expected: " + expectedSignature + ", Got: " + receivedSignature);
+            throw new SecurityException("Invalid webhook signature");
+        }
+
+        // 3. Lấy orderCode – bắt buộc phải có
+        Object orderCodeObj = data.get("orderCode");
+        if (orderCodeObj == null) {
+            System.out.println("Webhook missing orderCode: " + data);
+            return;
+        }
+
+        long orderCode = Long.parseLong(orderCodeObj.toString());
+        String statusCode = String.valueOf(data.getOrDefault("code", ""));
+
+        // 4. Tìm transaction
+        Transaction tx = txRepo.findByOrderCode(orderCode).orElse(null);
+        if (tx == null) {
+            System.out.println("Transaction not found for orderCode: " + orderCode);
+            return;
+        }
+
+        // 5. Chỉ xử lý khi là thanh toán thành công
+        if ("00".equals(statusCode)) {
+            if (tx.getStatus() == null || tx.getStatus() != TransactionEnum.PAID.getStatus()) {
                 tx.setStatus(TransactionEnum.PAID.getStatus());
                 tx.setUpdatedAt(Instant.now());
                 txRepo.save(tx);
 
-                // Xử lý PAYMENT hoặc DEPOSIT như cũ...
-                if (tx.getTransType() == TransactionType.PAYMENT && tx.getOrderId() != null) {
-                    Order order = orderRepo.findById(tx.getOrderId()).orElse(null);
-                    if (order != null) {
-                        order.setStatus(OrderEnum.PROCESSING.getStatus());
-                        order.setUpdatedAt(Instant.now());
-                        orderRepo.save(order);
-
-                        Wallet w = order.getWallet();
-                        if (w != null) {
-                            int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
-                            w.setCoin(w.getCoin() + bonus);
-                            w.setUpdatedAt(Instant.now());
-                            walletRepo.save(w);
-                        }
-                    }
-                } else if (tx.getTransType() == TransactionType.DEPOSIT && tx.getWalletId() != null) {
-                    Wallet w = walletRepo.findById(tx.getWalletId()).orElse(null);
-                    if (w != null) {
-                        int credited = amount > 0 ? amount : (int) Math.round(tx.getTotalPrice());
-                        w.setBalance(w.getBalance() + credited);
-                        w.setUpdatedAt(Instant.now());
-                        walletRepo.save(w);
-                    }
-                }
+                // Xử lý cộng tiền ví / bonus coin (giữ nguyên code cũ của bạn)
+                handlePaymentSuccess(tx, data);
             }
         } else {
+            // Hủy hoặc thất bại
             tx.setStatus(TransactionEnum.CANCELED.getStatus());
             tx.setUpdatedAt(Instant.now());
             txRepo.save(tx);
@@ -201,6 +186,36 @@ public class PaymentServiceImpl implements PaymentService {
                     order.setUpdatedAt(Instant.now());
                     orderRepo.save(order);
                 }
+            }
+        }
+    }
+
+    // Tách riêng để code sạch hơn
+    private void handlePaymentSuccess(Transaction tx, Map<String, Object> data) {
+        Object amountObj = data.get("amount");
+        int amount = amountObj != null ? Integer.parseInt(amountObj.toString()) : (int) Math.round(tx.getTotalPrice());
+
+        if (tx.getTransType() == TransactionType.PAYMENT && tx.getOrderId() != null) {
+            Order order = orderRepo.findById(tx.getOrderId()).orElse(null);
+            if (order != null) {
+                order.setStatus(OrderEnum.PROCESSING.getStatus());
+                order.setUpdatedAt(Instant.now());
+                orderRepo.save(order);
+
+                Wallet w = order.getWallet();
+                if (w != null) {
+                    int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
+                    w.setCoin(w.getCoin() + bonus);
+                    w.setUpdatedAt(Instant.now());
+                    walletRepo.save(w);
+                }
+            }
+        } else if (tx.getTransType() == TransactionType.DEPOSIT && tx.getWalletId() != null) {
+            Wallet w = walletRepo.findById(tx.getWalletId()).orElse(null);
+            if (w != null) {
+                w.setBalance(w.getBalance() + amount);
+                w.setUpdatedAt(Instant.now());
+                walletRepo.save(w);
             }
         }
     }
