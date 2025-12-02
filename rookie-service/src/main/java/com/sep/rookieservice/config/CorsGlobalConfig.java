@@ -47,6 +47,7 @@ public class CorsGlobalConfig {
                 "https://arbookrookie.xyz",
                 "https://www.arbookrookie.xyz",
                 "https://sep490-front-16600s0n8-quang-tn-beyonds-projects.vercel.app/",
+"https://sep490-front-end-quang-tn-beyonds-projects.vercel.app",
                 "https://*.vercel.app"
         ));
 
