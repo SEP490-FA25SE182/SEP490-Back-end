@@ -237,16 +237,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderResponse> search(String userId, OrderEnum status, Pageable pageable) {
-        // Lấy walletId từ userId (Order bắt buộc có walletId)
-        var walletOpt = walletRepository.findByUserId(userId);
-        if (walletOpt.isEmpty()) {
-            return Page.empty(pageable);
-        }
-        String walletId = walletOpt.get().getWalletId();
 
-        // Probe cho Example
         Order probe = new Order();
-        probe.setWalletId(walletId);
+
+        // Nếu có userId -> lọc theo walletId của user
+        if (userId != null && !userId.isBlank()) {
+            var walletOpt = walletRepository.findByUserId(userId);
+            if (walletOpt.isEmpty()) {
+                // User không có ví => không có đơn
+                return Page.empty(pageable);
+            }
+            String walletId = walletOpt.get().getWalletId();
+            probe.setWalletId(walletId);
+        }
+        // Nếu userId null/blank => không set walletId => search tất cả
+
         if (status != null) {
             probe.setStatus(status.getStatus());
         }
@@ -254,7 +259,8 @@ public class OrderServiceImpl implements OrderService {
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
                 .withIgnorePaths(
                         "amount", "totalPrice", "updatedAt", "createdAt",
-                        "cartId", "wallet", "cart", "orderDetails", "transaction", "orderId"
+                        "cartId", "wallet", "cart", "orderDetails",
+                        "transaction", "orderId", "userId"
                 )
                 .withIgnoreNullValues();
 
