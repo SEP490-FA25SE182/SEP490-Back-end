@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -50,6 +51,7 @@ public class Order implements Serializable {
     @Column(name = "user_address_id", length = 50)
     private String userAddressId;
 
+    @Nationalized
     @Column(name = "reason", length = 250)
     private String reason;
 
