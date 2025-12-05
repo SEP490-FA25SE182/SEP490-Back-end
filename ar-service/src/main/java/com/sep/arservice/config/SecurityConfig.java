@@ -1,64 +1,76 @@
 package com.sep.arservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.time.Duration;
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
 
+    @Value("${FRONTEND_URL:http://localhost:5173}")
+    private String frontendUrl;
+
+    @Value("${FRONTEND_URL_ALT:http://127.0.0.1:5173}")
+    private String frontendUrlAlt;
+
+    @Value("${API_URL:http://localhost}")
+    private String apiUrl;
+
+    @Value("${GATEWAY_PORT:8080}")
+    private String gatewayPort;
+
+    @Value("${PROD_FRONTEND_URL:https://frontend.arbookrookie.xyz}")
+    private String prodFrontend;
+
+    @Value("${PROD_BACKEND_URL:https://backend.arbookrookie.xyz}")
+    private String prodBackend;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(c -> c.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(
-                                new AntPathRequestMatcher("/api/**"),
-                                new AntPathRequestMatcher("/swagger-ui/**"),
-                                new AntPathRequestMatcher("/v3/api-docs/**"),
-                                new AntPathRequestMatcher("/actuator/**")
-                        )
-                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/swagger-ui.html","/swagger-ui/**",
-                                "/v3/api-docs","/v3/api-docs/**",
-                                "/actuator/**"
+                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs", "/v3/api-docs/**",
+                                "/actuator/**",
+                                "/api/**"
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
-                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
                 .formLogin(f -> f.disable())
-                .httpBasic(b -> {});
+                .httpBasic(b -> b.disable())
+                .headers(h -> h.frameOptions(f -> f.sameOrigin()));
+
         return http.build();
     }
 
     @Bean
-    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-        var config = new org.springframework.web.cors.CorsConfiguration();
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(java.util.List.of(
-                "http://localhost:8082",
-                "http://127.0.0.1:8082",
-                "http://192.168.1.37:8082",
-                "http://localhost:5173",
-                "http://127.0.0.1:5173"
-        ));
+        config.setAllowedOriginPatterns(List.of("*"));
 
-        // Nếu muốn “cho hết” trong dev: dùng patterns thay vì setAllowedOrigins
-        // config.setAllowedOriginPatterns(java.util.List.of("*"));
+        config.setAllowedMethods(List.of("*"));
+        config.setAllowedHeaders(List.of("*"));
 
-        config.setAllowedMethods(java.util.List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-        config.setAllowedHeaders(java.util.List.of(
-                "Authorization","Content-Type","Accept","X-Requested-With","Origin","X-User-Id"
-        ));
-        config.setExposedHeaders(java.util.List.of("Location","Content-Disposition"));
+        config.setExposedHeaders(List.of("*"));
+
         config.setAllowCredentials(true);
-        config.setMaxAge(java.time.Duration.ofHours(1));
 
-        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        config.setMaxAge(Duration.ofHours(1));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }

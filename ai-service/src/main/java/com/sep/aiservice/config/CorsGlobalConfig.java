@@ -12,36 +12,22 @@ import java.util.List;
 @Configuration
 public class CorsGlobalConfig {
 
-    @Value("${FRONTEND_URL:8080}")
-    private String frontendUrl;
-
-    @Value("${FRONTEND_URL_ALT:8080}")
-    private String frontendUrlAlt;
-
-    @Value("${API_URL:http://localhost}")
-    private String apiUrl;
-
-    @Value("${GATEWAY_PORT:8080}")
-    private String gatewayPort;
-
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        String gatewayUrl = apiUrl + ":" + gatewayPort;
+        // Cho phép tất cả origin
+        config.setAllowedOriginPatterns(List.of("*"));
 
-        config.setAllowedOrigins(List.of(
-                gatewayUrl,
-                frontendUrlAlt,
-                frontendUrl
-        ));
-        config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        // Cho phép tất cả method
+        config.setAllowedMethods(List.of("*"));
+
+        // Cho phép tất cả header
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
 
+        config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return new CorsWebFilter(source);
     }
 }
