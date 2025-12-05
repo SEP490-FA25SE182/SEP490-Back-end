@@ -14,6 +14,19 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        - id: rookie-service-docs
+          uri: lb://rookie-service
+          predicates:
+            - Path=/rookie-service/v3/api-docs/**
+          filters:
+            - RewritePath=/rookie-service(?<segment>/?.*), $\{segment}
+        - id: ar-service-docs
+          uri: lb://ar-service
+          predicates:
+            - Path=/ar-service/v3/api-docs/**
+          filters:
+            - RewritePath=/ar-service(?<segment>/?.*), $\{segment}
+        
         - id: rookie-service
           uri: lb://rookie-service
           predicates:
@@ -26,18 +39,12 @@ spring:
             - Path=/api/ar/**
           filters:
             - StripPrefix=2
-        - id: rookie-service-docs
-          uri: lb://rookie-service
-          predicates:
-            - Path=/rookie-service/v3/api-docs/**
-          filters:
-            - RewritePath=/rookie-service/(?<remaining>.*), /$\{remaining}
-        - id: ar-service-docs
-          uri: lb://ar-service
-          predicates:
-            - Path=/ar-service/v3/api-docs
-          filters:
-            - RewritePath=/ar-service/v3/api-docs, /v3/api-docs
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.sep.apigateway: INFO
+    reactor.netty: INFO
 
 management:
   endpoints:

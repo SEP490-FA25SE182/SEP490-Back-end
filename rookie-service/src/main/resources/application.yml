@@ -108,8 +108,8 @@ rookie:
     payout-sign-mode: CANON5_URLENC
 
     # ... các cấu hình proxy ...
-    proxy-host: ${PAYOS_HOST}
-    proxy-port: ${PAYOS_PORT}
+    proxy-host: ${PAYOS_HOST:198.23.239.134}
+    proxy-port: ${PAYOS_PORT:6540}
     proxy-user: ${PAYOS_USER}
     proxy-pass: ${PAYOS_PASS}
 

@@ -122,7 +122,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void handleWebhook(@RequestBody Map<String, Object> payload) {  // ← Đổi thành Map luôn
-
+        try {
         // 1. Lấy data và signature
         Object dataObj = payload.get("data");
         String receivedSignature = (String) payload.get("signature");
@@ -188,6 +188,10 @@ public class PaymentServiceImpl implements PaymentService {
                 }
             }
         }
+        } catch (Exception e) {
+        // In ra log để biết chính xác lỗi gì
+        e.printStackTrace();
+    }
     }
 
     // Tách riêng để code sạch hơn
