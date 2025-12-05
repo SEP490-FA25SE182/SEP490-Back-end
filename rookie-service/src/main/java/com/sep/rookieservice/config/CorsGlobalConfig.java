@@ -32,21 +32,15 @@ public class CorsGlobalConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         String gatewayUrl = apiUrl + ":" + gatewayPort;
-      
-        /*
-        config.setAllowedOrigins(List.of(
-                frontendUrl,
-                frontendUrlProduct,
-                gatewayUrl,
-                frontendUrlProduct2
-        ));*/
 
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "https://localhost:*",
+                frontendUrl,
                 "https://arbookrookie.xyz",
                 "https://www.arbookrookie.xyz",
                 "https://sep490-front-16600s0n8-quang-tn-beyonds-projects.vercel.app/",
+                "https://sep490-front-end-quang-tn-beyonds-projects.vercel.app",
                 "https://*.vercel.app"
         ));
 
