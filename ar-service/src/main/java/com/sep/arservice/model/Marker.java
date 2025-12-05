@@ -58,10 +58,6 @@ public class Marker implements Serializable {
     //OneToMany
     @JsonIgnore
     @OneToMany(mappedBy = "marker", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<AlignmentData> alignmentDatas;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "marker", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Asset3D> asset3Ds;
 
     @JsonIgnore
