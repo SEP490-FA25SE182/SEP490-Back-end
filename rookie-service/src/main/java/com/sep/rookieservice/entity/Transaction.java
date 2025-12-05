@@ -42,7 +42,6 @@ public class Transaction implements Serializable {
     @Column(name = "payment_method_id", length = 50)
     private String paymentMethodId;
 
-
     @Column(name = "order_id", length = 50)
     private String orderId;
 

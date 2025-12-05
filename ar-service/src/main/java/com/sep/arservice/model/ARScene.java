@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -32,6 +33,7 @@ public class ARScene implements Serializable {
     @Column(name="name", length=100)
     private String name;
 
+    @Nationalized
     @Column(name="description", length=500)
     private String description;
 
