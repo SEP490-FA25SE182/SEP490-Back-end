@@ -36,20 +36,20 @@ public class FirebaseConfig {
     @Bean
     @ConditionalOnProperty(value = "storage.provider", havingValue = "firebase")
     public GoogleCredentials firebaseCredentials() throws Exception {
-        String saJson = env.getProperty("firebase.service-account-json");
         String saFile = env.getProperty("firebase.service-account-file");
 
-        if (StringUtils.hasText(saJson)) {
-            try (InputStream is = new ByteArrayInputStream(saJson.getBytes(StandardCharsets.UTF_8))) {
-                return GoogleCredentials.fromStream(is);
-            }
-        }
+        // Cách 1: Dùng file JSON thật (khuyên dùng)
         if (StringUtils.hasText(saFile)) {
-            try (InputStream is = Files.newInputStream(Paths.get(saFile))) {
-                return GoogleCredentials.fromStream(is);
-            }
+            return GoogleCredentials.fromStream(Files.newInputStream(Paths.get(saFile)));
         }
-        // Fallback: ADC
+
+        // Cách 2: Fallback - đọc từ resources (nếu không có file)
+        InputStream is = getClass().getClassLoader().getResourceAsStream("firebase-adminsdk.json");
+        if (is != null) {
+            return GoogleCredentials.fromStream(is);
+        }
+
+        // Cách 3: ADC
         return GoogleCredentials.getApplicationDefault();
     }
 
