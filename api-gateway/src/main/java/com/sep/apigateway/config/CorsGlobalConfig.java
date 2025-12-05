@@ -1,4 +1,4 @@
-package com.sep.rookieservice.config;
+package com.sep.apigateway.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
