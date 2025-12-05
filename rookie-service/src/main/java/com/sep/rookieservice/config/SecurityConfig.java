@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -15,28 +16,10 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    @Value("${FRONTEND_URL:http://localhost:5173}")
-    private String frontendUrl;
-
-    @Value("${FRONTEND_URL_ALT:http://127.0.0.1:5173}")
-    private String frontendUrlAlt;
-
-    @Value("${API_URL:http://localhost}")
-    private String apiUrl;
-
-    @Value("${GATEWAY_PORT:8080}")
-    private String gatewayPort;
-
-    @Value("${PROD_FRONTEND_URL:https://frontend.arbookrookie.xyz}")
-    private String prodFrontend;
-
-    @Value("${PROD_BACKEND_URL:https://backend.arbookrookie.xyz}")
-    private String prodBackend;
-
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(AbstractHttpConfigurer::disable)
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -52,25 +35,5 @@ public class SecurityConfig {
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()));
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOriginPatterns(List.of("*"));
-
-        config.setAllowedMethods(List.of("*"));
-        config.setAllowedHeaders(List.of("*"));
-
-        config.setExposedHeaders(List.of("*"));
-
-        config.setAllowCredentials(true);
-
-        config.setMaxAge(Duration.ofHours(1));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 }
