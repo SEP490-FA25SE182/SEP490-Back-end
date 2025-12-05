@@ -10,9 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, String>, JpaSpecificationExecutor<Quiz> {
-    @EntityGraph(attributePaths = {
-            "questions",
-            "questions.answers"
-    })
+    @EntityGraph(attributePaths = "questions")
     Optional<Quiz> findByQuizId(String quizId);
 }

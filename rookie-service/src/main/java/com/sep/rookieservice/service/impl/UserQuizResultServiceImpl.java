@@ -98,12 +98,22 @@ public class UserQuizResultServiceImpl implements UserQuizResultService {
         probe.setIsActived(isActived);
 
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
-                .withIgnoreNullValues();
+                .withIgnoreNullValues()
+                .withIgnorePaths(
+                        "attemptCount",
+                        "coin",
+                        "correctCount",
+                        "questionCount",
+                        "score",
+                        "createdAt",
+                        "updatedAt"
+                );
 
         Example<UserQuizResult> example = Example.of(probe, matcher);
 
         return repo.findAll(example, pageable)
                 .map(mapper::toDto);
+
     }
 
     @Transactional
@@ -184,7 +194,7 @@ public class UserQuizResultServiceImpl implements UserQuizResultService {
         result.setQuestionCount(answeredQuestionCount);
         result.setIsComplete(isComplete);
         result.setIsReward(isReward);
-        result.setCoin(isReward ? totalScore : 0); // lưu coin nhận được trong lần submit này
+        result.setCoin(isReward ? (totalScore * 5) : 0); // lưu coin nhận được trong lần submit này
         result.setIsActived(IsActived.ACTIVE);
         result.setCreatedAt(Instant.now());
         result.setUpdatedAt(Instant.now());
@@ -195,7 +205,7 @@ public class UserQuizResultServiceImpl implements UserQuizResultService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Wallet not found for userId: " + request.getUserId()));
 
-            wallet.setCoin(wallet.getCoin() + totalScore);
+            wallet.setCoin(wallet.getCoin() + (totalScore * 5));
             wallet.setUpdatedAt(Instant.now());
             walletRepository.save(wallet);
         }

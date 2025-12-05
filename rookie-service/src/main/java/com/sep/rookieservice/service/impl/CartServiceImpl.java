@@ -50,7 +50,7 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public CartResponse getByUserId(String userId) {
         var c = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for userId: " + userId));
+                .orElseThrow(() -> new RuntimeException("Cart not found for userId: " + userId));
         return mapper.toResponse(c);
     }
 
