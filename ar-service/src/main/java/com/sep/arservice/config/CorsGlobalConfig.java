@@ -10,12 +10,20 @@ import java.util.List;
 
 @Configuration
 public class CorsGlobalConfig {
+
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:8080"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+
+        // Cho phép tất cả origin
+        config.setAllowedOriginPatterns(List.of("*"));
+
+        // Cho phép tất cả method
+        config.setAllowedMethods(List.of("*"));
+
+        // Cho phép tất cả header
         config.setAllowedHeaders(List.of("*"));
+
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
