@@ -12,6 +12,23 @@ spring:
     service-registry:
       auto-registration:
         enabled: true   #  bật auto-register
+  gateway:
+    globalcors:
+      corsConfigurations:
+        '[/**]':
+          allowedOrigins:
+            - "http://localhost:5173"
+            - "https://arbookrookie.xyz"
+            - "https://www.arbookrookie.xyz"
+            - "https://sep490-front-end-quang-tn-beyonds-projects.vercel.app"
+            - "https://sep490-front-16600s0n8-quang-tn-beyonds-projects.vercel.app"
+            - "https://*.vercel.app"
+          allowedMethods:
+            - "*"
+          allowedHeaders:
+            - "*"
+          allowCredentials: true
+
 
     gateway:
       discovery:

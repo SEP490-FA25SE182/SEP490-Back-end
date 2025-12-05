@@ -48,7 +48,7 @@ spring:
       auto-registration:
         enabled: true
     gateway:
-      globals:
+      globalcors:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
