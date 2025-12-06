@@ -10,19 +10,20 @@ services:
     ports:
       - "${DISCOVERY_PORT:-8761}:8761"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
+    cpuset: "0,1,2,3"
     networks: [sep490-net]
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     container_name: redis
-    ports:
-      - "6380:6379"
+    cpuset: "0,1,2,3"
     networks: [sep490-net]
     restart: unless-stopped
 
@@ -32,8 +33,42 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_CACHE_TYPE: simple
-      FIREBASE_CREDENTIALS_PATH: /app/firebase.json
+      FIREBASE_CREDENTIALS_PATH: ${FIREBASE_CREDENTIALS_PATH:-/app/firebase.json}
       ROOKIE_PORT: ${ROOKIE_PORT:-8081}
+      EUREKA_URL: http://discovery-server:8761/eureka
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://mssql:1433;databaseName=rookie_db;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      mssql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "${ROOKIE_PORT:-8081}:8081"
+    cpuset: "0,1,2,3"
+    networks: [sep490-net]
+    volumes:
+      - ./firebase-service-account.json:/app/firebase.json:ro
+    restart: unless-stopped
+
+  ai-service:
+    image: ${IMAGE_PREFIX:-trinhhoangnhatminh123}/ai-service:${IMAGE_TAG:-latest}
+    container_name: ai-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CACHE_TYPE: simple
+      STORAGE_BASE_DIR: /data/illustrations
+      FIREBASE_CREDENTIALS_PATH: /app/firebase.json
+      STABILITY_ENABLED: "false"
+      STABILITY_KEY: ${STABILITY_KEY}
+      AI_PORT: ${AI_PORT:-8082}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
       DB_URL: jdbc:sqlserver://mssql:1433;databaseName=rookie_db;encrypt=true;trustServerCertificate=true
@@ -50,9 +85,11 @@ services:
       redis:
         condition: service_started
     ports:
-      - "${ROOKIE_PORT:-8081}:8081"
+      - "${AI_PORT:-8082}:8082"
+    cpuset: "0,1,2,3"
     networks: [sep490-net]
     volumes:
+      - ai_data:/data/illustrations
       - ./firebase-service-account.json:/app/firebase.json:ro
     restart: unless-stopped
 
@@ -69,6 +106,7 @@ services:
       DB_USERNAME: sa
       DB_PASSWORD: ${MSSQL_SA_PASSWORD}
       DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      FIREBASE_CREDENTIALS_PATH: /app/firebase-service-account.json
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
@@ -80,6 +118,7 @@ services:
         condition: service_started
     ports:
       - "${AR_PORT:-8083}:8083"
+    cpuset: "0,1,2,3"
     networks: [sep490-net]
     restart: unless-stopped
 
@@ -98,8 +137,11 @@ services:
         condition: service_healthy
       rookie-service:
         condition: service_started
+      ai-service:
+        condition: service_started
       ar-service:
         condition: service_started
+    cpuset: "0,1,2,3"
     networks: [sep490-net]
     restart: unless-stopped
 
@@ -115,11 +157,12 @@ services:
     volumes:
       - mssql_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD}' -C -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD}' -C -Q 'SELECT 1'"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
+    cpuset: "0,1,2,3"
     networks: [sep490-net]
     restart: unless-stopped
 
@@ -135,6 +178,7 @@ services:
         -Q "IF DB_ID('rookie_db') IS NULL CREATE DATABASE rookie_db;"
     environment:
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    cpuset: "0,1,2,3"
     networks: [sep490-net]
     restart: "no"
 
@@ -144,3 +188,4 @@ networks:
 
 volumes:
   mssql_data:
+  ai_data:
