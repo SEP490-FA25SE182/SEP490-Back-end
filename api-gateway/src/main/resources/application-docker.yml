@@ -20,6 +20,12 @@ spring:
             - Path=/rookie-service/v3/api-docs/**
           filters:
             - RewritePath=/rookie-service(?<segment>/?.*), $\{segment}
+        - id: ai-service-docs
+          uri: lb://ai-service
+          predicates:
+            - Path=/ai-service/v3/api-docs/**
+          filters:
+            - RewritePath=/ai-service(?<segment>/?.*), $\{segment}
         - id: ar-service-docs
           uri: lb://ar-service
           predicates:
@@ -31,6 +37,12 @@ spring:
           uri: lb://rookie-service
           predicates:
             - Path=/api/rookie/**
+          filters:
+            - StripPrefix=2
+        - id: ai-service
+          uri: lb://ai-service
+          predicates:
+            - Path=/api/ai/**
           filters:
             - StripPrefix=2
         - id: ar-service
@@ -69,6 +81,8 @@ springdoc:
     urls:
       - name: Rookie Service
         url: /rookie-service/v3/api-docs
+      - name: AI Service
+        url: /ai-service/v3/api-docs
       - name: AR Service
         url: /ar-service/v3/api-docs
   webjars:
