@@ -44,7 +44,7 @@ public class FirebaseConfig {
         }
 
         // Cách 2: Fallback - đọc từ resources (nếu không có file)
-        InputStream is = getClass().getClassLoader().getResourceAsStream("firebase-adminsdk.json");
+        InputStream is = getClass().getClassLoader().getResourceAsStream("firebase.json");
         if (is != null) {
             return GoogleCredentials.fromStream(is);
         }
