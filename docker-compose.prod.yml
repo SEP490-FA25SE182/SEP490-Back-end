@@ -68,6 +68,8 @@ services:
       FIREBASE_CREDENTIALS_PATH: /app/firebase.json
       STABILITY_ENABLED: "false"
       STABILITY_KEY: ${STABILITY_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      MESHY_API_KEY: ${MESHY_API_KEY}
       AI_PORT: ${AI_PORT:-8082}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
@@ -107,6 +109,7 @@ services:
       DB_PASSWORD: ${MSSQL_SA_PASSWORD}
       DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
       FIREBASE_CREDENTIALS_PATH: /app/firebase-service-account.json
+      MESHY_API_KEY: ${MESHY_API_KEY}
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
