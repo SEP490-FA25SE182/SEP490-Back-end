@@ -13,28 +13,62 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    @Bean
-    public OpenAPI openAPI(
-            @Value("${API_URL:http://localhost}") String apiUrl,
-            @Value("${GATEWAY_PORT:8080}") String gatewayPort,
-            @Value("${AI_PORT:8082}") String aiPort,
-            @Value("${server.servlet.context-path:}") String contextPath
-    ) {
-        String ctx = (contextPath == null || contextPath.isBlank()) ? "" :
-                (contextPath.startsWith("/") ? contextPath : "/" + contextPath);
+    @Value("${API_URL:http://localhost}")
+    private String apiUrl;
 
-        String direct = apiUrl + ":" + aiPort + ctx;
-        String viaGateway = apiUrl + ":" + gatewayPort + "/api/ai";
+    @Value("${PROD_BACKEND_URL:https://backend.arbookrookie.xyz}")
+    private String prodBackendUrl;
+
+    @Value("${GATEWAY_PORT:8080}")
+    private int gatewayPort;
+
+    @Value("${AI_PORT:8082}")
+    private int aiPort;
+
+    @Value("${server.servlet.context-path:}")
+    private String contextPath;
+
+    @Value("${AI_BASE_PATH:/api/ai}")
+    private String aiBasePath;
+
+    @Bean
+    public OpenAPI openAPI() {
+        String ctx = (contextPath == null || contextPath.isBlank())
+                ? ""
+                : (contextPath.startsWith("/") ? contextPath : "/" + contextPath);
+
+        // =======================
+        // LOCAL ENVIRONMENT
+        // =======================
+        String localDirect   = apiUrl + ":" + aiPort + ctx;
+        String localGateway  = apiUrl + ":" + gatewayPort + aiBasePath;
+
+        // =======================
+        // PRODUCTION ENVIRONMENT
+        // =======================
+        String prodDirect    = prodBackendUrl + ctx;
+        String prodGateway   = prodBackendUrl + aiBasePath;
 
         return new OpenAPI()
                 .info(new Info()
                         .title("AI Service API")
                         .version("1.0.0")
-                        .description("API documentation for AI microservice")
-                        .license(new License().name("Apache 2.0").url("http://springdoc.org")))
+                        .description("API documentation for AI microservice - Image Generation & Processing")
+                        .license(new License().name("Apache 2.0").url("http://springdoc.org"))
+                )
                 .servers(List.of(
-                        new Server().url(viaGateway).description("Through API Gateway"),
-                        new Server().url(direct).description("Direct service")
+                        new Server()
+                                .url(localGateway)
+                                .description("Local - Through API Gateway"),
+                        new Server()
+                                .url(localDirect)
+                                .description("Local - Direct AI Service"),
+                        new Server()
+                                .url(prodGateway)
+                                .description("Production - Through API Gateway"),
+                        new Server()
+                                .url(prodDirect)
+                                .description("Production - Direct AI Service")
                 ));
     }
 }
