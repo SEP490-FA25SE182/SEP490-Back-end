@@ -28,7 +28,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Build & push chỉ các services cần thiết cho production (không build ai-service)
+      # Build & push tất cả services cho production
       - name: Build and push production services
         run: |
           export IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}
@@ -37,12 +37,14 @@ jobs:
 
           docker compose build --no-cache discovery-server
           docker compose build --no-cache rookie-service
+          docker compose build --no-cache ai-service
           docker compose build --no-cache ar-service
           docker compose build --no-cache api-gateway
 
-          # Push các services cần thiết
+          # Push tất cả services
           docker compose push discovery-server
           docker compose push rookie-service
+          docker compose push ai-service
           docker compose push ar-service
           docker compose push api-gateway
 
@@ -73,7 +75,7 @@ jobs:
           export IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}
           export IMAGE_TAG=latest
 
-          echo "${{ secrets.SSH_PASS_PRODUCTION }}" | sudo -S docker compose pull discovery-server rookie-service ar-service api-gateway
+          echo "${{ secrets.SSH_PASS_PRODUCTION }}" | sudo -S docker compose pull discovery-server rookie-service ai-service ar-service api-gateway
 
           echo "${{ secrets.SSH_PASS_PRODUCTION }}" | sudo -S docker compose up -d
           EOF
