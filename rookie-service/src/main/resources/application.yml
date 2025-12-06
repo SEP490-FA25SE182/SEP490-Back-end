@@ -99,7 +99,7 @@ rookie:
 
 
 ghn:
-  base-url: https://dev-online-gateway.ghn.vn/shiip/public-api
+  base-url: https://online-gateway.ghn.vn/shiip/public-api
   token: ${YOUR_GHN_TOKEN}
   shop-id: ${YOUR_SHOP_ID}
 
