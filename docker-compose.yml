@@ -37,6 +37,8 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_CACHE_TYPE: simple
       FIREBASE_CREDENTIALS_PATH: /app/firebase.json
+      GHN_TOKEN: ${GHN_TOKEN}
+      GHN_SHOP_ID: ${GHN_SHOP_ID}
       ROOKIE_PORT: ${ROOKIE_PORT:-8081}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
@@ -74,6 +76,8 @@ services:
       FIREBASE_CREDENTIALS_PATH: /app/firebase.json
       STABILITY_ENABLED: "false"
       STABILITY_KEY: ${STABILITY_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      MESHY_API_KEY: ${MESHY_API_KEY}
       AI_PORT: ${AI_PORT:-8082}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
@@ -115,7 +119,7 @@ services:
       DB_USERNAME: sa
       DB_PASSWORD: ${MSSQL_SA_PASSWORD}
       DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
-
+      MESHY_API_KEY: ${MESHY_API_KEY}
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
