@@ -36,9 +36,9 @@ spring:
         - id: rookie-service-openapi
           uri: lb://rookie-service
           predicates:
-            - Path=/rookie-service/v3/api-docs/**
+            - Path=/api/rookie/v3/api-docs
           filters:
-            - RewritePath=/rookie-service/(?<segment>.*), /${segment}
+            - RewritePath=/api/rookie/v3/api-docs, /v3/api-docs
 
         # AI service business
         - id: ai-service
@@ -52,9 +52,9 @@ spring:
         - id: ai-service-openapi
           uri: lb://ai-service
           predicates:
-            - Path=/ai-service/v3/api-docs/**
+            - Path=/api/ai/v3/api-docs
           filters:
-            - RewritePath=/ai-service/(?<segment>.*), /${segment}
+            - RewritePath=/api/ai/v3/api-docs, /v3/api-docs
 
         # AR service business
         - id: ar-service
@@ -68,9 +68,9 @@ spring:
         - id: ar-service-openapi
           uri: lb://ar-service
           predicates:
-            - Path=/ar-service/v3/api-docs/**
+            - Path=/api/ar/v3/api-docs
           filters:
-            - RewritePath=/ar-service/(?<segment>.*), /${segment}
+            - RewritePath=/api/ar/v3/api-docs, /v3/api-docs
 
 eureka:
   client:
