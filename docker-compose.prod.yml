@@ -43,6 +43,26 @@ services:
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      YOUR_GHN_TOKEN: ${YOUR_GHN_TOKEN}
+      YOUR_SHOP_ID: ${YOUR_SHOP_ID}
+      PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID}
+      PAYOS_API_KEY: ${PAYOS_API_KEY}
+      PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY}
+      PAYOS_PAYOUT_CLIENT_ID: ${PAYOS_PAYOUT_CLIENT_ID}
+      PAYOS_PAYOUT_API_KEY: ${PAYOS_PAYOUT_API_KEY}
+      PAYOS_PAYOUT_CHECKSUM_KEY: ${PAYOS_PAYOUT_CHECKSUM_KEY}
+      PAYOS_PAYOUT_PARTNER_CODE: ${PAYOS_PAYOUT_PARTNER_CODE}
+      PAYOS_HOST: ${PAYOS_HOST}
+      PAYOS_PORT: ${PAYOS_PORT}
+      PAYOS_USER: ${PAYOS_USER}
+      PAYOS_PASS: ${PAYOS_PASS}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      APP_MAIL_FROM: ${APP_MAIL_FROM}
+      APP_FRONTEND_RESET_PASSWORD_URL: ${APP_FRONTEND_RESET_PASSWORD_URL}
+
     depends_on:
       discovery-server:
         condition: service_healthy
@@ -66,6 +86,7 @@ services:
       SPRING_CACHE_TYPE: simple
       STORAGE_BASE_DIR: /data/illustrations
       FIREBASE_CREDENTIALS_PATH: /app/firebase.json
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       STABILITY_ENABLED: "false"
       STABILITY_KEY: ${STABILITY_KEY}
       AI_PORT: ${AI_PORT:-8082}
@@ -109,6 +130,7 @@ services:
       FIREBASE_CREDENTIALS_PATH: /app/firebase-service-account.json
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      MESHY_API_KEY: ${MESHY_API_KEY}
     depends_on:
       discovery-server:
         condition: service_healthy
