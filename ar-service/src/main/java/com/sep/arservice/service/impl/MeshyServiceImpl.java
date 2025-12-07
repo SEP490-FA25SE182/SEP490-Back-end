@@ -47,7 +47,9 @@ public class MeshyServiceImpl {
                 .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
                         .map(msg -> {
                             log.warn("[Meshy] CREATE error status={} body={}", r.statusCode(), msg);
-                            return new RuntimeException("Meshy create error: " + msg);
+                            return new RuntimeException(
+                                    "Meshy create error (meshyKey=" + maskedApiKey() + "): " + msg
+                            );
                         }))
                 .bodyToMono(MeshyCreateRes.class)
                 .block();
@@ -57,7 +59,9 @@ public class MeshyServiceImpl {
                 .filter(s -> !s.isBlank())
                 .orElseThrow(() -> {
                     log.error("[Meshy] CREATE returned empty task id. Raw response={}", created);
-                    return new RuntimeException("Meshy create returned empty task id");
+                    return new RuntimeException(
+                            "Meshy create returned empty task id (meshyKey=" + maskedApiKey() + ")"
+                    );
                 });
 
         log.info("[Meshy] Created taskId={}", taskId);
@@ -95,7 +99,9 @@ public class MeshyServiceImpl {
                 .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
                         .map(msg -> {
                             log.warn("[Meshy] REFINE create error status={} body={}", r.statusCode(), msg);
-                            return new RuntimeException("Meshy refine create error: " + msg);
+                            return new RuntimeException(
+                                    "Meshy refine create error (meshyKey=" + maskedApiKey() + "): " + msg
+                            );
                         }))
                 .bodyToMono(MeshyCreateRes.class)
                 .block();
@@ -103,7 +109,9 @@ public class MeshyServiceImpl {
         String refineTaskId = Optional.ofNullable(refineCreated)
                 .map(MeshyCreateRes::getResult)
                 .filter(s -> !s.isBlank())
-                .orElseThrow(() -> new RuntimeException("Meshy refine returned empty task id"));
+                .orElseThrow(() -> new RuntimeException(
+                        "Meshy refine returned empty task id (meshyKey=" + maskedApiKey() + ")"
+                ));
 
         log.info("[Meshy] Refine task created: {}", refineTaskId);
 
@@ -179,6 +187,17 @@ public class MeshyServiceImpl {
         return String.format("{mode=%s, format=%s, quality=%s, topology=%s, prompt=%s, negative_prompt=%s}",
                 b.getMode(), b.getFormat(), b.getQuality(), b.getTopology(),
                 trim(b.getPrompt(), 120), trim(b.getNegative_prompt(), 120));
+    }
+
+    private String maskedApiKey() {
+        String key = props.getApiKey();
+        if (key == null || key.isBlank()) {
+            return "NULL";
+        }
+        if (key.length() <= 8) {
+            return "****";
+        }
+        return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
     }
 }
 

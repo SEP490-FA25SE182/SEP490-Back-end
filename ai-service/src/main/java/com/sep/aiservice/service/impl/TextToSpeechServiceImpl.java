@@ -1,5 +1,6 @@
 package com.sep.aiservice.service.impl;
 
+import com.sep.aiservice.config.GeminiProperties;
 import com.sep.aiservice.dto.AudioUploadRequest;
 import com.sep.aiservice.dto.GeminiResponse;
 import com.sep.aiservice.dto.TtsGenerateRequest;
@@ -44,6 +45,8 @@ public class TextToSpeechServiceImpl implements TextToSpeechService {
 
     @Qualifier("geminiWebClient")
     private final WebClient geminiClient;
+
+    private final GeminiProperties geminiProperties;
 
     private final AiGenerationLogService genLog;
     private final AudioRepository audioRepo;
@@ -132,9 +135,21 @@ public class TextToSpeechServiceImpl implements TextToSpeechService {
             return audioMapper.toResponse(audio);
 
         } catch (Exception e) {
-            log.error("TTS generation failed", e);
+            String maskedKey = Optional.ofNullable(geminiProperties.getApiKey())
+                    .map(k -> {
+                        if (k.length() <= 8) {
+                            return "****";
+                        }
+                        return k.substring(0, 4) + "..." + k.substring(k.length() - 4);
+                    })
+                    .orElse("NULL");
+
+            log.error("TTS generation failed, masked Gemini API key = {}", maskedKey, e);
             genLog.fail(gen, (System.nanoTime() - t0) / 1_000_000.0, e);
-            throw new RuntimeException("TTS generation failed: " + e.getMessage(), e);
+            throw new RuntimeException(
+                    "TTS generation failed (geminiKey=" + maskedKey + "): " + e.getMessage(),
+                    e
+            );
         }
     }
 
