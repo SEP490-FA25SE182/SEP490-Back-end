@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Nationalized;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -35,7 +36,9 @@ public class AIGeneration implements Serializable {
     @Column(name = "model_name", length = 50)
     private String modelName;
 
-    @Column(name = "prompt", length = 1000)
+    @Nationalized
+    @Lob
+    @Column(name = "prompt")
     private String prompt;
 
     @Column(name = "negative_prompt", length = 1000)
