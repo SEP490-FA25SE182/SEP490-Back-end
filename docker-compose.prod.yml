@@ -34,8 +34,31 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_CACHE_TYPE: simple
       FIREBASE_CREDENTIALS_PATH: ${FIREBASE_CREDENTIALS_PATH:-/app/firebase.json}
-      YOUR_SHOP_ID: ${YOUR_GHN_TOKEN}
+
+      # GHN
+      YOUR_GHN_TOKEN: ${YOUR_GHN_TOKEN}
       YOUR_SHOP_ID: ${YOUR_SHOP_ID}
+
+      # Email + frontend
+      APP_MAIL_FROM: ${APP_MAIL_FROM}
+      APP_FRONTEND_RESET_PASSWORD_URL: ${APP_FRONTEND_RESET_PASSWORD_URL}
+
+      # PayOS – các biến bắt buộc
+      PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID}
+      PAYOS_API_KEY: ${PAYOS_API_KEY}
+      PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY}
+
+      PAYOS_PAYOUT_CLIENT_ID: ${PAYOS_PAYOUT_CLIENT_ID}
+      PAYOS_PAYOUT_API_KEY: ${PAYOS_PAYOUT_API_KEY}
+      PAYOS_PAYOUT_CHECKSUM_KEY: ${PAYOS_PAYOUT_CHECKSUM_KEY}
+      PAYOS_PAYOUT_PARTNER_CODE: ${PAYOS_PAYOUT_PARTNER_CODE}
+
+      # Proxy cho PayOS
+      PAYOS_HOST: ${PAYOS_HOST}
+      PAYOS_PORT: ${PAYOS_PORT}
+      PAYOS_USER: ${PAYOS_USER}
+      PAYOS_PASS: ${PAYOS_PASS}
+
       ROOKIE_PORT: ${ROOKIE_PORT:-8081}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
@@ -71,7 +94,6 @@ services:
       STABILITY_ENABLED: "false"
       STABILITY_KEY: ${STABILITY_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-      MESHY_API_KEY: ${MESHY_API_KEY}
       AI_PORT: ${AI_PORT:-8082}
       EUREKA_URL: http://discovery-server:8761/eureka
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
