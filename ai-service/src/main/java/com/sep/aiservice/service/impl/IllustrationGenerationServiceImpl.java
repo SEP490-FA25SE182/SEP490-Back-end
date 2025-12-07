@@ -265,5 +265,4 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
         }).build();
     }
 
-
 }

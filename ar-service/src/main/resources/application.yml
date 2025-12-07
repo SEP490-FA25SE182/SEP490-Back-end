@@ -71,4 +71,4 @@ storage:
   model3d-prefix: models
 
 firebase:
-  service-account-file: ${FIREBASE_CREDENTIALS_PATH:/app/firebase.json}
+  service-account-file: ${FIREBASE_CREDENTIALS_PATH}
