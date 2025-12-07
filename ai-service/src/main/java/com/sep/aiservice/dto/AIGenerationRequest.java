@@ -14,7 +14,6 @@ public class AIGenerationRequest {
     @Size(max = 50)
     private String modelName;
 
-    @Size(max = 1000)
     private String prompt;
 
     @Size(max = 1000)
