@@ -22,7 +22,6 @@ ENV TZ=Asia/Ho_Chi_Minh \
     JAVA_OPTS=""
 
 COPY --from=builder /app/target/*.jar app.jar
-COPY firebase-service-account.json /app/firebase-service-account.json
 
 # EXPOSE
 EXPOSE 8083
