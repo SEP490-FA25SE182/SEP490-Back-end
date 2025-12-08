@@ -26,7 +26,7 @@ meshy:
   api-key: ${MESHY_API_KEY}
   base-url: https://api.meshy.ai
   poll-interval: 3s
-  timeout: 5m
+  timeout: 10m
 
 springdoc:
   api-docs:
