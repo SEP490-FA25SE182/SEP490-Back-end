@@ -72,7 +72,7 @@ app:
   mail:
     from: ${APP_MAIL_FROM:Rookies <no-reply@rookies.com>}
   frontend:
-    reset-password-url: ${APP_FRONTEND_RESET_PASSWORD_URL:https://sep490-front-end-quang-tn-beyonds-projects.vercel.app/reset}
+    reset-password-url: ${APP_FRONTEND_RESET_PASSWORD_URL:https://www.arbookrookie.xyz/resetpassword}
 
 rookie:
   payos:
@@ -80,8 +80,8 @@ rookie:
     client-id: ${PAYOS_CLIENT_ID}
     api-key: ${PAYOS_API_KEY}
     checksum-key: ${PAYOS_CHECKSUM_KEY}
-    return-url: https://sep490-front-end-quang-tn-beyonds-projects.vercel.app/checkout/success
-    cancel-url: https://sep490-front-end-quang-tn-beyonds-projects.vercel.app/checkout/cancel
+    return-url: https://www.arbookrookie.xyz/checkout/success
+    cancel-url: https://www.arbookrookie.xyz/checkout/cancel
 
     payout-base-url: https://api-merchant.payos.vn
     payout-client-id: ${PAYOS_PAYOUT_CLIENT_ID}
