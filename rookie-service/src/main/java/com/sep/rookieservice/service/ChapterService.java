@@ -20,7 +20,6 @@ public interface ChapterService {
             String q,
             String bookId,
             Byte progressStatus,
-            Byte publicationStatus,
             IsActived isActived,
             Pageable pageable
     );

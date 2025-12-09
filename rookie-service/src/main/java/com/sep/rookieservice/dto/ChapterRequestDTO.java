@@ -13,7 +13,6 @@ public class ChapterRequestDTO {
     private String review;
     private Instant publishedDate;
     private Byte progressStatus;
-    private Byte publicationStatus;
     private String bookId;
     private IsActived isActived = IsActived.ACTIVE;
 }
