@@ -48,7 +48,6 @@ public class ChapterController {
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String bookId,
-            @RequestParam(required = false) Byte publicationStatus,
             @RequestParam(required = false) Byte progressStatus,
             @RequestParam(required = false) IsActived isActived
     ) {
@@ -71,7 +70,7 @@ public class ChapterController {
         }
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
-        return service.search(q, bookId, progressStatus, publicationStatus, isActived, pageable);
+        return service.search(q, bookId, progressStatus, isActived, pageable);
     }
 
     @GetMapping("/{chapterId}/pages")

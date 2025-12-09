@@ -13,7 +13,6 @@ public final class ChapterSpecification {
             String q,
             String bookId,
             Byte progressStatus,
-            Byte publicationStatus,
             IsActived isActived
     ) {
         return (root, query, cb) -> {
@@ -31,10 +30,6 @@ public final class ChapterSpecification {
 
             if (progressStatus != null) {
                 predicate = cb.and(predicate, cb.equal(root.get("progressStatus"), progressStatus));
-            }
-
-            if (publicationStatus != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("publicationStatus"), publicationStatus));
             }
 
             if (isActived != null) {
