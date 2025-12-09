@@ -120,27 +120,39 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
     private byte[] callTextToImage(GenerateIllustrationRequest req, @Nullable String userIdForHeader) {
         MultipartBodyBuilder mb = new MultipartBodyBuilder();
 
+        // bắt buộc
         mb.part("prompt", req.getPrompt());
-        if (StringUtils.hasText(req.getNegativePrompt())) mb.part("negative_prompt", req.getNegativePrompt());
-        if (req.getSeed() != null)        mb.part("seed", String.valueOf(req.getSeed()));
-        if (req.getCfgScale() != null)    mb.part("cfg_scale", String.valueOf(req.getCfgScale()));
-        if (req.getStylePreset() != null) mb.part("style_preset", req.getStylePreset().name().toLowerCase().replace('_','-'));
-        if (req.getWidth() != null && req.getHeight() != null) {
-            mb.part("width",  String.valueOf(req.getWidth()));
-            mb.part("height", String.valueOf(req.getHeight()));
-        } else if (StringUtils.hasText(req.getAspectRatio())) {
-            mb.part("aspect_ratio", req.getAspectRatio());
+
+        // optional
+        if (StringUtils.hasText(req.getNegativePrompt())) {
+            mb.part("negative_prompt", req.getNegativePrompt());
         }
+        if (req.getSeed() != null) {
+            mb.part("seed", String.valueOf(req.getSeed()));
+        }
+        if (req.getCfgScale() != null) {
+            mb.part("cfg_scale", String.valueOf(req.getCfgScale()));
+        }
+        if (req.getStylePreset() != null) {
+            mb.part("style_preset", req.getStylePreset().name().toLowerCase().replace('_', '-'));
+        }
+
+        String aspect = StringUtils.hasText(req.getAspectRatio())
+                ? req.getAspectRatio()
+                : "1:1";
+        mb.part("aspect_ratio", aspect);
+
         mb.part("output_format", Optional.ofNullable(req.getFormat()).orElse("png"));
 
-        final String accept = StringUtils.hasText(req.getAccept()) ? req.getAccept() : defaultAccept; // khuyên dùng "image/png"
+        // headers
+        final String accept = StringUtils.hasText(req.getAccept()) ? req.getAccept() : defaultAccept; // nên là "image/*" hoặc "image/png"
         final String clientUserId = StringUtils.hasText(userIdForHeader) ? userIdForHeader : "anonymous";
 
         return withLog(stabilityWebClient).post()
-                .uri(CORE_URL)
+                .uri(CORE_URL) // "https://api.stability.ai/v2beta/stable-image/generate/core"
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .headers(h -> {
-                    h.setBearerAuth(Optional.ofNullable(stabilityApiKey).orElse("").trim()); // <-- THÊM DÒNG NÀY
+                    h.setBearerAuth(Optional.ofNullable(stabilityApiKey).orElse("").trim());
                     h.set(HttpHeaders.ACCEPT, accept);
                     h.set("stability-client-id",      appClientId);
                     h.set("stability-client-user-id", clientUserId);
@@ -178,21 +190,32 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
                                   @Nullable String userIdForHeader) {
         MultipartBodyBuilder mb = new MultipartBodyBuilder();
 
+        // bắt buộc
         mb.part("prompt", req.getPrompt());
         mb.part("controlnet_type", req.getControlnetType());
         mb.part("control_image", toResource(controlImage))
                 .filename(Optional.ofNullable(controlImage.getOriginalFilename()).orElse("control.png"));
 
-        if (StringUtils.hasText(req.getNegativePrompt())) mb.part("negative_prompt", req.getNegativePrompt());
-        if (req.getSeed() != null)        mb.part("seed", String.valueOf(req.getSeed()));
-        if (req.getCfgScale() != null)    mb.part("cfg_scale", String.valueOf(req.getCfgScale()));
-        if (req.getStylePreset() != null) mb.part("style_preset", req.getStylePreset().name().toLowerCase().replace('_','-'));
-        if (req.getWidth() != null && req.getHeight() != null) {
-            mb.part("width",  String.valueOf(req.getWidth()));
-            mb.part("height", String.valueOf(req.getHeight()));
-        } else if (StringUtils.hasText(req.getAspectRatio())) {
-            mb.part("aspect_ratio", req.getAspectRatio());
+        // optional
+        if (StringUtils.hasText(req.getNegativePrompt())) {
+            mb.part("negative_prompt", req.getNegativePrompt());
         }
+        if (req.getSeed() != null) {
+            mb.part("seed", String.valueOf(req.getSeed()));
+        }
+        if (req.getCfgScale() != null) {
+            mb.part("cfg_scale", String.valueOf(req.getCfgScale()));
+        }
+        if (req.getStylePreset() != null) {
+            mb.part("style_preset", req.getStylePreset().name().toLowerCase().replace('_', '-'));
+        }
+
+        String aspect = StringUtils.hasText(req.getAspectRatio())
+                ? req.getAspectRatio()
+                : "1:1"; // fallback
+        mb.part("aspect_ratio", aspect);
+
+        // format output
         mb.part("output_format", Optional.ofNullable(req.getFormat()).orElse("png"));
 
         final String accept = StringUtils.hasText(req.getAccept()) ? req.getAccept() : defaultAccept;
@@ -202,7 +225,7 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
                 .uri("/v2beta/stable-image/controlnet")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .headers(h -> {
-                    h.setBearerAuth(Optional.ofNullable(stabilityApiKey).orElse("").trim()); // <-- THÊM DÒNG NÀY
+                    h.setBearerAuth(Optional.ofNullable(stabilityApiKey).orElse("").trim());
                     h.set(HttpHeaders.ACCEPT, accept);
                     h.set("stability-client-id",      appClientId);
                     h.set("stability-client-user-id", clientUserId);
@@ -213,7 +236,8 @@ public class IllustrationGenerationServiceImpl implements IllustrationGeneration
                     if (!resp.statusCode().is2xxSuccessful()) {
                         return resp.bodyToMono(String.class).defaultIfEmpty("<empty>")
                                 .flatMap(b -> Mono.error(new IllegalStateException(
-                                        "Stability error " + resp.statusCode() + " at /v2beta/stable-image/controlnet: " + b)));
+                                        "Stability error " + resp.statusCode() +
+                                                " at /v2beta/stable-image/controlnet: " + b)));
                     }
                     return resp.bodyToFlux(DataBuffer.class)
                             .reduce(new java.io.ByteArrayOutputStream(), (baos, db) -> {
