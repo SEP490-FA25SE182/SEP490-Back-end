@@ -3,7 +3,8 @@ package com.sep.rookieservice.enums;
 public enum ChapterEnum {
     IN_REVIEW((byte) 0),
     REJECTED((byte) 1),
-    APPROVED((byte) 2);
+    APPROVED((byte) 2),
+    IN_PROGRESS((byte) 3);
 
     private final byte status;
 

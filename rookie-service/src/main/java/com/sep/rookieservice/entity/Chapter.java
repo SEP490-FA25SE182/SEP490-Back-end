@@ -67,9 +67,6 @@ public class Chapter implements Serializable {
     @Column(name = "progress_status")
     private Byte progressStatus = ChapterEnum.IN_REVIEW.getStatus();
 
-    @Column(name = "publication_status")
-    private Byte publicationStatus = PublicationEnum.DRAFT.getStatus();
-
     @NotNull
     @Column(name = "book_id", length = 50)
     private String bookId;
