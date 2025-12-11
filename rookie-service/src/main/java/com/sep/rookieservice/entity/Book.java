@@ -74,6 +74,10 @@ public class Book implements Serializable {
     @Column(name = "published_date")
     private Instant publishedDate;
 
+    @Nationalized
+    @Column(name = "review", length = 250)
+    private String review;
+
     // ===================== RELATIONSHIPS =====================
 
     /** Many Books -> One Author (User) **/

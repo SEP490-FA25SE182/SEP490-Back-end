@@ -12,6 +12,7 @@ public interface TransactionService {
     TransactionResponse create(TransactionRequest req);
     TransactionResponse createWallet(TransactionRequest req);
     TransactionResponse createCOD(TransactionRequest req);
+    TransactionResponse createWalletWithBalance(TransactionRequest req);
     TransactionResponse getById(String id);
     TransactionResponse update(String id, TransactionRequest req);
     void softDelete(String id);

@@ -21,6 +21,8 @@ public class TransactionRequest {
 
     private String walletId;
 
+    private String userId;
+
     private TransactionType transType;
 
     private com.sep.rookieservice.enums.IsActived isActived;
