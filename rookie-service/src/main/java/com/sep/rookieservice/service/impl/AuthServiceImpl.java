@@ -3,9 +3,7 @@ package com.sep.rookieservice.service.impl;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-import com.sep.rookieservice.dto.AuthDtos;
-import com.sep.rookieservice.dto.AuthResponse;
-import com.sep.rookieservice.dto.UserResponse;
+import com.sep.rookieservice.dto.*;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.entity.PasswordResetToken;
 import com.sep.rookieservice.entity.User;
@@ -14,15 +12,11 @@ import com.sep.rookieservice.repository.PasswordResetTokenRepository;
 import com.sep.rookieservice.repository.RoleRepository;
 import com.sep.rookieservice.repository.UserRepository;
 import com.sep.rookieservice.security.JwtProvider;
-import com.sep.rookieservice.service.AuthService;
-import com.sep.rookieservice.service.JwtBlacklistService;
-import com.sep.rookieservice.service.MailService;
-import com.sep.rookieservice.service.NotificationService;
+import com.sep.rookieservice.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.sep.rookieservice.dto.NotificationRequestDTO;
 
 
 import java.security.SecureRandom;
@@ -43,6 +37,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtBlacklistService blacklistService;
     private final UserMapper userMapper;
     private final NotificationService notificationService;
+    private final BookshelveService bookshelveService;
+    private final CartService cartService;
+    private final WalletService walletService;
 
 
     private static final String DEFAULT_ROLE_NAME = "customer";
@@ -77,6 +74,26 @@ public class AuthServiceImpl implements AuthService {
             user.setIsActived(IsActived.ACTIVE);
             user.setRoyalty(0.0);
             userRepository.save(user);
+
+            BookshelveRequestDTO bookshelfDto = new BookshelveRequestDTO();
+            bookshelfDto.setBookshelveName("My Bookshelf");
+            bookshelfDto.setDecription("Default bookshelf");
+            bookshelfDto.setUserId(user.getUserId());
+            bookshelveService.create(bookshelfDto);
+
+            CartRequest cartReq = new CartRequest();
+            cartReq.setAmount(0);
+            cartReq.setTotalPrice(0.0);
+            cartReq.setUserId(user.getUserId());
+            cartReq.setIsActived(IsActived.ACTIVE);
+            cartService.create(List.of(cartReq));
+
+            WalletRequest walletReq = new WalletRequest();
+            walletReq.setUserId(user.getUserId());
+            walletReq.setCoin(0);
+            walletReq.setBalance(0.0);
+            walletReq.setIsActived(IsActived.ACTIVE);
+            walletService.create(List.of(walletReq));
 
         } else {
             if (user.getIsActived() != null && user.getIsActived() != IsActived.ACTIVE) {
@@ -114,6 +131,27 @@ public class AuthServiceImpl implements AuthService {
         user.setIsActived(IsActived.ACTIVE);
 
         userRepository.save(user);
+
+
+        BookshelveRequestDTO bookshelfDto = new BookshelveRequestDTO();
+        bookshelfDto.setBookshelveName("My Bookshelf");
+        bookshelfDto.setDecription("Default bookshelf");
+        bookshelfDto.setUserId(user.getUserId());
+        bookshelveService.create(bookshelfDto);
+
+        CartRequest cartReq = new CartRequest();
+        cartReq.setAmount(0);
+        cartReq.setTotalPrice(0.0);
+        cartReq.setUserId(user.getUserId());
+        cartReq.setIsActived(IsActived.ACTIVE);
+        cartService.create(List.of(cartReq));
+
+        WalletRequest walletReq = new WalletRequest();
+        walletReq.setUserId(user.getUserId());
+        walletReq.setCoin(0);
+        walletReq.setBalance(0.0);
+        walletReq.setIsActived(IsActived.ACTIVE);
+        walletService.create(List.of(walletReq));
 
         String jwt = issueJwt(user);
         return new AuthResponse(userMapper.toResponse(user), jwt);

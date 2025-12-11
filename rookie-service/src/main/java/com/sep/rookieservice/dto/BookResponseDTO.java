@@ -26,4 +26,5 @@ public class BookResponseDTO implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
     private Instant publishedDate;
+    private String review;
 }

@@ -12,7 +12,6 @@ public final class ChapterSpecification {
     public static Specification<Chapter> buildSpecification(
             String q,
             String bookId,
-            Byte progressStatus,
             IsActived isActived
     ) {
         return (root, query, cb) -> {
@@ -26,10 +25,6 @@ public final class ChapterSpecification {
 
             if (bookId != null && !bookId.trim().isEmpty()) {
                 predicate = cb.and(predicate, cb.equal(root.get("bookId"), bookId.trim()));
-            }
-
-            if (progressStatus != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("progressStatus"), progressStatus));
             }
 
             if (isActived != null) {

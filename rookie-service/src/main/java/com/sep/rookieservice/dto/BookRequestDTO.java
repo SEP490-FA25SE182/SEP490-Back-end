@@ -18,7 +18,6 @@ public class BookRequestDTO implements Serializable {
     @Size(max = 100)
     private String coverUrl;
 
-
     private String decription;
 
     @Size(max = 50)
@@ -32,4 +31,6 @@ public class BookRequestDTO implements Serializable {
     private Byte publicationStatus;
 
     private Instant publishedDate;
+
+    private String review;
 }

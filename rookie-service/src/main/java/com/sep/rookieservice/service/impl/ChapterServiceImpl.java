@@ -88,12 +88,11 @@ public class ChapterServiceImpl implements ChapterService {
     public org.springframework.data.domain.Page<ChapterResponseDTO> search(
             String q,
             String bookId,
-            Byte progressStatus,
             IsActived isActived,
             Pageable pageable
     ) {
         Specification<Chapter> spec =
-                ChapterSpecification.buildSpecification(q, bookId, progressStatus, isActived);
+                ChapterSpecification.buildSpecification(q, bookId, isActived);
 
         org.springframework.data.domain.Page<Chapter> page = repo.findAll(spec, pageable);
         return page.map(mapper::toDto);
