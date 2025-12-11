@@ -19,7 +19,6 @@ public interface ChapterService {
     Page<ChapterResponseDTO> search(
             String q,
             String bookId,
-            Byte progressStatus,
             IsActived isActived,
             Pageable pageable
     );

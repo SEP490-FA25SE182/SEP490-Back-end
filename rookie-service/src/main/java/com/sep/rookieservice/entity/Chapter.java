@@ -1,9 +1,7 @@
 package com.sep.rookieservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sep.rookieservice.enums.ChapterEnum;
 import com.sep.rookieservice.enums.IsActived;
-import com.sep.rookieservice.enums.PublicationEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -11,7 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Nationalized;
-import org.hibernate.validator.constraints.UniqueElements;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -46,10 +43,6 @@ public class Chapter implements Serializable {
     @Column(name = "decription")
     private String decription;
 
-    @Nationalized
-    @Column(name = "review", length = 250)
-    private String review;
-
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "is_actived", nullable = false, length = 10)
@@ -60,12 +53,6 @@ public class Chapter implements Serializable {
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
-
-    @Column(name = "published_date")
-    private Instant publishedDate;
-
-    @Column(name = "progress_status")
-    private Byte progressStatus = ChapterEnum.IN_REVIEW.getStatus();
 
     @NotNull
     @Column(name = "book_id", length = 50)

@@ -4,12 +4,14 @@ import com.sep.rookieservice.dto.TransactionRequest;
 import com.sep.rookieservice.dto.TransactionResponse;
 import com.sep.rookieservice.entity.PaymentMethod;
 import com.sep.rookieservice.entity.Transaction;
+import com.sep.rookieservice.entity.Wallet;
 import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.TransactionEnum;
 import com.sep.rookieservice.enums.TransactionType;
 import com.sep.rookieservice.mapper.TransactionMapper;
 import com.sep.rookieservice.repository.PaymentMethodRepository;
 import com.sep.rookieservice.repository.TransactionRepository;
+import com.sep.rookieservice.repository.WalletRepository;
 import com.sep.rookieservice.service.TransactionService;
 import com.sep.rookieservice.util.TransactionQbe;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository repository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final WalletRepository walletRepository;
     private final TransactionMapper mapper;
 
     @Override
@@ -85,6 +88,62 @@ public class TransactionServiceImpl implements TransactionService {
         if (e.getCreatedAt() == null) e.setCreatedAt(Instant.now());
         e.setUpdatedAt(Instant.now());
 
+        return mapper.toResponse(repository.save(e));
+    }
+
+    @CacheEvict(value = {"allTransactions","Transaction"}, allEntries = true)
+    @Transactional
+    public TransactionResponse createWalletWithBalance(TransactionRequest req) {
+        // validate status hợp lệ
+        TransactionEnum.getByStatus(req.getStatus());
+
+        // validate orderCode
+        if (req.getOrderCode() != null && repository.existsByOrderCode(req.getOrderCode())) {
+            throw new IllegalArgumentException("orderCode đã tồn tại");
+        }
+
+        if (req.getTotalPrice() == null) {
+            throw new IllegalArgumentException("totalPrice is required");
+        }
+        if (req.getUserId() == null) {
+            throw new IllegalArgumentException("userId is required");
+        }
+
+        double price = req.getTotalPrice();
+
+        // 1. Lấy wallet theo userId
+        Wallet wallet = walletRepository.findByUserId(req.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Không tìm thấy wallet cho userId = " + req.getUserId()
+                ));
+
+        // 2. Kiểm tra số dư
+        if (wallet.getBalance() < price) {
+            throw new IllegalArgumentException("Số dư ví không đủ");
+        }
+
+        // 3. Trừ balance và cập nhật updatedAt
+        wallet.setBalance(wallet.getBalance() - price);
+        wallet.setUpdatedAt(Instant.now());
+        walletRepository.save(wallet);
+
+        // 4. Tìm payment method Rookies
+        PaymentMethod pm = findActivePaymentMethod("Rookies", "Rookies");
+
+        // 5. Tạo transaction
+        Transaction e = new Transaction();
+        mapper.copyForCreate(req, e);
+
+        // set paymentMethod và wallet vừa dùng
+        e.setPaymentMethodId(pm.getPaymentMethodId());
+        e.setWalletId(wallet.getWalletId());
+
+        if (e.getCreatedAt() == null) {
+            e.setCreatedAt(Instant.now());
+        }
+        e.setUpdatedAt(Instant.now());
+
+        // 6. Lưu transaction và trả về response
         return mapper.toResponse(repository.save(e));
     }
 

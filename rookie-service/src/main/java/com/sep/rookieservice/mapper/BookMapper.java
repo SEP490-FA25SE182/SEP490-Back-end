@@ -20,6 +20,7 @@ public class BookMapper {
         if (dto.getProgressStatus() != null) b.setProgressStatus(dto.getProgressStatus());
         if (dto.getPublicationStatus() != null) b.setPublicationStatus(dto.getPublicationStatus());
         if (dto.getPublishedDate() != null) b.setPublishedDate(dto.getPublishedDate());
+        if (dto.getReview() != null) b.setReview(dto.getReview());
 
         return b;
     }
@@ -39,6 +40,7 @@ public class BookMapper {
         dto.setCreatedAt(book.getCreatedAt());
         dto.setUpdatedAt(book.getUpdatedAt());
         dto.setPublishedDate(book.getPublishedDate());
+        dto.setReview(book.getReview());
         return dto;
     }
 }

@@ -38,6 +38,11 @@ public class TransactionController {
         return service.createCOD(req);
     }
 
+    @PostMapping("/wallet/pay")
+    public TransactionResponse createWalletWithBalance(@RequestBody @Valid TransactionRequest req) {
+        return service.createWalletWithBalance(req);
+    }
+
     @GetMapping("/{id}")
     public TransactionResponse getById(@PathVariable String id) {
         return service.getById(id);
