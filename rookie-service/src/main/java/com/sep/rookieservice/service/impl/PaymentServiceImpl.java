@@ -206,13 +206,13 @@ public class PaymentServiceImpl implements PaymentService {
                 order.setUpdatedAt(Instant.now());
                 orderRepo.save(order);
 
-                Wallet w = order.getWallet();
-                if (w != null) {
-                    int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
-                    w.setCoin(w.getCoin() + bonus);
-                    w.setUpdatedAt(Instant.now());
-                    walletRepo.save(w);
-                }
+//                Wallet w = order.getWallet();
+//                if (w != null) {
+//                    int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
+//                    w.setCoin(w.getCoin() + bonus);
+//                    w.setUpdatedAt(Instant.now());
+//                    walletRepo.save(w);
+//                }
             }
         } else if (tx.getTransType() == TransactionType.DEPOSIT && tx.getWalletId() != null) {
             Wallet w = walletRepo.findById(tx.getWalletId()).orElse(null);
