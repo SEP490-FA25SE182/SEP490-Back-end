@@ -1,5 +1,6 @@
 package com.sep.rookieservice.dto;
 
+import com.sep.rookieservice.enums.IsActived;
 import com.sep.rookieservice.enums.TransactionType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -25,5 +26,5 @@ public class TransactionRequest {
 
     private TransactionType transType;
 
-    private com.sep.rookieservice.enums.IsActived isActived;
+    private IsActived isActived;
 }

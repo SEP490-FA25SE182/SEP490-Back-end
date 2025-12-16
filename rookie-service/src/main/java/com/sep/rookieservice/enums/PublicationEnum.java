@@ -4,7 +4,8 @@ public enum PublicationEnum {
     DRAFT((byte) 0),
     PUBLISHED((byte) 1),
     ARCHIVED((byte) 2),
-    PENDING((byte) 3);
+    PENDING((byte) 3),
+    REJECTED((byte) 4);
 
     private final byte status;
 
