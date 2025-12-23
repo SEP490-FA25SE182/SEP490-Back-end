@@ -9,14 +9,15 @@ import org.mapstruct.*;
 public interface ContractMapper {
 
     @Mapping(target = "userId", source = "user.userId")
+    @Mapping(target = "documentUrls", source = "documentUrls")
     ContractResponseDTO toDto(Contract entity);
 
     @Mapping(target = "contractId", ignore = true)
-    @Mapping(target = "user", ignore = true)  // user sẽ set riêng trong service
+    @Mapping(target = "user", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "isActived", ignore = true)
-    @Mapping(target = "status", ignore = true)  // status sẽ set mặc định trong service
+    @Mapping(target = "status", ignore = true)
     void copyForCreate(ContractRequestDTO dto, @MappingTarget Contract entity);
 
 
