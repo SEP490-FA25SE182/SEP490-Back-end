@@ -1,6 +1,7 @@
 package com.sep.rookieservice.controller;
 
 import com.sep.rookieservice.dto.BookResponseDTO;
+import com.sep.rookieservice.dto.MoveCartToOrderRequest;
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
 import com.sep.rookieservice.entity.Order;
@@ -73,14 +74,12 @@ public class OrderController {
     // Move Cart -> Order
     @PostMapping("/from-cart/{cartId}/wallet/{walletId}")
     public OrderResponse moveCartToOrder(
-            @PathVariable
-            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId,
-            @PathVariable
-            @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId,
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String cartId,
+            @PathVariable @Pattern(regexp = "^[0-9a-fA-F\\-]{36}$") String walletId,
             @RequestParam(name = "usePoints", defaultValue = "false") boolean usePoints,
-            @RequestBody List<String> cartItemIds) {
-
-        return orderService.moveCartToOrder(cartId, walletId, usePoints, cartItemIds);
+            @RequestBody MoveCartToOrderRequest req
+    ) {
+        return orderService.moveCartToOrder(cartId, walletId, usePoints, req);
     }
 
     // SEARCH

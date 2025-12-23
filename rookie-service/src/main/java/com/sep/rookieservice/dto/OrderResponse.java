@@ -17,4 +17,5 @@ public class OrderResponse {
     private String userAddressId;
     private String reason;
     private String imageUrl;
+    private Double shippingFee;
 }

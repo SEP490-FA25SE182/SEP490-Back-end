@@ -18,6 +18,7 @@ public interface OrderMapper {
             @Mapping(target = "totalPrice", source = "totalPrice"),
             @Mapping(target = "cartId", source = "cartId"),
             @Mapping(target = "userAddressId", source = "userAddressId"),
+            @Mapping(target = "shippingFee", source = "shippingFee"),
             @Mapping(target = "walletId", source = "walletId"),
             @Mapping(target = "reason", source = "reason"),
             @Mapping(target = "imageUrl", source = "imageUrl"),
@@ -31,6 +32,7 @@ public interface OrderMapper {
             @Mapping(target = "amount", source = "amount"),
             @Mapping(target = "totalPrice", source = "totalPrice"),
             @Mapping(target = "userAddressId", source = "userAddressId"),
+            @Mapping(target = "shippingFee", source = "shippingFee"),
             @Mapping(target = "reason", source = "reason"),
             @Mapping(target = "imageUrl", source = "imageUrl"),
             @Mapping(target = "status", source = "status")
