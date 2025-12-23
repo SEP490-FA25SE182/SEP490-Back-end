@@ -26,4 +26,6 @@ public class OrderRequest {
     private String reason;
 
     private String imageUrl;
+
+    private Double shippingFee;
 }

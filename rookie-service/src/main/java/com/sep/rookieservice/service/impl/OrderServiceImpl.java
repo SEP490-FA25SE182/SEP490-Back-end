@@ -1,6 +1,7 @@
 package com.sep.rookieservice.service.impl;
 
 import com.sep.rookieservice.dto.BookResponseDTO;
+import com.sep.rookieservice.dto.MoveCartToOrderRequest;
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
 import com.sep.rookieservice.entity.*;
@@ -117,11 +118,8 @@ public class OrderServiceImpl implements OrderService {
     // Move CartItems -> Order + OrderDetails
     @Override
     @Transactional
-    @CacheEvict(
-            value = {"allOrders", "Order", "allCartItems", "CartItem", "allCarts", "Cart"},
-            allEntries = true
-    )
-    public OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints, List<String> cartItemIds) {
+    public OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints, MoveCartToOrderRequest req) {
+        List<String> cartItemIds = req.getCartItemIds();
         if (cartItemIds == null || cartItemIds.isEmpty()) {
             throw new RuntimeException("No cart items selected to move to order");
         }
@@ -166,13 +164,20 @@ public class OrderServiceImpl implements OrderService {
 
         double finalTotal = Math.max(0.0, cartTotal - discount);
 
+        // ✅ override nếu FE gửi totalPrice (đã gồm ship)
+        if (req.getTotalPrice() != null) {
+            finalTotal = req.getTotalPrice();
+        }
+
         // Tạo Order từ các item được chọn
         Order order = Order.builder()
                 .amount(itemsAmount)
                 .totalPrice(finalTotal)
                 .walletId(walletId)
                 .cartId(cartId)
-                .status(OrderEnum.PENDING.getStatus())
+                .status(req.getStatus() != null ? req.getStatus() : OrderEnum.PENDING.getStatus())
+                .userAddressId(req.getUserAddressId())
+                .shippingFee(req.getShippingFee())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
