@@ -1,6 +1,7 @@
 package com.sep.rookieservice.service;
 
 import com.sep.rookieservice.dto.BookResponseDTO;
+import com.sep.rookieservice.dto.MoveCartToOrderRequest;
 import com.sep.rookieservice.dto.OrderRequest;
 import com.sep.rookieservice.dto.OrderResponse;
 import com.sep.rookieservice.enums.OrderEnum;
@@ -17,7 +18,7 @@ public interface OrderService {
     List<OrderResponse> create(List<OrderRequest> requests);
     OrderResponse update(String id, OrderRequest request);
     void delete(String id);
-    OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints, List<String> cartItemIds);
+    OrderResponse moveCartToOrder(String cartId, String walletId, boolean usePoints, MoveCartToOrderRequest req);
     Page<OrderResponse> search(String userId, OrderEnum status, Pageable pageable);
     Page<BookResponseDTO> getPurchasedBooks(
             String userId,
