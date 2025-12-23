@@ -7,6 +7,8 @@ import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -33,8 +35,10 @@ public class Contract {
     @Column(name = "description")
     private String description;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "contract_documents", joinColumns = @JoinColumn(name = "contract_id"))
     @Column(name = "document_url", length = 1000)
-    private String documentUrl;
+    private List<String> documentUrls = new ArrayList<>();
 
     @Column(name = "start_date")
     private Instant startDate;
