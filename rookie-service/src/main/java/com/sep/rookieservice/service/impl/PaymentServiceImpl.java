@@ -205,14 +205,6 @@ public class PaymentServiceImpl implements PaymentService {
                 order.setStatus(OrderEnum.PROCESSING.getStatus());
                 order.setUpdatedAt(Instant.now());
                 orderRepo.save(order);
-
-//                Wallet w = order.getWallet();
-//                if (w != null) {
-//                    int bonus = (int) Math.floor(order.getTotalPrice() * 0.01d);
-//                    w.setCoin(w.getCoin() + bonus);
-//                    w.setUpdatedAt(Instant.now());
-//                    walletRepo.save(w);
-//                }
             }
         } else if (tx.getTransType() == TransactionType.DEPOSIT && tx.getWalletId() != null) {
             Wallet w = walletRepo.findById(tx.getWalletId()).orElse(null);
@@ -223,6 +215,35 @@ public class PaymentServiceImpl implements PaymentService {
             }
         }
     }
+
+    @Transactional
+    public void handlePayOSRedirect(String status, String cancel, Long orderCode) {
+        if (orderCode == null) return;
+
+        // cancel=true hoặc status=CANCELLED theo docs
+        boolean isCancelled = "true".equalsIgnoreCase(cancel) || "CANCELLED".equalsIgnoreCase(status);
+        if (!isCancelled) return;
+
+        Transaction tx = txRepo.findByOrderCode(orderCode).orElse(null);
+        if (tx == null) return;
+
+        // nếu đã PAID thì không cho cancel (tránh race)
+        if (tx.getStatus() != null && tx.getStatus() == TransactionEnum.PAID.getStatus()) return;
+
+        tx.setStatus(TransactionEnum.CANCELED.getStatus());
+        tx.setUpdatedAt(Instant.now());
+        txRepo.save(tx);
+
+        if (tx.getTransType() == TransactionType.PAYMENT && tx.getOrderId() != null) {
+            Order order = orderRepo.findById(tx.getOrderId()).orElse(null);
+            if (order != null) {
+                order.setStatus(OrderEnum.CANCELLED.getStatus());
+                order.setUpdatedAt(Instant.now());
+                orderRepo.save(order);
+            }
+        }
+    }
+
 
     /**
      * Tạo orderCode 10 chữ số (>= 1_000_000_000) từ UUID:

@@ -10,6 +10,7 @@ public interface PaymentService {
     CreateCheckoutResponse createCheckout(String orderId, String returnUrl, String cancelUrl);
     void handleWebhook(@RequestBody Map<String, Object> payload);
     CreateCheckoutResponse deposit(int amount, String walletId, String returnUrl, String cancelUrl);
+    void handlePayOSRedirect(String status, String cancel, Long orderCode);
     CreateCheckoutResponse withdraw(
             int amount,
             String walletId,

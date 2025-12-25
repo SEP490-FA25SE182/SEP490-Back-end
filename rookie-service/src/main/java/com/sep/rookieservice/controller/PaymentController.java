@@ -32,6 +32,17 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/callback")
+    public ResponseEntity<Void> callback(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String cancel,
+            @RequestParam(required = false) Long orderCode
+    ) {
+        paymentService.handlePayOSRedirect(status, cancel, orderCode);
+        return ResponseEntity.ok().build();
+    }
+
+
     @PostMapping("/wallets/{walletId}/deposit")
     public ResponseEntity<CreateCheckoutResponse> deposit(
             @PathVariable String walletId,
