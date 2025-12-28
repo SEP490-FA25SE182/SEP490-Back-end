@@ -22,5 +22,18 @@ public interface MarkerRepository extends JpaRepository<Marker, String> {
     List<Marker> findAllByIsActived(IsActived isActived);
 
     Page<Marker> findByMarkerIdInAndIsActived(Collection<String> markerIds, IsActived isActived, Pageable pageable);
+
+    // lookup marker by fiducial (unique per book)
+    Optional<Marker> findByBookIdAndTagFamilyAndTagIdAndIsActived(
+            String bookId, String tagFamily, Integer tagId, IsActived isActived
+    );
+
+    // lấy tagId lớn nhất hiện tại để cấp tagId tiếp theo
+    Optional<Marker> findTopByBookIdAndTagFamilyAndIsActivedOrderByTagIdDesc(
+            String bookId, String tagFamily, IsActived isActived
+    );
+
+    // list active markers for a book (manifest)
+    List<Marker> findAllByBookIdAndIsActived(String bookId, IsActived isActived);
 }
 
