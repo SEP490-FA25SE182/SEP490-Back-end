@@ -16,6 +16,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/rookie/ar-scenes")
 @RequiredArgsConstructor
@@ -68,6 +70,22 @@ public class ARSceneController {
             @PathVariable("markerId")
             @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String markerId) {
         return service.getPublishedByMarkerId(markerId);
+    }
+
+    // Unity lấy scene theo fiducial AprilTag
+    @GetMapping("/by-apriltag")
+    public ARSceneWithItemsResponse byAprilTag(
+            @RequestParam @Size(max=50) String bookId,
+            @RequestParam @Size(max=50) String family,
+            @RequestParam int tagId
+    ) {
+        return service.getPublishedByAprilTag(bookId, family, tagId);
+    }
+
+    // Unity tải 1 lần toàn bộ mapping cho book
+    @GetMapping("/manifest/{bookId}")
+    public List<ARSceneWithItemsResponse> manifest(@PathVariable @Size(max=50) String bookId) {
+        return service.getPublishedManifestByBook(bookId);
     }
 
 }

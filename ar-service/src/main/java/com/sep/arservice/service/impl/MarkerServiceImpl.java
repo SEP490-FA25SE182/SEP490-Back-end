@@ -1,7 +1,9 @@
 package com.sep.arservice.service.impl;
 
+import com.sep.arservice.dto.CreateAprilTagMarkerRequest;
 import com.sep.arservice.dto.MarkerRequest;
 import com.sep.arservice.dto.MarkerResponse;
+import com.sep.arservice.enums.AprilTagFamilySpec;
 import com.sep.arservice.enums.IsActived;
 import com.sep.arservice.mapper.MarkerMapper;
 import com.sep.arservice.model.Marker;
@@ -11,6 +13,7 @@ import com.sep.arservice.repository.PageMarkerRepository;
 import com.sep.arservice.service.MarkerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,11 @@ public class MarkerServiceImpl implements MarkerService {
     private final MarkerRepository repo;
     private final MarkerMapper mapper;
     private final PageMarkerRepository pageMarkerRepo;
+
+    private final AprilTagAssetService aprilTagAssetService;
+
+    private static final String MARKER_TYPE_APRILTAG = "APRILTAG";
+    private static final String DEFAULT_FAMILY = "tag36h11";
 
     @Override @Transactional(readOnly = true)
     public List<MarkerResponse> getAll() {
@@ -201,6 +209,78 @@ public class MarkerServiceImpl implements MarkerService {
         return mapper.toResponse(marker);
     }
 
+    @Override
+    public MarkerResponse createAprilTag(CreateAprilTagMarkerRequest req) {
+        String family = (req.getTagFamily() == null || req.getTagFamily().isBlank())
+                ? DEFAULT_FAMILY
+                : req.getTagFamily().trim();
+
+        double sizeM = (req.getPhysicalWidthM() != null && req.getPhysicalWidthM() > 0)
+                ? req.getPhysicalWidthM()
+                : 0.10d; // default 10cm
+
+        // Validate family + range (tag36h11 only 0..586)
+        AprilTagFamilySpec spec = AprilTagFamilySpec.from(family);
+
+        for (int attempt = 0; attempt < 3; attempt++) {
+
+            int nextTagId = repo
+                    .findTopByBookIdAndTagFamilyAndIsActivedOrderByTagIdDesc(req.getBookId(), family, IsActived.ACTIVE)
+                    .map(m -> (m.getTagId() == null ? 0 : m.getTagId() + 1))
+                    .orElse(0);
+
+            if (nextTagId > spec.maxId()) {
+                throw new IllegalStateException("Book exceeded max tags for " + family +
+                        " (next=" + nextTagId + ", max=" + spec.maxId() + ")");
+            }
+
+            Marker e = new Marker();
+            e.setBookId(req.getBookId());
+            e.setTagFamily(family);
+            e.setTagId(nextTagId);
+
+            e.setMarkerType(MARKER_TYPE_APRILTAG);
+            e.setMarkerCode(buildMarkerCode(req.getBookId(), family, nextTagId));
+
+            e.setPhysicalWidthM(sizeM);
+            e.setUserId(req.getUserId());
+
+            e.setIsActived(IsActived.ACTIVE);
+            e.setCreatedAt(Instant.now());
+            e.setUpdatedAt(Instant.now());
+
+            try {
+                // 1) Save first to lock the tag allocation (unique constraint)
+                Marker saved = repo.save(e);
+
+                // 2) Generate + upload PNG/PDF
+                var urls = aprilTagAssetService.generateAndUpload(
+                        saved.getBookId(),
+                        saved.getTagFamily(),
+                        saved.getTagId(),
+                        saved.getPhysicalWidthM(),
+                        saved.getMarkerCode()
+                );
+
+                // 3) Update marker with URLs
+                saved.setImageUrl(urls.get("imageUrl"));
+                saved.setPrintablePdfUrl(urls.get("printablePdfUrl"));
+                saved.setUpdatedAt(Instant.now());
+
+                return mapper.toResponse(repo.save(saved));
+
+            } catch (DataIntegrityViolationException ex) {
+                // unique(book_id,tag_family,tag_id) bị đụng do request đồng thời -> retry
+                if (attempt == 2) throw ex;
+            }
+        }
+
+        throw new IllegalStateException("Cannot allocate AprilTag id after retries");
+    }
+
+    private String buildMarkerCode(String bookId, String family, int tagId) {
+        return bookId + ":" + family + ":" + tagId;
+    }
 
 }
 

@@ -1,5 +1,6 @@
 package com.sep.arservice.controller;
 
+import com.sep.arservice.dto.CreateAprilTagMarkerRequest;
 import com.sep.arservice.dto.MarkerRequest;
 import com.sep.arservice.dto.MarkerResponse;
 import com.sep.arservice.model.Marker;
@@ -74,5 +75,10 @@ public class MarkerController {
             @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String pageId
     ) {
         return service.attachPage(markerId, pageId);
+    }
+
+    @PostMapping("/apriltag")
+    public MarkerResponse createAprilTag(@RequestBody @Valid CreateAprilTagMarkerRequest req) {
+        return service.createAprilTag(req);
     }
 }
