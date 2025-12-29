@@ -89,14 +89,17 @@ public class MarkerServiceImpl implements MarkerService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MarkerResponse> search(String markerCode, String markerType, String pageId, String userId, Pageable pageable) {
-        // ==== Build Example cho trường hợp KHÔNG có pageId ====
+    public Page<MarkerResponse> search(String markerCode, String markerType, String bookId, String pageId, String userId, Pageable pageable) {
+
         Marker probe = new Marker();
         if (markerCode != null && !markerCode.isBlank()) {
             probe.setMarkerCode(markerCode.trim());
         }
         if (markerType != null && !markerType.isBlank()) {
             probe.setMarkerType(markerType.trim());
+        }
+        if (bookId != null && !bookId.isBlank()) {
+            probe.setBookId(bookId.trim());
         }
         if (userId != null && !userId.isBlank()) {
             probe.setUserId(userId.trim());
@@ -106,22 +109,19 @@ public class MarkerServiceImpl implements MarkerService {
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
                 .withMatcher("markerCode", mm -> mm.ignoreCase().contains())
                 .withMatcher("markerType", mm -> mm.ignoreCase())
-                .withMatcher("userId",   mm -> mm.ignoreCase())
+                .withMatcher("bookId",     mm -> mm.ignoreCase())
+                .withMatcher("userId",     mm -> mm.ignoreCase())
                 .withIgnoreNullValues()
-                .withIgnorePaths("printablePdfUrl",
-                "physicalWidthM",
-                "createdAt",
-                "updatedAt"
-        );
+                .withIgnorePaths("printablePdfUrl", "physicalWidthM", "createdAt", "updatedAt");
 
         Example<Marker> example = Example.of(probe, matcher);
 
-        // 1) Không truyền pageId -> giữ logic cũ
+        // 1) Không truyền pageId
         if (pageId == null || pageId.isBlank()) {
             return repo.findAll(example, pageable).map(mapper::toResponse);
         }
 
-        // 2) Có pageId -> lấy markerId từ bảng page_markers rồi query marker theo markerIds
+        // 2) Có pageId
         List<PageMarker> links = pageMarkerRepo.findAllByPageId(pageId);
         if (links.isEmpty()) {
             return Page.empty(pageable);
@@ -131,33 +131,30 @@ public class MarkerServiceImpl implements MarkerService {
                 .map(PageMarker::getMarkerId)
                 .collect(Collectors.toSet());
 
-        // Lấy tất cả marker ACTIVE có id trong markerIds với paging DB
         Page<Marker> page = repo.findByMarkerIdInAndIsActived(markerIds, IsActived.ACTIVE, pageable);
 
-        // Nếu có truyền thêm markerCode / markerType thì filter tiếp trong memory
         Stream<Marker> stream = page.getContent().stream();
 
         if (markerCode != null && !markerCode.isBlank()) {
             String mc = markerCode.trim().toLowerCase();
-            stream = stream.filter(m ->
-                    m.getMarkerCode() != null &&
-                            m.getMarkerCode().toLowerCase().contains(mc));
+            stream = stream.filter(m -> m.getMarkerCode() != null && m.getMarkerCode().toLowerCase().contains(mc));
         }
 
         if (markerType != null && !markerType.isBlank()) {
             String mt = markerType.trim().toLowerCase();
-            stream = stream.filter(m ->
-                    m.getMarkerType() != null &&
-                            m.getMarkerType().toLowerCase().equals(mt));
+            stream = stream.filter(m -> m.getMarkerType() != null && m.getMarkerType().toLowerCase().equals(mt));
         }
 
-        List<MarkerResponse> content = stream
-                .map(mapper::toResponse)
-                .toList();
+        if (bookId != null && !bookId.isBlank()) {
+            String bid = bookId.trim().toLowerCase();
+            stream = stream.filter(m -> m.getBookId() != null && m.getBookId().toLowerCase().equals(bid));
+        }
 
-        // totalElements: dùng tổng số marker ACTIVE theo pageId (trước khi filter thêm code/type)
+        List<MarkerResponse> content = stream.map(mapper::toResponse).toList();
+
         return new PageImpl<>(content, pageable, page.getTotalElements());
     }
+
 
     @Override
     public MarkerResponse createWithPage(String pageId, MarkerRequest req) {
@@ -217,9 +214,8 @@ public class MarkerServiceImpl implements MarkerService {
 
         double sizeM = (req.getPhysicalWidthM() != null && req.getPhysicalWidthM() > 0)
                 ? req.getPhysicalWidthM()
-                : 0.10d; // default 10cm
+                : 0.10d;
 
-        // Validate family + range (tag36h11 only 0..586)
         AprilTagFamilySpec spec = AprilTagFamilySpec.from(family);
 
         for (int attempt = 0; attempt < 3; attempt++) {
@@ -240,20 +236,23 @@ public class MarkerServiceImpl implements MarkerService {
             e.setTagId(nextTagId);
 
             e.setMarkerType(MARKER_TYPE_APRILTAG);
-            e.setMarkerCode(buildMarkerCode(req.getBookId(), family, nextTagId));
+
+            //  ưu tiên markerCode từ client
+            String markerCode = (req.getMarkerCode() != null && !req.getMarkerCode().isBlank())
+                    ? req.getMarkerCode().trim()
+                    : buildMarkerCode(req.getBookId(), family, nextTagId);
+
+            e.setMarkerCode(markerCode);
 
             e.setPhysicalWidthM(sizeM);
             e.setUserId(req.getUserId());
-
             e.setIsActived(IsActived.ACTIVE);
             e.setCreatedAt(Instant.now());
             e.setUpdatedAt(Instant.now());
 
             try {
-                // 1) Save first to lock the tag allocation (unique constraint)
                 Marker saved = repo.save(e);
 
-                // 2) Generate + upload PNG/PDF
                 var urls = aprilTagAssetService.generateAndUpload(
                         saved.getBookId(),
                         saved.getTagFamily(),
@@ -262,7 +261,6 @@ public class MarkerServiceImpl implements MarkerService {
                         saved.getMarkerCode()
                 );
 
-                // 3) Update marker with URLs
                 saved.setImageUrl(urls.get("imageUrl"));
                 saved.setPrintablePdfUrl(urls.get("printablePdfUrl"));
                 saved.setUpdatedAt(Instant.now());
@@ -270,7 +268,6 @@ public class MarkerServiceImpl implements MarkerService {
                 return mapper.toResponse(repo.save(saved));
 
             } catch (DataIntegrityViolationException ex) {
-                // unique(book_id,tag_family,tag_id) bị đụng do request đồng thời -> retry
                 if (attempt == 2) throw ex;
             }
         }
