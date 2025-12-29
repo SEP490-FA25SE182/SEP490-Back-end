@@ -20,7 +20,7 @@ public interface MarkerMapper {
             @Mapping(target="imageUrl",         source="imageUrl"),
             @Mapping(target="physicalWidthM",   source="physicalWidthM"),
             @Mapping(target="userId",         source="userId"),
-            @Mapping(target="bookId", source="bookId"),
+            @Mapping(target="bookId",         source="bookId"),
             @Mapping(target="tagFamily", source="tagFamily"),
             @Mapping(target="tagId", source="tagId"),
             @Mapping(target="printablePdfUrl",  source="printablePdfUrl")
