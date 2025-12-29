@@ -21,6 +21,9 @@ public class ChatMessage {
     @Column(nullable = false)
     private String sessionId;
 
+    @Column(name = "user_id", nullable = false, length = 50)
+    private String userId;
+
     @Nationalized
     @Column(nullable = false)
     private String userMessage;
