@@ -22,4 +22,8 @@ public class MarkerRequest {
     private String printablePdfUrl;
 
     private String userId;
+
+    private String bookId;
+    private String tagFamily;
+    private Integer tagId;
 }
