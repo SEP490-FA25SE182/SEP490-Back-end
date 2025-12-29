@@ -14,7 +14,7 @@ public interface MarkerService {
     MarkerResponse create(MarkerRequest req);
     MarkerResponse update(String id, MarkerRequest req);
     void softDelete(String id);
-    Page<MarkerResponse> search(String markerCode, String markerType, String pageId, String userId, Pageable pageable);
+    Page<MarkerResponse> search(String markerCode, String markerType, String bookId, String pageId, String userId, Pageable pageable);
     MarkerResponse createWithPage(String pageId, MarkerRequest req);
     MarkerResponse attachPage(String markerId, String pageId);
     MarkerResponse createAprilTag(CreateAprilTagMarkerRequest req);

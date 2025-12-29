@@ -20,6 +20,9 @@ public class CreateAprilTagMarkerRequest {
 
     @Size(max = 50)
     private String tagFamily; // (default tag36h11)
+
+    @Size(max = 100)
+    private String markerCode;
 }
 
 
