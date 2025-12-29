@@ -58,13 +58,15 @@ public class ARSceneController {
         return service.search(markerId, status, pageable);
     }
 
-    // Unity lấy scene theo markerCode (PUBLISHED mới nhất)
-    @GetMapping("/by-marker-code/{code}")
-    public ARSceneWithItemsResponse byMarkerCode(@PathVariable("code") @Size(max=50) String markerCode) {
-        return service.getPublishedByMarkerCode(markerCode);
+    // Unity Web lấy scene mới nhất theo markerId (không filter status)
+    @GetMapping("/latest/by-marker-id/{markerId}")
+    public ARSceneWithItemsResponse byMarkerIdLatest(
+            @PathVariable("markerId")
+            @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String markerId) {
+        return service.getLatestByMarkerId(markerId);
     }
 
-    // Unity lấy scene theo markerId (PUBLISHED mới nhất)
+    // Unity Mobile lấy scene theo markerId (PUBLISHED mới nhất)
     @GetMapping("/by-marker-id/{markerId}")
     public ARSceneWithItemsResponse byMarkerId(
             @PathVariable("markerId")
