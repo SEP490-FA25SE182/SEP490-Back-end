@@ -17,4 +17,7 @@ public class MarkerResponse {
     private IsActived isActived;
     private Instant createdAt;
     private Instant updatedAt;
+    private String bookId;
+    private String tagFamily;
+    private Integer tagId;
 }

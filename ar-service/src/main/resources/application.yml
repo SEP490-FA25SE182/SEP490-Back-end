@@ -72,3 +72,7 @@ storage:
 
 firebase:
   service-account-file: ${FIREBASE_CREDENTIALS_PATH}
+
+apriltag:
+  source:
+    raw-base: https://raw.githubusercontent.com/AprilRobotics/apriltag-imgs/master

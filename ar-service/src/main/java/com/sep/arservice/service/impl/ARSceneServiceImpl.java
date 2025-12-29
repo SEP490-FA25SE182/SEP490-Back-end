@@ -25,9 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -103,27 +101,38 @@ public class ARSceneServiceImpl implements ARSceneService {
 
     @Override
     @Transactional(readOnly = true)
-    public ARSceneWithItemsResponse getPublishedByMarkerCode(String markerCode) {
-        Marker marker = markerRepo.findByMarkerCodeIgnoreCaseAndIsActived(markerCode, IsActived.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("Marker not found by code: " + markerCode));
+    public ARSceneWithItemsResponse getLatestByMarkerId(String markerId) {
+        // đảm bảo marker tồn tại (và nếu cần: ACTIVE)
+        Marker marker = markerRepo.findById(markerId)
+                .orElseThrow(() -> new RuntimeException("Marker not found: " + markerId));
 
-        Optional<ARScene> latest = repo
-                .findTopByMarkerIdAndStatusOrderByCreatedAtDesc(marker.getMarkerId(), "PUBLISHED");
+        // chỉ cho Unity lấy marker ACTIVE
+        if (marker.getIsActived() != IsActived.ACTIVE) {
+            throw new RuntimeException("Marker is not ACTIVE: " + markerId);
+        }
 
-        ARScene scene = latest.orElseThrow(() -> new RuntimeException("No PUBLISHED scene for marker: " + markerCode));
+        // Lấy scene mới nhất theo markerId, KHÔNG filter status
+        ARScene scene = repo.findTopByMarkerIdOrderByCreatedAtDesc(markerId)
+                .orElseThrow(() -> new RuntimeException("No scene for markerId: " + markerId));
 
         // Items
         List<ARSceneItem> items = itemRepo.findBySceneIdOrderByOrderIndexAsc(scene.getSceneId());
 
-        // Asset ids
-        Set<String> assetIds = items.stream().map(ARSceneItem::getAsset3DId).collect(Collectors.toSet());
-        List<Asset3D> assets = assetRepo.findAllById(assetIds);
+        // Asset ids (lọc null để tránh NPE)
+        Set<String> assetIds = items.stream()
+                .map(ARSceneItem::getAsset3DId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+
+        List<Asset3D> assets = assetIds.isEmpty()
+                ? java.util.Collections.emptyList()
+                : assetRepo.findAllById(assetIds);
 
         // Map to DTO
-        ARSceneResponse sceneDto      = mapper.toResponse(scene);
-        MarkerResponse markerDto      = markerMapper.toResponse(marker);
+        ARSceneResponse sceneDto = mapper.toResponse(scene);
+        MarkerResponse markerDto = markerMapper.toResponse(marker);
         List<ARSceneItemResponse> itemDtos = items.stream().map(itemMapper::toResponse).toList();
-        List<Asset3DResponse> assetDtos    = assets.stream().map(assetMapper::toResponse).toList();
+        List<Asset3DResponse> assetDtos = assets.stream().map(assetMapper::toResponse).toList();
 
         return mapper.compose(sceneDto, markerDto, assetDtos, itemDtos);
     }
@@ -162,6 +171,66 @@ public class ARSceneServiceImpl implements ARSceneService {
                 .toList();
 
         return mapper.compose(sceneDto, markerDto, assetDtos, itemDtos);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ARSceneWithItemsResponse getPublishedByAprilTag(String bookId, String family, int tagId) {
+        Marker marker = markerRepo
+                .findByBookIdAndTagFamilyAndTagIdAndIsActived(bookId, family, tagId, IsActived.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Marker not found: " + bookId + " / " + family + " / " + tagId));
+
+        ARScene scene = repo
+                .findTopByMarkerIdAndStatusOrderByCreatedAtDesc(marker.getMarkerId(), "PUBLISHED")
+                .orElseThrow(() -> new RuntimeException("No PUBLISHED scene for marker: " + marker.getMarkerId()));
+
+        List<ARSceneItem> items = itemRepo.findBySceneIdOrderByOrderIndexAsc(scene.getSceneId());
+
+        Set<String> assetIds = items.stream()
+                .map(ARSceneItem::getAsset3DId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        List<Asset3D> assets = assetIds.isEmpty() ? List.of() : assetRepo.findAllById(assetIds);
+
+        ARSceneResponse sceneDto = mapper.toResponse(scene);
+        MarkerResponse markerDto = markerMapper.toResponse(marker);
+        List<ARSceneItemResponse> itemDtos = items.stream().map(itemMapper::toResponse).toList();
+        List<Asset3DResponse> assetDtos = assets.stream().map(assetMapper::toResponse).toList();
+
+        return mapper.compose(sceneDto, markerDto, assetDtos, itemDtos);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ARSceneWithItemsResponse> getPublishedManifestByBook(String bookId) {
+        // load tất cả marker active của book
+        List<Marker> markers = markerRepo.findAllByBookIdAndIsActived(bookId, IsActived.ACTIVE);
+        if (markers.isEmpty()) return List.of();
+
+        // lấy latest published scene cho từng marker (N+1 ít vì mỗi book ~10)
+        // tối ưu sau nếu cần
+        List<ARSceneWithItemsResponse> result = new ArrayList<>();
+        for (Marker m : markers) {
+            Optional<ARScene> latest = repo.findTopByMarkerIdAndStatusOrderByCreatedAtDesc(m.getMarkerId(), "PUBLISHED");
+            if (latest.isEmpty()) continue;
+            ARScene s = latest.get();
+
+            List<ARSceneItem> items = itemRepo.findBySceneIdOrderByOrderIndexAsc(s.getSceneId());
+            Set<String> assetIds = items.stream()
+                    .map(ARSceneItem::getAsset3DId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            List<Asset3D> assets = assetIds.isEmpty() ? List.of() : assetRepo.findAllById(assetIds);
+
+            result.add(mapper.compose(
+                    mapper.toResponse(s),
+                    markerMapper.toResponse(m),
+                    assets.stream().map(assetMapper::toResponse).toList(),
+                    items.stream().map(itemMapper::toResponse).toList()
+            ));
+        }
+        return result;
     }
 
 }

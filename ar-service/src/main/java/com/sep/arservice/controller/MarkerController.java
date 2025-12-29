@@ -1,5 +1,6 @@
 package com.sep.arservice.controller;
 
+import com.sep.arservice.dto.CreateAprilTagMarkerRequest;
 import com.sep.arservice.dto.MarkerRequest;
 import com.sep.arservice.dto.MarkerResponse;
 import com.sep.arservice.model.Marker;
@@ -48,14 +49,17 @@ public class MarkerController {
             @RequestParam(required = false)
             @Size(max = 50) String markerType,
             @RequestParam(required = false)
+            @Size(max = 50) String bookId,
+            @RequestParam(required = false)
             @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String pageId,
             @RequestParam(required=false)
             @Size(max=50) String userId,
             @ParameterObject
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return service.search(markerCode, markerType, pageId, userId, pageable);
+        return service.search(markerCode, markerType, bookId, pageId, userId, pageable);
     }
+
 
     @PostMapping("/pages/{pageId}")
     public MarkerResponse createForPage(
@@ -74,5 +78,10 @@ public class MarkerController {
             @Pattern(regexp="^[0-9a-fA-F\\-]{36}$") String pageId
     ) {
         return service.attachPage(markerId, pageId);
+    }
+
+    @PostMapping("/apriltag")
+    public MarkerResponse createAprilTag(@RequestBody @Valid CreateAprilTagMarkerRequest req) {
+        return service.createAprilTag(req);
     }
 }

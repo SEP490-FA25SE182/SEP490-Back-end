@@ -17,7 +17,12 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "markers")
+@Table(
+        name="markers",
+        uniqueConstraints = {
+                @UniqueConstraint(name="uk_book_tag", columnNames={"book_id","tag_family","tag_id"})
+        }
+)
 public class Marker implements Serializable {
     @Id
     @Column(name = "marker_id", length = 50)
@@ -54,6 +59,17 @@ public class Marker implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "is_actived", nullable = false, length = 10)
     private IsActived isActived = IsActived.ACTIVE;
+
+    @Column(name = "book_id", length = 50)
+    private String bookId;
+
+    // AprilTag family (e.g. tag36h11)
+    @Column(name = "tag_family", length = 50)
+    private String tagFamily;
+
+    // AprilTag numeric id
+    @Column(name = "tag_id")
+    private Integer tagId;
 
     //OneToMany
     @JsonIgnore
