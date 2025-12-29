@@ -130,8 +130,6 @@ public class GeminiChatServiceImpl implements GeminiChatService {
 
             Instant now = Instant.now();
 
-            // LƯU 2 DÒNG RIÊNG BIỆT
-            // 1. Tin nhắn user
             String userContent = userMessageText != null ? userMessageText :
                     "Đã gửi " +
                             (req.getImageUrls() != null ? req.getImageUrls().size() : 0) + " ảnh " +
@@ -141,16 +139,19 @@ public class GeminiChatServiceImpl implements GeminiChatService {
                     .sessionId(sessionId)
                     .userId(userId)
                     .role("user")
-                    .content(userContent)
-                    .createdAt(now.minusSeconds(1))  // để user trước AI
+                    .content(userMessageText != null ? userMessageText : "Đã gửi media")
+                    .imageUrls(req.getImageUrls() != null ? new ArrayList<>(req.getImageUrls()) : new ArrayList<>())
+                    .fileUrls(req.getFileUrls() != null ? new ArrayList<>(req.getFileUrls()) : new ArrayList<>())
+                    .createdAt(now.minusSeconds(1))
                     .build());
 
-            // 2. Phản hồi AI
             chatRepo.save(ChatMessage.builder()
                     .sessionId(sessionId)
                     .userId(userId)
                     .role("model")
                     .content(answer)
+                    .imageUrls(new ArrayList<>())
+                    .fileUrls(new ArrayList<>())
                     .createdAt(now)
                     .build());
 

@@ -42,6 +42,8 @@ public class GeminiChatController {
                         .content(msg.getContent())
                         .role(msg.getRole())
                         .createdAt(msg.getCreatedAt())
+                        .imageUrls(msg.getImageUrls())
+                        .fileUrls(msg.getFileUrls())
                         .build())
                 .toList();
 
