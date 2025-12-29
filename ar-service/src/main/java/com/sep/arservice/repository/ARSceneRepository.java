@@ -19,4 +19,7 @@ public interface ARSceneRepository extends JpaRepository<ARScene, String> {
     // list scenes by markerIds + status (tối ưu lấy batch)
     List<ARScene> findByMarkerIdInAndStatus(Collection<String> markerIds, String status);
 
+    // latest scene per markerId (không filter status)
+    Optional<ARScene> findTopByMarkerIdOrderByCreatedAtDesc(String markerId);
+
 }

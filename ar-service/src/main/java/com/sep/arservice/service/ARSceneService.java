@@ -15,8 +15,8 @@ public interface ARSceneService {
     ARSceneResponse getById(String sceneId);
     Page<ARSceneResponse> search(String markerId, String status, Pageable pageable);
 
-    // Dùng cho Unity: lấy scene + items + assets theo markerCode
-    ARSceneWithItemsResponse getPublishedByMarkerCode(String markerCode);
+    // Dùng cho Unity: lấy scene + items + assets theo markerId không status
+    ARSceneWithItemsResponse getLatestByMarkerId(String markerId);
 
     // Dùng cho Unity: lấy scene + items + assets theo markerId
     ARSceneWithItemsResponse getPublishedByMarkerId(String markerId);
