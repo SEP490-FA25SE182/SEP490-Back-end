@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -27,13 +28,28 @@ public class GeminiChatController {
 
     @GetMapping("/history")
     public ResponseEntity<List<ChatResponseDTO>> getHistory(@RequestHeader("X-User-Id") String userId) {
-        List<ChatMessage> history = service.getUserChatHistory(userId);  // ← Đúng kiểu
+        List<ChatMessage> history = service.getUserChatHistory(userId);
 
         List<ChatResponseDTO> dtos = history.stream()
-                .map(msg -> ChatResponseDTO.builder()
-                        .sessionId(msg.getSessionId())
-                        .answer(msg.getAiResponse())
-                        .build())
+                .sorted(Comparator.comparing(ChatMessage::getCreatedAt))
+                .map(msg -> {
+                    ChatResponseDTO userDto = ChatResponseDTO.builder()
+                            .sessionId(msg.getSessionId())
+                            .message(msg.getUserMessage())
+                            .createdAt(msg.getCreatedAt())
+                            .role("user")
+                            .build();
+
+                    ChatResponseDTO aiDto = ChatResponseDTO.builder()
+                            .sessionId(msg.getSessionId())
+                            .answer(msg.getAiResponse())
+                            .createdAt(msg.getCreatedAt())
+                            .role("model")
+                            .build();
+
+                    return List.of(userDto, aiDto);
+                })
+                .flatMap(List::stream)
                 .toList();
 
         return ResponseEntity.ok(dtos);
