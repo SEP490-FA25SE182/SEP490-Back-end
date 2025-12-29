@@ -58,69 +58,59 @@ public class GeminiChatServiceImpl implements GeminiChatService {
         );
 
         try {
-            // Load lịch sử chat theo session
+            // Load lịch sử theo session (chỉ để gửi Gemini)
             List<ChatMessage> history = chatRepo.findBySessionIdOrderByCreatedAtAsc(sessionId);
 
             List<Map<String, Object>> contents = new ArrayList<>();
 
-            // Thêm lịch sử (text only – ảnh/file cũ không cần gửi lại)
+            // Thêm lịch sử text (ảnh cũ không gửi lại)
             for (ChatMessage m : history) {
-                contents.add(Map.of(
-                        "role", "user",
-                        "parts", List.of(Map.of("text", m.getUserMessage()))
-                ));
-                contents.add(Map.of(
-                        "role", "model",
-                        "parts", List.of(Map.of("text", m.getAiResponse()))
-                ));
+                if ("user".equals(m.getRole())) {
+                    contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", m.getContent()))));
+                } else if ("model".equals(m.getRole())) {
+                    contents.add(Map.of("role", "model", "parts", List.of(Map.of("text", m.getContent()))));
+                }
             }
 
-            // Tin nhắn hiện tại – hỗ trợ text + images + files
+            // Tin nhắn hiện tại
             List<Map<String, Object>> currentParts = new ArrayList<>();
 
-            if (req.getMessage() != null && !req.getMessage().isBlank()) {
-                currentParts.add(Map.of("text", req.getMessage()));
+            String userMessageText = req.getMessage() != null && !req.getMessage().isBlank() ? req.getMessage() : null;
+
+            if (userMessageText != null) {
+                currentParts.add(Map.of("text", userMessageText));
             }
 
-            // Thêm ảnh (inlineData + base64)
+            // Ảnh
             if (req.getImageUrls() != null && !req.getImageUrls().isEmpty()) {
                 for (String imageUrl : req.getImageUrls()) {
                     String base64 = urlToBase64(imageUrl);
                     String mimeType = guessMimeType(imageUrl);
                     currentParts.add(Map.of(
-                            "inlineData", Map.of(
-                                    "mimeType", mimeType,
-                                    "data", base64
-                            )
+                            "inlineData", Map.of("mimeType", mimeType, "data", base64)
                     ));
                 }
             }
 
-            // Thêm file PDF/DOC (fileUri – Gemini hỗ trợ public URL)
+            // File PDF/DOC
             if (req.getFileUrls() != null && !req.getFileUrls().isEmpty()) {
                 for (String fileUrl : req.getFileUrls()) {
                     currentParts.add(Map.of(
-                            "fileData", Map.of(
-                                    "mimeType", guessMimeType(fileUrl),
-                                    "fileUri", fileUrl
-                            )
+                            "fileData", Map.of("mimeType", guessMimeType(fileUrl), "fileUri", fileUrl)
                     ));
                 }
             }
 
             if (currentParts.isEmpty()) {
-                throw new IllegalArgumentException("Tin nhắn phải có ít nhất text, image hoặc file");
+                throw new IllegalArgumentException("Tin nhắn phải có nội dung");
             }
 
-            contents.add(Map.of(
-                    "role", "user",
-                    "parts", currentParts
-            ));
+            contents.add(Map.of("role", "user", "parts", currentParts));
 
             Map<String, Object> body = Map.of("contents", contents);
 
-            log.info("Gửi Gemini multimodal – sessionId={}, images={}, files={}",
-                    sessionId,
+            log.info("Gửi Gemini multimodal – sessionId={}, userId={}, images={}, files={}",
+                    sessionId, userId,
                     req.getImageUrls() != null ? req.getImageUrls().size() : 0,
                     req.getFileUrls() != null ? req.getFileUrls().size() : 0);
 
@@ -133,35 +123,46 @@ public class GeminiChatServiceImpl implements GeminiChatService {
                     .block();
 
             if (result == null) {
-                throw new RuntimeException("Gemini trả về null response");
+                throw new RuntimeException("Gemini trả về null");
             }
 
             String answer = extractAnswer(result);
 
-            // Lưu lịch sử – chỉ lưu summary (không lưu base64 ảnh)
-            String userMessageSummary = req.getMessage() != null && !req.getMessage().isBlank()
-                    ? req.getMessage()
-                    : "Đã gửi " +
-                    (req.getImageUrls() != null ? req.getImageUrls().size() : 0) + " ảnh " +
-                    (req.getFileUrls() != null ? req.getFileUrls().size() : 0) + " file";
+            Instant now = Instant.now();
+
+            // LƯU 2 DÒNG RIÊNG BIỆT
+            // 1. Tin nhắn user
+            String userContent = userMessageText != null ? userMessageText :
+                    "Đã gửi " +
+                            (req.getImageUrls() != null ? req.getImageUrls().size() : 0) + " ảnh " +
+                            (req.getFileUrls() != null ? req.getFileUrls().size() : 0) + " file";
 
             chatRepo.save(ChatMessage.builder()
                     .sessionId(sessionId)
                     .userId(userId)
-                    .userMessage(userMessageSummary)
-                    .aiResponse(answer)
-                    .createdAt(Instant.now())
+                    .role("user")
+                    .content(userContent)
+                    .createdAt(now.minusSeconds(1))  // để user trước AI
+                    .build());
+
+            // 2. Phản hồi AI
+            chatRepo.save(ChatMessage.builder()
+                    .sessionId(sessionId)
+                    .userId(userId)
+                    .role("model")
+                    .content(answer)
+                    .createdAt(now)
                     .build());
 
             genLog.success(gen, (System.nanoTime() - t0) / 1_000_000.0);
 
             return ChatResponseDTO.builder()
                     .sessionId(sessionId)
-                    .answer(answer)
+                    .content(answer)
                     .build();
 
         } catch (Exception e) {
-            log.error("Gemini multimodal chat error for userId={}, sessionId={}", userId, sessionId, e);
+            log.error("Gemini chat error for userId={}, sessionId={}", userId, sessionId, e);
             genLog.fail(gen, (System.nanoTime() - t0) / 1_000_000.0, e);
             throw new RuntimeException("Gemini chat failed: " + e.getMessage(), e);
         }
@@ -191,14 +192,13 @@ public class GeminiChatServiceImpl implements GeminiChatService {
     // Đoán MIME type
     private String guessMimeType(String url) {
         if (url == null) return "application/octet-stream";
-        String lower = url.toLowerCase();
-        if (lower.endsWith(".png")) return "image/png";
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
-        if (lower.endsWith(".gif")) return "image/gif";
-        if (lower.endsWith(".webp")) return "image/webp";
-        if (lower.endsWith(".bmp")) return "image/bmp";
-        if (lower.endsWith(".pdf")) return "application/pdf";
-        if (lower.endsWith(".doc") || lower.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        String clean = url.split("\\?")[0].toLowerCase();
+
+        if (clean.endsWith(".png")) return "image/png";
+        if (clean.endsWith(".jpg") || clean.endsWith(".jpeg")) return "image/jpeg";
+        if (clean.endsWith(".gif")) return "image/gif";
+        if (clean.endsWith(".webp")) return "image/webp";
+        if (clean.endsWith(".pdf")) return "application/pdf";
         return "application/octet-stream";
     }
 

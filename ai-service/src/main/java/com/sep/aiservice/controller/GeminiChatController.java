@@ -20,36 +20,29 @@ public class GeminiChatController {
 
     @PostMapping
     public ResponseEntity<ChatResponseDTO> chat(
-            @RequestHeader("X-User-Id") String userId,   // giống TTS
+            @RequestHeader("X-User-Id") String userId,
             @RequestBody ChatRequestDTO req
     ) {
         return ResponseEntity.ok(service.chat(req, userId));
     }
 
+    /**
+     * Lấy toàn bộ lịch sử chat của user (tất cả session)
+     * Trả về danh sách tin nhắn luân phiên user → model
+     * Sắp xếp theo thời gian tăng dần (cũ → mới)
+     */
     @GetMapping("/history")
     public ResponseEntity<List<ChatResponseDTO>> getHistory(@RequestHeader("X-User-Id") String userId) {
         List<ChatMessage> history = service.getUserChatHistory(userId);
 
         List<ChatResponseDTO> dtos = history.stream()
                 .sorted(Comparator.comparing(ChatMessage::getCreatedAt))
-                .map(msg -> {
-                    ChatResponseDTO userDto = ChatResponseDTO.builder()
-                            .sessionId(msg.getSessionId())
-                            .message(msg.getUserMessage())
-                            .createdAt(msg.getCreatedAt())
-                            .role("user")
-                            .build();
-
-                    ChatResponseDTO aiDto = ChatResponseDTO.builder()
-                            .sessionId(msg.getSessionId())
-                            .answer(msg.getAiResponse())
-                            .createdAt(msg.getCreatedAt())
-                            .role("model")
-                            .build();
-
-                    return List.of(userDto, aiDto);
-                })
-                .flatMap(List::stream)
+                .map(msg -> ChatResponseDTO.builder()
+                        .sessionId(msg.getSessionId())
+                        .content(msg.getContent())
+                        .role(msg.getRole())
+                        .createdAt(msg.getCreatedAt())
+                        .build())
                 .toList();
 
         return ResponseEntity.ok(dtos);

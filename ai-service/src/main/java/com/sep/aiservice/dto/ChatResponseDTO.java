@@ -9,8 +9,7 @@ import java.time.Instant;
 @Builder
 public class ChatResponseDTO {
     private String sessionId;
-    private String message;
-    private String answer;
+    private String content;
     private Instant createdAt;
     private String role;
 }
