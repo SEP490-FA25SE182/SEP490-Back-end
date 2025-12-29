@@ -24,13 +24,12 @@ public class ChatMessage {
     @Column(name = "user_id", nullable = false, length = 50)
     private String userId;
 
-    @Nationalized
-    @Column(nullable = false)
-    private String userMessage;
+    @Column(name = "role", nullable = false, length = 10)
+    private String role;
 
     @Nationalized
-    @Column(nullable = false)
-    private String aiResponse;
+    @Column(name = "content", columnDefinition = "NVARCHAR(MAX)", nullable = false)
+    private String content;
 
     private Instant createdAt = Instant.now();
 }
