@@ -4,9 +4,8 @@ import java.util.Locale;
 
 public enum AprilTagFamilySpec {
 
-    // Folder: tag36h11
-    // Filename: tag36_11_00007.png (5 digits, zero-padded)
-    TAG36H11("tag36h11", "tag36_11_%05d.png", 586);
+    // https://raw.githubusercontent.com/AprilRobotics/apriltag-imgs/master/tagStandard41h12/tag41_12_00000.png
+    TAG_STANDARD_41H12("tagStandard41h12", "tag41_12_%05d.png", 2114);
 
     private final String folder;
     private final String filePattern;
@@ -19,16 +18,28 @@ public enum AprilTagFamilySpec {
     }
 
     public String folder() { return folder; }
-    public String fileName(int tagId) { return String.format(Locale.US, filePattern, tagId); }
+
+    public String fileName(int tagId) {
+        return String.format(Locale.US, filePattern, tagId);
+    }
+
     public int maxId() { return maxId; }
 
+    /**
+     * Backend CHỈ hỗ trợ tagStandard41h12.
+     * - null/blank -> default tagStandard41h12
+     * - mọi giá trị khác -> throw
+     */
     public static AprilTagFamilySpec from(String family) {
-        if (family == null) return TAG36H11;
+        if (family == null || family.isBlank()) return TAG_STANDARD_41H12;
+
         String f = family.trim().toLowerCase(Locale.ROOT);
-        return switch (f) {
-            case "tag36h11" -> TAG36H11;
-            default -> throw new IllegalArgumentException("Unsupported tagFamily: " + family);
-        };
+        if (f.equals("tagstandard41h12")) return TAG_STANDARD_41H12;
+
+        throw new IllegalArgumentException("Unsupported tagFamily (only tagStandard41h12 is supported): " + family);
+    }
+
+    public static String canonicalFamily() {
+        return TAG_STANDARD_41H12.folder(); // "tagStandard41h12"
     }
 }
-

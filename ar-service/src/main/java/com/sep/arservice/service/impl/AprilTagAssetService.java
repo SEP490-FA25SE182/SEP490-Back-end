@@ -1,5 +1,6 @@
 package com.sep.arservice.service.impl;
 
+import com.sep.arservice.enums.AprilTagFamilySpec;
 import com.sep.arservice.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,20 +22,29 @@ public class AprilTagAssetService {
             double physicalWidthM,
             String markerCode
     ) {
-        // 1) fetch png
-        byte[] png = pngFetcher.fetchPng(tagFamily, tagId);
+        if (bookId == null || bookId.isBlank()) throw new IllegalArgumentException("bookId is blank");
+        if (physicalWidthM <= 0.0001) throw new IllegalArgumentException("physicalWidthM must be > 0");
 
-        // 2) render pdf
+        // ÉP family về tagStandard41h12 (backend chỉ support cái này)
+        String family = AprilTagFamilySpec.from(tagFamily).folder(); // "tagStandard41h12"
+
+        // 1) fetch đúng nguồn tagStandard41h12/tag41_12_XXXXX.png
+        byte[] pngRaw = pngFetcher.fetchPng(family, tagId);
+
+        // 2) upscale pixel-perfect + ép nhị phân
+        int targetPx = 1200;
+        byte[] pngPrintable = AprilTagImageUpscaler.upscaleNearestBinary(pngRaw, targetPx);
+
+        // 3) render PDF A4
         String title = "AprilTag " + markerCode;
-        byte[] pdf = pdfRenderer.renderA4(png, physicalWidthM, title);
+        byte[] pdf = pdfRenderer.renderA4(pngPrintable, physicalWidthM, title);
 
-        // 3) upload to Firebase Storage
-        // object paths
-        String base = String.format("markers/%s/%s/%d", bookId, tagFamily, tagId);
+        // 4) upload
+        String base = String.format("markers/%s/%s/%d", bookId, family, tagId);
         String pngPath = base + "/tag.png";
         String pdfPath = base + "/tag.pdf";
 
-        String pngUrl = storageService.save(pngPath, png, "image/png");
+        String pngUrl = storageService.save(pngPath, pngPrintable, "image/png");
         String pdfUrl = storageService.save(pdfPath, pdf, "application/pdf");
 
         return Map.of(
@@ -43,4 +53,3 @@ public class AprilTagAssetService {
         );
     }
 }
-

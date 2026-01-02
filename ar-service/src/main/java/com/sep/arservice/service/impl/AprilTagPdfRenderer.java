@@ -6,13 +6,11 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 @Service
 public class AprilTagPdfRenderer {
 
-    // 1 inch = 72pt; 1m = 39.37007874 inch
     private static float metersToPoints(double meters) {
         return (float) (meters * 39.37007874d * 72d);
     }
@@ -29,21 +27,15 @@ public class AprilTagPdfRenderer {
             float pageW = page.getMediaBox().getWidth();
             float pageH = page.getMediaBox().getHeight();
 
-            // desired printed width in points
             float targetW = metersToPoints(physicalWidthM);
-            float targetH = targetW; // tag is square
+            float targetH = targetW;
 
-            // center on page, keep some margin
             float x = (pageW - targetW) / 2f;
-            float y = (pageH - targetH) / 2f;
-
-            // move slightly up to leave room for caption
-            y += 40f;
+            float y = (pageH - targetH) / 2f + 40f;
 
             try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
                 cs.drawImage(img, x, y, targetW, targetH);
 
-                // Caption
                 cs.beginText();
                 cs.setFont(PDType1Font.HELVETICA, 12);
                 cs.newLineAtOffset(50, 40);
@@ -65,4 +57,3 @@ public class AprilTagPdfRenderer {
         }
     }
 }
-
