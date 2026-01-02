@@ -21,7 +21,7 @@ public class AprilTagPngFetcher {
 
         if (tagId < 0 || tagId > spec.maxId()) {
             throw new IllegalArgumentException(
-                    "tagId out of range for " + tagFamily + ": " + tagId + " (max=" + spec.maxId() + ")"
+                    "tagId out of range for " + spec.folder() + ": " + tagId + " (max=" + spec.maxId() + ")"
             );
         }
 
@@ -31,16 +31,13 @@ public class AprilTagPngFetcher {
         headers.setAccept(MediaType.parseMediaTypes("image/png,application/octet-stream"));
 
         ResponseEntity<byte[]> res = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                new HttpEntity<>(headers),
-                byte[].class
+                url, HttpMethod.GET, new HttpEntity<>(headers), byte[].class
         );
 
         if (!res.getStatusCode().is2xxSuccessful() || res.getBody() == null || res.getBody().length == 0) {
             throw new IllegalStateException("Cannot fetch AprilTag PNG: " + url + ", status=" + res.getStatusCode());
         }
+
         return res.getBody();
     }
 }
-

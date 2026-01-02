@@ -35,7 +35,7 @@ public class MarkerServiceImpl implements MarkerService {
     private final AprilTagAssetService aprilTagAssetService;
 
     private static final String MARKER_TYPE_APRILTAG = "APRILTAG";
-    private static final String DEFAULT_FAMILY = "tag36h11";
+    private static final String DEFAULT_FAMILY = "tagStandard41h12";
 
     @Override @Transactional(readOnly = true)
     public List<MarkerResponse> getAll() {
@@ -208,9 +208,9 @@ public class MarkerServiceImpl implements MarkerService {
 
     @Override
     public MarkerResponse createAprilTag(CreateAprilTagMarkerRequest req) {
-        String family = (req.getTagFamily() == null || req.getTagFamily().isBlank())
-                ? DEFAULT_FAMILY
-                : req.getTagFamily().trim();
+        String family = AprilTagFamilySpec.from(
+                (req.getTagFamily() == null || req.getTagFamily().isBlank()) ? DEFAULT_FAMILY : req.getTagFamily()
+        ).folder();
 
         double sizeM = (req.getPhysicalWidthM() != null && req.getPhysicalWidthM() > 0)
                 ? req.getPhysicalWidthM()
@@ -234,16 +234,13 @@ public class MarkerServiceImpl implements MarkerService {
             e.setBookId(req.getBookId());
             e.setTagFamily(family);
             e.setTagId(nextTagId);
-
             e.setMarkerType(MARKER_TYPE_APRILTAG);
 
-            //  ưu tiên markerCode từ client
             String markerCode = (req.getMarkerCode() != null && !req.getMarkerCode().isBlank())
                     ? req.getMarkerCode().trim()
                     : buildMarkerCode(req.getBookId(), family, nextTagId);
 
             e.setMarkerCode(markerCode);
-
             e.setPhysicalWidthM(sizeM);
             e.setUserId(req.getUserId());
             e.setIsActived(IsActived.ACTIVE);
@@ -278,6 +275,4 @@ public class MarkerServiceImpl implements MarkerService {
     private String buildMarkerCode(String bookId, String family, int tagId) {
         return bookId + ":" + family + ":" + tagId;
     }
-
 }
-
