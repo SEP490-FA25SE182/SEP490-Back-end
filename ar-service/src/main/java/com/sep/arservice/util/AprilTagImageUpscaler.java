@@ -1,4 +1,4 @@
-package com.sep.arservice.service.impl;
+package com.sep.arservice.util;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

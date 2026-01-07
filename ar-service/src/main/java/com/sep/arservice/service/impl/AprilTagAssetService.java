@@ -2,6 +2,7 @@ package com.sep.arservice.service.impl;
 
 import com.sep.arservice.enums.AprilTagFamilySpec;
 import com.sep.arservice.service.StorageService;
+import com.sep.arservice.util.AprilTagImageUpscaler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class AprilTagAssetService {
         if (bookId == null || bookId.isBlank()) throw new IllegalArgumentException("bookId is blank");
         if (physicalWidthM <= 0.0001) throw new IllegalArgumentException("physicalWidthM must be > 0");
 
-        // ÉP family về tagStandard41h12 (backend chỉ support cái này)
+        // ÉP family về tagStandard41h12
         String family = AprilTagFamilySpec.from(tagFamily).folder(); // "tagStandard41h12"
 
         // 1) fetch đúng nguồn tagStandard41h12/tag41_12_XXXXX.png

@@ -1,11 +1,13 @@
 package com.sep.arservice.controller;
 
 import com.sep.arservice.dto.CreateAprilTagMarkerRequest;
+import com.sep.arservice.dto.CreateMarkerIllustrationRequest;
 import com.sep.arservice.dto.MarkerRequest;
 import com.sep.arservice.dto.MarkerResponse;
 import com.sep.arservice.model.Marker;
 import com.sep.arservice.repository.MarkerRepository;
 import com.sep.arservice.service.MarkerService;
+import com.sep.arservice.service.impl.MarkerIllustrationService;
 import com.sep.arservice.service.impl.MarkerServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -27,6 +29,7 @@ import java.util.List;
 @Validated
 public class MarkerController {
     private final MarkerService service;
+    private final MarkerIllustrationService markerIllustrationService;
 
     @GetMapping public List<MarkerResponse> getAll(){ return service.getAll(); }
 
@@ -83,5 +86,10 @@ public class MarkerController {
     @PostMapping("/apriltag")
     public MarkerResponse createAprilTag(@RequestBody @Valid CreateAprilTagMarkerRequest req) {
         return service.createAprilTag(req);
+    }
+
+    @PostMapping("/illustration")
+    public MarkerResponse createMarkerIllustration(@RequestBody CreateMarkerIllustrationRequest req) {
+        return markerIllustrationService.createMarkerIllustration(req);
     }
 }
