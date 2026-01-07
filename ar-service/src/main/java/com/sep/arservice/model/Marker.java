@@ -63,7 +63,7 @@ public class Marker implements Serializable {
     @Column(name = "book_id", length = 50)
     private String bookId;
 
-    // AprilTag family (e.g. tag36h11)
+    // AprilTag family
     @Column(name = "tag_family", length = 50)
     private String tagFamily;
 

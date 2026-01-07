@@ -13,9 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface MarkerRepository extends JpaRepository<Marker, String> {
-    Optional<Marker> findByMarkerCodeIgnoreCase(String markerCode);
-    
-    Optional<Marker> findByMarkerCodeIgnoreCaseAndIsActived(String markerCode, IsActived isActived);
+    boolean existsByMarkerCode(String markerCode);
 
     boolean existsByMarkerCodeIgnoreCaseAndIsActived(String markerCode, IsActived isActived);
 
@@ -35,5 +33,6 @@ public interface MarkerRepository extends JpaRepository<Marker, String> {
 
     // list active markers for a book (manifest)
     List<Marker> findAllByBookIdAndIsActived(String bookId, IsActived isActived);
+
 }
 

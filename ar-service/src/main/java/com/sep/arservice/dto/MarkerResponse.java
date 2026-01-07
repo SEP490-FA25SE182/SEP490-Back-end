@@ -1,11 +1,13 @@
 package com.sep.arservice.dto;
 
 import com.sep.arservice.enums.IsActived;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
 
 @Data
+@Builder
 public class MarkerResponse {
     private String markerId;
     private String markerCode;
