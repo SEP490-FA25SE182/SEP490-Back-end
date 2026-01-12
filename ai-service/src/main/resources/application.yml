@@ -78,3 +78,20 @@ storage:
 
 firebase:
   service-account-file: ${FIREBASE_CREDENTIALS_PATH}
+
+moderation:
+  forbidden-words-vi-resource: classpath:forbidden-words.vi.txt
+  forbidden-words-en-resource: classpath:forbidden-words.en.txt
+  plagiarism:
+    shingle-size: 5
+    max-candidates: 2000
+    top-k: 5
+    flag-threshold: 0.35
+    max-content-chars-per-candidate: 8000
+  ai:
+    enabled: true
+    model-endpoint: /v1beta/models/gemini-2.0-flash:generateContent
+    max-input-chars: 12000
+
+rookie-service:
+  url: https://backend.arbookrookie.xyz/api/rookie
