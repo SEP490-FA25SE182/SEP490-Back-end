@@ -1,0 +1,7 @@
+# ======================================================================
+# File: Back-end/ai-service/src/main/resources/forbidden-words.vi.txt
+# ======================================================================
+# Mỗi dòng 1 từ/cụm từ, bắt đầu bằng # là comment
+tục
+chửi
+lừa đảo
