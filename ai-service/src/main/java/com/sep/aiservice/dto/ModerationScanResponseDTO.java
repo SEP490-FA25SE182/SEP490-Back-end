@@ -18,8 +18,12 @@ public class ModerationScanResponseDTO {
 
     private double maxSimilarity;
     private boolean plagiarismFlag;
+
     @Builder.Default
     private List<PlagiarismHitDTO> plagiarismHits = new ArrayList<>();
+
+    @Builder.Default
+    private List<OnlinePlagiarismSourceDTO> onlineSources = new ArrayList<>();
 
     private String aiRiskLevel;
     private String aiAction;
